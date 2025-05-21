@@ -56,8 +56,8 @@ function App() {
             <option value="toongod">Toongod</option>
           </select>
 
-          <button className="w-full py-3 rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold hover:opacity-90">
-            Download
+          <button className="w-full cursor-pointer py-3 rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold hover:opacity-90">
+            Search
           </button>
         </div>
       </main>
