@@ -29,7 +29,7 @@ function App() {
             onClick={() => setDarkMode(!darkMode)}
             className="w-24 sm:w-32 px-2 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold mr-2 sm:mr-4"
           >
-            {darkMode ? "Light" : "Dark"}
+            {darkMode ? "Light Mode" : "Dark Mode"}
           </button>
         </div>
       </header>
@@ -48,7 +48,12 @@ function App() {
 
           <select className="w-full p-3 mb-4 rounded border border-gray-200 dark:border-[#2e2b40] bg-white dark:bg-[#1c1b29] text-gray-900 dark:text-[#f4f4ff]">
             <option value="mangadex">MangaDex</option>
-            <option value="asurascans">AsuraScans</option>
+            <option value="manhuas">Manhuas</option>
+            <option value="yakshascans">Yakshascans</option>
+            <option value="asurascans">Asurascan</option>
+            <option value="kunmanga">Kunmanga</option>
+            <option value="toonily">Toonily</option>
+            <option value="toongod">Toongod</option>
           </select>
 
           <button className="w-full py-3 rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold hover:opacity-90">
