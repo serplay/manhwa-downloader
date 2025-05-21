@@ -1,35 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import logo from "./assets/logo.png";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check localStorage or default to false
+    const saved = localStorage.getItem("theme");
+    return saved === "dark";
+  });
+
+  useEffect(() => {
+    // Toggle the HTML class
+    document.documentElement.classList.toggle("dark", darkMode);
+    // Save preference
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-white text-gray-900 dark:bg-[#0d0c1b] dark:text-[#f4f4ff]">
+      <header className="border-b border-gray-200 dark:border-[#2e2b40] bg-[#f9f9f9] dark:bg-[#1a152b]">
+        <div className="max-w-full mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center">
+            <img src={logo} alt="logo" className="w-10 h-10 rounded-md" />
+            <h2 className="text-lg font-semibold ml-4">
+              Manga & Manhwa Downloader
+            </h2>
+          </div>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="w-32 px-4 py-2 rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold mr-4"
+          >
+            {darkMode ? "Light Mode" : "Dark Mode"}
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 flex flex-col items-center justify-center p-8">
+        <div className="w-full max-w-md p-6 bg-[#f9f9f9] dark:bg-[#1a152b] border border-gray-200 dark:border-[#2e2b40] rounded-xl shadow-md dark:shadow-violet-500/50">
+          <h1 className="text-2xl font-bold text-center mb-4">
+            Manga & Manhwa Downloader
+          </h1>
+
+          <input
+            type="text"
+            placeholder="Enter title..."
+            className="w-full p-3 mb-4 rounded border border-gray-200 dark:border-[#2e2b40] bg-white dark:bg-[#1c1b29] text-gray-900 dark:text-[#f4f4ff]"
+          />
+
+          <select className="w-full p-3 mb-4 rounded border border-gray-200 dark:border-[#2e2b40] bg-white dark:bg-[#1c1b29] text-gray-900 dark:text-[#f4f4ff]">
+            <option value="mangadex">MangaDex</option>
+            <option value="asurascans">AsuraScans</option>
+          </select>
+
+          <button className="w-full py-3 rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold hover:opacity-90">
+            Download
+          </button>
+        </div>
+      </main>
+
+      <footer className="border-t border-gray-200 dark:border-[#2e2b40] bg-[#f9f9f9] dark:bg-[#1a152b]">
+        <div className="max-w-7xl mx-auto px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-400">
+          © 2025 Manga & Manhwa Downloader
+        </div>
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
