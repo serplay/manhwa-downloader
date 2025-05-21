@@ -20,16 +20,16 @@ function App() {
       <header className="border-b border-gray-200 dark:border-[#2e2b40] bg-[#f9f9f9] dark:bg-[#1a152b]">
         <div className="max-w-full mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
-            <img src={logo} alt="logo" className="w-10 h-10 rounded-md" />
-            <h2 className="text-lg font-semibold ml-4">
+            <img src={logo} alt="logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-md" />
+            <h2 className="text-base sm:text-lg font-semibold ml-2 sm:ml-4">
               Manga & Manhwa Downloader
             </h2>
           </div>
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="w-32 px-4 py-2 rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold mr-4"
+            className="w-24 sm:w-32 px-2 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded bg-pink-500 dark:bg-violet-500 text-white font-semibold mr-2 sm:mr-4"
           >
-            {darkMode ? "Light Mode" : "Dark Mode"}
+            {darkMode ? "Light" : "Dark"}
           </button>
         </div>
       </header>
