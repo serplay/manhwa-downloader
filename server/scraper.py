@@ -1,15 +1,36 @@
-import beautifulsoup4 as bs4
+from bs4 import BeautifulSoup as bs 
 import requests as req
 import re
 
 def search(title, source):
+    try:
+        source = int(source)
+    except ValueError:
+        return None
+    
     match source:
         case 0: #MangaDex
             base_url = "https://api.mangadex.org"
             r = req.get(f"{base_url}/manga",
-                        params={"title": title}
+                        params={"title": title,
+                                "includes[]":"cover_art"}
                         )
-            return
+            data = r.json()["data"]
+            if data:
+                comics = {}
+                for num,com in enumerate(data):
+                    title = com["attributes"]["title"]
+                    id = com["id"]
+                    rel = com["relationships"]
+                    for i in rel:
+                        if i["type"] == "cover_art":
+                            cover_art = f'https://uploads.mangadex.org/covers/{id}/{i["attributes"]["fileName"]}.256.jpg'
+                            break
+                    comics[num] = {"id":com["id"], 
+                                   "title":com["attributes"]["title"], 
+                                   "cover_art":cover_art, 
+                                   }
+                return comics
         case 1: #Manghuas
             return
         case 2: #Yakshascans
