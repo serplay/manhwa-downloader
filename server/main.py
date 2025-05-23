@@ -38,11 +38,11 @@ async def search(title: str = Query(..., description="Title of the comic"),
     return {"message": "No comics found"}
 
 @app.get("/chapters/")
-async def get_chapters(url: str = Query(..., description="URL of the comic"), 
+async def get_chapters(id: str = Query(..., description="Id of the comic"), 
                        source: str = Query(..., description="Source of the comic"),
                        ):
     """
     Get chapters of a comic.
     """
-    chapters = scraper.get_chapters(url, source)
+    chapters = scraper.get_chapters(id, source)
     return {"chapters": chapters}
