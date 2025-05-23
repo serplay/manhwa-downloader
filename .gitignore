@@ -13,6 +13,7 @@ dist-ssr
 *.local
 venv
 __pycache__
+test.json
 
 # Editor directories and files
 .vscode/*
