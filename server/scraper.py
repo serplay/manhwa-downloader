@@ -6,7 +6,7 @@ def search(title, source):
     try:
         source = int(source)
     except ValueError:
-        return None
+        return {"message": "Invalid source"}
     
     match source:
         case 0: #MangaDex
