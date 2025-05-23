@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -121,7 +123,28 @@ function App() {
                       </button>
                     </div>
                     <div className="flex-1">
-                      <p className="text-lg font-semibold">{comic.title.en}</p>
+                      <p className="text-lg font-semibold">
+                        {comic.title.en || Object.values(comic.title)[0]}
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Languages: </span>
+                        {comic.availableLanguages.map((lang) => (
+                          <span key={lang} className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                            {lang}
+                            {lang === 'en' ? (
+                              <FontAwesomeIcon icon={faCircleCheck} className="text-green-500" />
+                            ) : (
+                              <FontAwesomeIcon icon={faCircleCheck} className="text-green-500" />
+                            )}
+                          </span>
+                        ))}
+                        {!comic.availableLanguages.includes('en') && (
+                          <span className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                            en
+                            <FontAwesomeIcon icon={faCircleXmark} className="text-red-500" />
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 ))
