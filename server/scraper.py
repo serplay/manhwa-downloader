@@ -13,7 +13,7 @@ def search(title, source):
             base_url = "https://api.mangadex.org"
             r = req.get(f"{base_url}/manga",
                         params={"title": title,
-                                "includes[]":"cover_art"}
+                                "includes[]":["cover_art"]}
                         )
             data = r.json()["data"]
             if data:
@@ -55,11 +55,17 @@ def get_chapters(id: str, source: int):
     match source:
         case 0: #MangaDex
             base_url = "https://api.mangadex.org"
-            r = req.get(f"{base_url}/manga/{id}/feed",
-                        params={
-                               }
+            r = req.get(f"{base_url}/manga/{id}/aggregate",
+                        params={"translatedLanguage[]": ["en"]
+                                }
                         )
-            return r.content
+            data = r.json()["volumes"]
+            
+            for vol in data:
+                for chap in data[vol]["chapters"]:
+                    del data[vol]["chapters"][chap]["others"]
+                    del data[vol]["chapters"][chap]["count"]
+            return data
         case 1: #Manghuas
             return
         case 2: #Yakshascans
