@@ -333,7 +333,7 @@ function App() {
                                             chData.id
                                           )
                                         }
-                                        className={`px-3 py-1 rounded-md text-sm transition-colors focus:outline-none ${
+                                        className={`px-3 py-1 rounded-md text-sm transition-colors focus:outline-none cursor-pointer ${
                                           selectedChapters[comic.id]?.includes(
                                             chData.id
                                           )
@@ -352,14 +352,14 @@ function App() {
                             <div className="flex gap-4 mt-2">
                               <button
                                 onClick={() => selectAllChapters(comic.id)}
-                                className="px-3 py-1 rounded-md bg-pink-500 text-white dark:bg-violet-500 hover:opacity-90"
+                                className="px-3 py-1 rounded-md bg-pink-500 text-white dark:bg-violet-500 hover:opacity-90 cursor-pointer"
                               >
                                 Select All
                               </button>
                               <button
                                 onClick={() => handleDownload(comic.id)}
                                 disabled={isDownloading || !selectedChapters[comic.id]?.length}
-                                className={`px-3 py-1 rounded-md ${
+                                className={`px-3 py-1 rounded-md cursor-pointer ${
                                   isDownloading || !selectedChapters[comic.id]?.length
                                     ? 'bg-gray-400 cursor-not-allowed'
                                     : 'bg-green-500 hover:opacity-90'
