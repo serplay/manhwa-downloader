@@ -45,4 +45,4 @@ async def get_chapters(id: str = Query(..., description="Id of the comic"),
     Get chapters of a comic.
     """
     chapters = scraper.get_chapters(id, source)
-    return {"chapters": chapters}
+    return chapters
