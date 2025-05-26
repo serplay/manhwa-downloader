@@ -15,15 +15,15 @@ app.add_middleware(
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/download/")
-async def download_chapter(url: str = Query(..., description="URL of the book"), 
-                           chapter: str = Query(..., description="Chapter name"),
+@app.get("/download")
+async def download_chapter(ids: list = Query(..., description="List of IDs", alias="ids[]"), 
+                           source: str = Query(..., description="Source number"),
                            ):
     """
     Download archive with selected chapters.
     """
-    pdf_path = pdf_gen.generate_pdf(url, chapter)
-    return {"pdf_path": pdf_path}
+    pdf_gen.get_chapter_images(ids, source)
+    return {"message": f"Download request received for {len(ids)} chapters", "ids": ids}
 
 @app.get("/search/")
 async def search(title: str = Query(..., description="Title of the comic"), 
