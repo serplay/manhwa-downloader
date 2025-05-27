@@ -1,44 +1,111 @@
+
 # 📚 Manga & Manhwa Downloader
 
-A slick, fast, and lightweight web app that lets you **search for manga or manhwa**, pick a source, and **download individual chapters as PDFs**.
+A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading .
 
-Built with **Vite + React** for a smooth frontend experience, and a **Python Flask** backend for scraping and PDF generation.
+> ⚠️ This project is under **active development**. Most functionality is not complete.
 
 ---
 
 ## ✨ Features
 
-- 🔍 Search for **Manga** or **Manhwa**
-- 🌐 Choose from multiple source websites
-- 📃 Select and download **individual chapters**
-- 🖼️ Automatically scrape and compile chapter images
-- 📂 Get **one PDF per chapter** (not a bloated full series file)
-- ⚡ Fast frontend with **Vite** + Tailwind CSS
-- 🚀 Built for speed, clarity, and ease of use
+### Frontend (React)
+
+- 🔍 Title search from multiple sources like MangaDex, Asurascan, Toonily, etc.
+- 🌗 Fully functional dark/light mode toggle.
+- 🎨 Smooth animations via Framer Motion.
+- 📚 Shows available chapters grouped by volume with dynamic dropdowns.
+- ✅ Select individual chapters or select all in preparation for downloads.
+- 📱 Responsive and visually modern UI with Tailwind CSS.
+
+### Backend (FastAPI)
+
+- 📡 API endpoints:
+  - `/search/` – Fetch titles from supported sources.
+  - `/chapters/` – Retrieve volume and chapter information for a given title.
+  - `/download/` - Download specified chapters
+- 📥 Download-ready architecture (future feature).
+- 🧼 Clean HTML scraping with BeautifulSoup (future feature).
 
 ---
 
-## 🛠️ Tech Stack
+## 🧰 Tech Stack
 
-| Frontend          | Backend         | Tools               |
-|------------------|-----------------|---------------------|
-| React + Vite     | Python + Flask  | Tailwind CSS        |
-| Fetch API        | BeautifulSoup   | img2pdf / PyMuPDF   |
-| FormData API     | Flask-CORS      | Vercel / Render     |
+| Layer     | Tech                                                                 |
+|-----------|----------------------------------------------------------------------|
+| Frontend  | React, Tailwind CSS, Framer Motion, FontAwesome                      |
+| Backend   | FastAPI, Uvicorn, BeautifulSoup, img2pdf, requests                   |
 
 ---
 
 ## 🚀 Getting Started
 
-### 🔧 Frontend (React + Vite)
+### 🔧 Prerequisites
+
+- Node.js (>=14)
+- Python (>=3.10)
+- npm or yarn
+- pip
+
+---
+
+### 📦 Backend Setup
 
 ```bash
-# Clone the repo
-git clone https://github.com/yourusername/manga-manhwa-downloader.git
-cd manga-manhwa-downloader
+# Clone repository
+git clone https://github.com/yourusername/manga-downloader.git
+cd manga-downloader/backend
 
-# Install dependencies
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Run FastAPI server
+uvicorn main:app --reload
+````
+
+> Ensure your backend is running at `http://localhost:8000` for frontend requests.
+
+---
+
+### 🎨 Frontend Setup
+
+```bash
+cd ../frontend  # or wherever your React code lives
+
+# Install Node dependencies
 npm install
 
 # Start development server
 npm run dev
+```
+
+---
+
+## 🛠️ To-Do
+
+- [x] Title search from multiple sources
+- [x] Animated dark mode toggle
+- [x] Display chapter list under each comic with dropdown
+- [x] Chapter selection UI
+- [ ] Implement backend support for chapter image retrieval
+- [ ] Add "Download" functionality (PDF/image bundles)
+- [ ] Deploy frontend & backend
+- [ ] Write tests and error handling
+
+---
+
+## 🤝 Contributions
+
+Pull requests, suggestions, and feedback are welcome! Open an issue or fork the project to get started.
+
+---
+
+## 👨‍💻 Author
+
+Created by [Infinity](https://github.com/serplay) — feel free to reach out or fork this project!
+
+---
