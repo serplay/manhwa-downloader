@@ -104,15 +104,17 @@ function App() {
     Object.values(chaptersByVolume).forEach((chapters) => {
       Object.values(chapters).forEach((ch) => allChapters.push(ch.id));
     });
-    
+
     // Check if all chapters are currently selected
     const currentSelected = selectedChapters[comicId] || [];
-    const areAllSelected = allChapters.every(id => currentSelected.includes(id));
-    
+    const areAllSelected = allChapters.every((id) =>
+      currentSelected.includes(id)
+    );
+
     // If all are selected, deselect all. Otherwise, select all
-    setSelectedChapters((prev) => ({ 
-      ...prev, 
-      [comicId]: areAllSelected ? [] : allChapters 
+    setSelectedChapters((prev) => ({
+      ...prev,
+      [comicId]: areAllSelected ? [] : allChapters,
     }));
   };
 
@@ -123,19 +125,27 @@ function App() {
 
     setIsDownloading(true);
     try {
-      // Format chapter IDs as array parameters
+      // Format chapter IDs as array parameters with chapter numbers
       const params = new URLSearchParams();
-      chapterIds.forEach(id => params.append('ids[]', id));
-      params.append('source', source);
+      Object.entries(chaptersByComicId[comicId]).forEach(([volumeName, chapters]) => {
+        Object.entries(chapters).forEach(([chNumber, chData]) => {
+          if (chapterIds.includes(chData.id)) {
+            params.append("ids[]", `${chData.id}_${chNumber}`);
+          }
+        });
+      });
+      params.append("source", source);
 
-      const response = await fetch(`http://localhost:8000/download/?${params.toString()}`);
+      const response = await fetch(
+        `http://localhost:8000/download/?${params.toString()}`
+      );
       if (!response.ok) {
-        throw new Error('Download failed');
+        throw new Error("Download failed");
       }
-      // Handle successful download response here if needed
+      // Handle successful download response here
     } catch (error) {
-      console.error('Download error:', error);
-      // Handle error here if needed
+      console.error("Download error:", error);
+      // Handle error here
     } finally {
       setIsDownloading(false);
     }
@@ -250,14 +260,16 @@ function App() {
                         <button
                           onClick={() => {
                             if (expandedComics.has(comic.id)) {
-                              setExpandedComics(prev => {
+                              setExpandedComics((prev) => {
                                 const next = new Set(prev);
                                 next.delete(comic.id);
                                 return next;
                               });
                             } else {
                               fetchChapters(comic.id);
-                              setExpandedComics(prev => new Set(prev).add(comic.id));
+                              setExpandedComics((prev) =>
+                                new Set(prev).add(comic.id)
+                              );
                             }
                           }}
                           className="w-full flex items-center gap-4 bg-white dark:bg-[#30274c] rounded-xl p-4 shadow-md relative group overflow-hidden hover:bg-gray-50 dark:hover:bg-[#3a2f5a] transition-colors focus:outline-none cursor-pointer"
@@ -313,63 +325,70 @@ function App() {
                         </button>
 
                         {/* Chapters section */}
-                        {chaptersByComicId[comic.id] && expandedComics.has(comic.id) && (
-                          <div className="ml-6 mt-2 bg-gray-50 dark:bg-[#201a35] rounded-lg p-4">
-                            {Object.entries(
-                              chaptersByComicId[comic.id]
-                            ).map(([volumeName, chapters]) => (
-                              <div key={volumeName} className="mb-4">
-                                <h4 className="font-semibold mb-2 text-pink-600 dark:text-violet-400">
-                                  {volumeName}
-                                </h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.entries(chapters).map(
-                                    ([chNumber, chData]) => (
-                                      <button
-                                        key={chData.id}
-                                        onClick={() =>
-                                          toggleChapterSelection(
-                                            comic.id,
-                                            chData.id
-                                          )
-                                        }
-                                        className={`px-3 py-1 rounded-md text-sm transition-colors focus:outline-none cursor-pointer ${
-                                          selectedChapters[comic.id]?.includes(
-                                            chData.id
-                                          )
-                                            ? "bg-pink-500 text-white dark:bg-violet-500"
-                                            : "bg-gray-200 dark:bg-[#2e2b40] text-gray-800 dark:text-gray-300 hover:bg-pink-100 dark:hover:bg-violet-600"
-                                        }`}
-                                      >
-                                        {`Ch ${chNumber}`}
-                                      </button>
-                                    )
-                                  )}
-                                </div>
+                        {chaptersByComicId[comic.id] &&
+                          expandedComics.has(comic.id) && (
+                            <div className="ml-6 mt-2 bg-gray-50 dark:bg-[#201a35] rounded-lg p-4">
+                              {Object.entries(chaptersByComicId[comic.id]).map(
+                                ([volumeName, chapters]) => (
+                                  <div key={volumeName} className="mb-4">
+                                    <h4 className="font-semibold mb-2 text-pink-600 dark:text-violet-400">
+                                      {volumeName}
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {Object.entries(chapters).map(
+                                        ([chNumber, chData]) => (
+                                          <button
+                                            key={chData.id}
+                                            onClick={() =>
+                                              toggleChapterSelection(
+                                                comic.id,
+                                                chData.id
+                                              )
+                                            }
+                                            className={`px-3 py-1 rounded-md text-sm transition-colors focus:outline-none cursor-pointer ${
+                                              selectedChapters[
+                                                comic.id
+                                              ]?.includes(chData.id)
+                                                ? "bg-pink-500 text-white dark:bg-violet-500"
+                                                : "bg-gray-200 dark:bg-[#2e2b40] text-gray-800 dark:text-gray-300 hover:bg-pink-100 dark:hover:bg-violet-600"
+                                            }`}
+                                          >
+                                            {`Ch ${chNumber}`}
+                                          </button>
+                                        )
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                              {/* Chapter action buttons */}
+                              <div className="flex gap-4 mt-2">
+                                <button
+                                  onClick={() => selectAllChapters(comic.id)}
+                                  className="px-3 py-1 rounded-md bg-pink-500 text-white dark:bg-violet-500 hover:opacity-90 cursor-pointer"
+                                >
+                                  Select All
+                                </button>
+                                <button
+                                  onClick={() => handleDownload(comic.id)}
+                                  disabled={
+                                    isDownloading ||
+                                    !selectedChapters[comic.id]?.length
+                                  }
+                                  className={`px-3 py-1 rounded-md cursor-pointer ${
+                                    isDownloading ||
+                                    !selectedChapters[comic.id]?.length
+                                      ? "bg-gray-400 cursor-not-allowed"
+                                      : "bg-green-500 hover:opacity-90"
+                                  } text-white`}
+                                >
+                                  {isDownloading
+                                    ? "Downloading..."
+                                    : "Download"}
+                                </button>
                               </div>
-                            ))}
-                            {/* Chapter action buttons */}
-                            <div className="flex gap-4 mt-2">
-                              <button
-                                onClick={() => selectAllChapters(comic.id)}
-                                className="px-3 py-1 rounded-md bg-pink-500 text-white dark:bg-violet-500 hover:opacity-90 cursor-pointer"
-                              >
-                                Select All
-                              </button>
-                              <button
-                                onClick={() => handleDownload(comic.id)}
-                                disabled={isDownloading || !selectedChapters[comic.id]?.length}
-                                className={`px-3 py-1 rounded-md cursor-pointer ${
-                                  isDownloading || !selectedChapters[comic.id]?.length
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-green-500 hover:opacity-90'
-                                } text-white`}
-                              >
-                                {isDownloading ? 'Downloading...' : 'Download'}
-                              </button>
                             </div>
-                          </div>
-                        )}
+                          )}
                       </motion.div>
                     ))
                   )}
