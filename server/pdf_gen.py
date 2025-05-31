@@ -1,40 +1,76 @@
 import img2pdf
 import requests as req
 import os
+import shutil
+import uuid
+from zipfile import ZipFile
+
 
 def get_chapter_images(ids, source):
     # Download images, save them temporarily
     try:
         source = int(source)
     except ValueError:
-        return {"message": "Invalid source"}
+        return None
     match source:
-        case 0: #MangaDex
+        case 0:  # MangaDex
             athome_url = "https://api.mangadex.org/at-home/server/"
+            path = uuid.uuid4().hex
+            pdfs = []
+            os.makedirs(f"{path}", exist_ok=True)
             for chap_id in ids:
+                chap_id, chap_num = chap_id.split("_")
+                ch_path = f"{path}/{chap_num}"
+                os.makedirs(f"{ch_path}", exist_ok=True)
                 data = req.get(f"{athome_url}{chap_id}").json()
                 baseUrl = data["baseUrl"]
                 hash_url = data["chapter"]["hash"]
                 images = data["chapter"]["data"]
-                image_links = [f'{baseUrl}/data/{hash_url}/{image}' for image in images]
-                print(image_links)
-        case 1: #Manghuas
+                image_links = [f"{baseUrl}/data/{hash_url}/{image}" for image in images]
+                pdfs.append(gen_pdf(image_links, chap_num, path))
+                shutil.rmtree(ch_path)
+
+            zip_path = f"{path}/Chapters.zip"
+            with ZipFile(zip_path, "w") as chapters_zip:
+                for pdf in pdfs:
+                    chapters_zip.write(pdf, os.path.basename(pdf))
+                    os.remove(pdf)
+            return zip_path
+        case 1:  # Manghuas
             return
-        case 2: #Yakshascans
+        case 2:  # Yakshascans
             return
-        case 3: #Asurascan
+        case 3:  # Asurascan
             return
-        case 4: #Kunmanga
+        case 4:  # Kunmanga
             return
-        case 5: #Toonily
+        case 5:  # Toonily
             return
-        case 6: #Toongod
+        case 6:  # Toongod
             return
-    
+
+
 # generate PDF
-def gen_pdf():
-    pdf_path = f"{title}.pdf"
+def gen_pdf(images, chap_num, path):
+    image_paths = []
+    ch_path = f"{path}/{chap_num}"
+    for i, img_url in enumerate(images):
+        extension = img_url.split(".")[-1]
+        img_data = req.get(img_url).content
+        img_path = f"{ch_path}/{i}.{extension}"
+        with open(img_path, "wb") as img_file:
+            img_file.write(img_data)
+        image_paths.append(img_path)
+    title = f"Chapter_{chap_num}"
+    pdf_path = f"{path}/{title}.pdf"
     with open(pdf_path, "wb") as f:
         f.write(img2pdf.convert(image_paths))
     return pdf_path
 
+
+def cleanup(path):
+    path = path[:-12]
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    else:
+        print(f"The path {path} does not exist.")

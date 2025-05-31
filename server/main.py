@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 import scraper
 import pdf_gen
 
@@ -11,24 +13,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
+
 @app.get("/download")
-async def download_chapter(ids: list = Query(..., description="List of IDs", alias="ids[]"), 
-                           source: str = Query(..., description="Source number"),
-                           ):
+async def download_chapter(
+    ids: list = Query(..., description="List of IDs", alias="ids[]"),
+    source: str = Query(..., description="Source number"),
+):
     """
     Download archive with selected chapters.
     """
-    pdf_gen.get_chapter_images(ids, source)
-    return {"message": f"Download request received for {len(ids)} chapters", "ids": ids}
+    try:
+        zip_path = pdf_gen.get_chapter_images(ids, source)
+        if not zip_path:
+            return {"error": "Failed to generate zip file"}
+
+        return FileResponse(
+            path=zip_path,
+            filename="Chapters.zip",
+            media_type="application/zip",
+            background=BackgroundTask(
+                pdf_gen.cleanup, zip_path
+            ),  # Cleanup after sending
+        )
+    except Exception as e:
+        return {"error": str(e)}
+
 
 @app.get("/search/")
-async def search(title: str = Query(..., description="Title of the comic"), 
-                 source: str = Query(..., description="Source of the book"), 
-                 ):
+async def search(
+    title: str = Query(..., description="Title of the comic"),
+    source: str = Query(..., description="Source of the book"),
+):
     """
     Search for a comic.
     """
@@ -37,10 +57,12 @@ async def search(title: str = Query(..., description="Title of the comic"),
         return comics
     return {"message": "No comics found"}
 
+
 @app.get("/chapters/")
-async def get_chapters(id: str = Query(..., description="Id of the comic"), 
-                       source: str = Query(..., description="Source of the comic"),
-                       ):
+async def get_chapters(
+    id: str = Query(..., description="Id of the comic"),
+    source: str = Query(..., description="Source of the comic"),
+):
     """
     Get chapters of a comic.
     """
