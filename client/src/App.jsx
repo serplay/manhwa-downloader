@@ -142,7 +142,21 @@ function App() {
       if (!response.ok) {
         throw new Error("Download failed");
       }
-      // Handle successful download response here
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Chapters.zip';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error("Download error:", error);
       // Handle error here
