@@ -224,7 +224,7 @@ function App() {
             className="p-3 rounded-xl border border-gray-200 dark:border-[#2e2b40] bg-white dark:bg-[#1c1b29] text-gray-900 dark:text-[#f4f4ff] hover:outline-none focus:outline-none focus:border-pink-500 dark:focus:border-violet-500"
           >
             <option value="0">MangaDex</option>
-            <option value="1">Manghuas</option>
+            <option value="1">Manhuaus</option>
             <option value="2">Yakshascans</option>
             <option value="3">Asurascan</option>
             <option value="4">Kunmanga</option>
