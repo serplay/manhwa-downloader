@@ -92,9 +92,9 @@ def get_chapters(id: str, source: int):
             data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
             for i, chap in enumerate(chapters):
                 chap_data = chap.a
-                chap_num =re.sub(r"[Cc]hapter ","",re.sub(r'[\t\r\n]', '', chap_data.contents[0]))
+                chap_num =re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap_data.contents[0])
                 chap_id = chap_data["href"].split("/")[-2]
-                data["Vol 1"]["chapters"][str(i)] = {"id": chap_id, "chapter": chap_num}
+                data["Vol 1"]["chapters"][str(i)] = {"id": f'{id}/{chap_id}', "chapter": chap_num}
             return data
         case 2: #Yakshascans
             return
