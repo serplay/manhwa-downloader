@@ -33,8 +33,27 @@ def search(title, source):
                                    "availableLanguages":trans,
                                    }
                 return comics
-        case 1: #Manghuas
-            return
+        case 1: #Manhuaus
+            print(f"Searching for {title} in Manhuaus...")
+            base_url = "https://manhuaus.com"
+            r = req.get(base_url,
+                        params={
+                            "s":title,
+                            "post_type":"wp-manga"
+                        })
+            soup = bs(r.text, "html.parser")
+            comics = {}
+            for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
+                title_and_link = com.find("h3",{"class":"h4"}).find("a")
+                title = {"en":title_and_link.text}
+                link = title_and_link["href"][27:-1]
+                image_cover = com.find("img")["data-src"]
+                comics[num] = {"title":title, 
+                               "id":link, 
+                               "cover_art":image_cover, 
+                               "availableLanguages": ["en"], 
+                               }
+            return comics
         case 2: #Yakshascans
             return
         case 3: #Asurascan
@@ -66,7 +85,8 @@ def get_chapters(id: str, source: int):
                     del data[vol]["chapters"][chap]["others"]
                     del data[vol]["chapters"][chap]["count"]
             return data
-        case 1: #Manghuas
+        case 1: #Manhuaus
+            base_url = "https://www.manhuaus.com"
             return
         case 2: #Yakshascans
             return
