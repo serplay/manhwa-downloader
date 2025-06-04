@@ -130,7 +130,7 @@ function App() {
       Object.entries(chaptersByComicId[comicId]).forEach(([volumeName, chapters]) => {
         Object.entries(chapters).forEach(([chNumber, chData]) => {
           if (chapterIds.includes(chData.id)) {
-            params.append("ids[]", `${chData.id}_${chNumber}`);
+            params.append("ids[]", `${chData.id}_${chData.chapter}`);
           }
         });
       });
@@ -367,7 +367,7 @@ function App() {
                                                 : "bg-gray-200 dark:bg-[#2e2b40] text-gray-800 dark:text-gray-300 hover:bg-pink-100 dark:hover:bg-violet-600"
                                             }`}
                                           >
-                                            {`Ch ${chNumber}`}
+                                            {`Ch ${chData.chapter}`}
                                           </button>
                                         )
                                       )}
