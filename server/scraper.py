@@ -34,7 +34,6 @@ def search(title, source):
                                    }
                 return comics
         case 1: #Manhuaus
-            print(f"Searching for {title} in Manhuaus...")
             base_url = "https://manhuaus.com"
             r = req.get(base_url,
                         params={
@@ -89,12 +88,14 @@ def get_chapters(id: str, source: int):
             base_url = "https://manhuaus.com/manga/"
             r = req.get(f"{base_url}{id}/")
             soup = bs(r.text, "html.parser")
-            max_chap = re.sub(r'[\t\r\n]','',soup.find("ul",{"class":"main version-chap no-volumn"}).find("li").contents[1].contents[0])
-            max_chap_num = int(re.search(r'\d+', max_chap).group())
-            chapters = {"Vol 1":{"volume": "Vol 1", "count":f"{max_chap_num}", "chapters":{}}}
-            for i in range(max_chap_num+1):
-                chapters["Vol 1"]["chapters"][str(i)] = {"id": f"chapter-{i}", "chapter": f'{i}'}
-            return chapters
+            chapters = soup.find("ul",{"class":"main version-chap no-volumn"}).find_all("li")
+            data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
+            for i, chap in enumerate(chapters):
+                chap_data = chap.a
+                chap_num =re.sub(r"[Cc]hapter ","",re.sub(r'[\t\r\n]', '', chap_data.contents[0]))
+                chap_id = chap_data["href"].split("/")[-2]
+                data["Vol 1"]["chapters"][str(i)] = {"id": chap_id, "chapter": chap_num}
+            return data
         case 2: #Yakshascans
             return
         case 3: #Asurascan
