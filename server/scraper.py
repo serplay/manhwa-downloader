@@ -99,8 +99,3 @@ def get_chapters(id: str, source: int):
         case 6: #Toongod
             return
     return
-
-def search_chapters(chapters, keyword):
-    return [
-        chapter for chapter in chapters
-    ]
