@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
@@ -16,13 +16,14 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "It Works!"}
 
 
 @app.get("/download")
 async def download_chapter(
     ids: list = Query(..., description="List of IDs", alias="ids[]"),
     source: str = Query(..., description="Source number"),
+    response: Response = Response(status_code=200)
 ):
     """
     Download archive with selected chapters.
@@ -30,6 +31,7 @@ async def download_chapter(
     try:
         zip_path = pdf_gen.get_chapter_images(ids, source)
         if not zip_path:
+            response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return {"error": "Failed to generate zip file"}
 
         return FileResponse(
@@ -41,6 +43,7 @@ async def download_chapter(
             ),  # Cleanup after sending
         )
     except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"error": str(e)}
 
 

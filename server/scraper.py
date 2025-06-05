@@ -41,6 +41,8 @@ def search(title, source):
                             "post_type":"wp-manga"
                         })
             soup = bs(r.text, "html.parser")
+            if soup.find("span", {"id":"challenge-error-text"}):
+                return {"error": "Cloudflare challenge failed."}
             comics = {}
             for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
                 title_and_link = com.find("h3",{"class":"h4"}).find("a")
@@ -88,6 +90,8 @@ def get_chapters(id: str, source: int):
             base_url = "https://manhuaus.com/manga/"
             r = req.get(f"{base_url}{id}/")
             soup = bs(r.text, "html.parser")
+            if soup.find("span", {"id":"challenge-error-text"}):
+                return {"error": "Cloudflare challenge failed."}
             chapters = soup.find("ul",{"class":"main version-chap no-volumn"}).find_all("li")
             data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
             for i, chap in enumerate(chapters):
