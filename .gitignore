@@ -26,3 +26,5 @@ test.py
 *.njsproj
 *.sln
 *.sw?
+downloaded_files
+latest_logs

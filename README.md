@@ -11,7 +11,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 
 ### Frontend (React)
 
-- 🔍 Title search from multiple sources like MangaDex, Asurascan, Toonily, etc.
+- 🔍 Title search from multiple sources like MangaDex, Asurascan, Toonily, etc. (For now only MangaDex is functional)
 - 🌗 Fully functional dark/light mode toggle.
 - 🎨 Smooth animations via Framer Motion.
 - 📚 Shows available chapters grouped by volume with dynamic dropdowns.
@@ -25,7 +25,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
   - `/chapters/` – Retrieve volume and chapter information for a given title.
   - `/download/` - Download specified chapters
 - 📥 Download-ready architecture (future feature).
-- 🧼 Clean HTML scraping with BeautifulSoup (future feature).
+- 🧼 Clean HTML scraping with BeautifulSoup.
 
 ---
 
@@ -64,7 +64,7 @@ source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 
 # Run FastAPI server
-uvicorn main:app --reload
+uvicorn main:app --port 8000
 ````
 
 > Ensure your backend is running at `http://localhost:8000` for frontend requests.
@@ -91,8 +91,8 @@ npm run dev
 - [x] Animated dark mode toggle
 - [x] Display chapter list under each comic with dropdown
 - [x] Chapter selection UI
-- [ ] Implement backend support for chapter image retrieval
-- [ ] Add "Download" functionality (PDF/image bundles)
+- [x] Implement backend support for chapter image retrieval
+- [x] Add "Download" functionality (PDF/image bundles)
 - [ ] Deploy frontend & backend
 - [ ] Write tests and error handling
 
