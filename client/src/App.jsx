@@ -10,6 +10,7 @@ import {
 import logo from "./assets/logo.png";
 
 function App() {
+  const API_url = "https://manhwa-downloader-1i8y.onrender.com";
   // Theme state - persists in localStorage
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("theme");
@@ -39,7 +40,7 @@ function App() {
   const handleSearch = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/search/?title=${encodeURIComponent(
+        `${API_url}/search/?title=${encodeURIComponent(
           title
         )}&source=${source}`
       );
@@ -69,7 +70,7 @@ function App() {
   const fetchChapters = async (comicId) => {
     try {
       const res = await fetch(
-        `http://localhost:8000/chapters/?id=${comicId}&source=${source}`
+        `${API_url}/chapters/?id=${comicId}&source=${source}`
       );
       const data = await res.json();
 
@@ -140,7 +141,7 @@ function App() {
       params.append("source", source);
 
       const response = await fetch(
-        `http://localhost:8000/download/?${params.toString()}`
+        `${API_url}/download/?${params.toString()}`
       );
       if (!response.ok) {
         throw new Error("Download failed");
