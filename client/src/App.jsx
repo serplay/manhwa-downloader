@@ -51,6 +51,9 @@ function App() {
       } else if (data.message === "Invalid source") {
         setResults({});
         setError("Invalid source");
+      } else if (data.message === "Cloudflare challenge failed.") {
+        setResults({});
+        setError("Cloudflare challenge failed. Please try again later.");
       } else {
         setResults(data);
         setError("");

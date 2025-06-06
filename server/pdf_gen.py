@@ -48,8 +48,8 @@ def get_chapter_images(ids, source):
                 chap_id, chap_num = chap_id.split("_")
                 r = req.get(f"{base_url}{chap_id}/")
                 soup = bs(r.text, "html.parser")
-                if soup.find("span", {"id":"challenge-error-text"}):
-                    return {"error": "Cloudflare challenge failed."}
+                if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
+                    continue
                 images = soup.find("div", {"class": "read-container"}).find_all("img")
                 image_links = [re.sub(r'[\t\r\n]',"",img["data-src"]) for img in images]
                 pdfs.append(gen_pdf(image_links, chap_num, path))
