@@ -54,7 +54,13 @@ def get_chapter_images(ids, source):
                 image_links = [re.sub(r'[\t\r\n]',"",img["data-src"]) for img in images]
                 pdfs.append(gen_pdf(image_links, chap_num, path))
                 shutil.rmtree(f"{path}/{chap_num}")
-            return
+
+            zip_path = f"{path}/Chapters.zip"
+            with ZipFile(zip_path, "w") as chapters_zip:
+                for pdf in pdfs:
+                    chapters_zip.write(pdf, os.path.basename(pdf))
+                    os.remove(pdf)
+            return zip_path
         case 2:  # Yakshascans
             return
         case 3:  # Asurascan
