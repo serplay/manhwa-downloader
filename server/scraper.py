@@ -5,6 +5,8 @@ import re
 def search(title, source):
     try:
         source = int(source)
+        if source < 0 or source > 6:
+            return {"message": "Invalid source. Please choose a valid source."}
     except ValueError:
         return {"message": "Invalid source"}
     
