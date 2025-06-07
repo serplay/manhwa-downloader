@@ -29,6 +29,7 @@ function App() {
   const [selectedChapters, setSelectedChapters] = useState({});
   const [expandedComics, setExpandedComics] = useState(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
 
   // Apply theme changes to document
   useEffect(() => {
@@ -46,15 +47,9 @@ function App() {
       );
       const data = await res.json();
 
-      if (data.message === "No comics found") {
+      if (data.message) {
         setResults({});
-        setError("No comics found");
-      } else if (data.message === "Invalid source") {
-        setResults({});
-        setError("Invalid source");
-      } else if (data.message === "Cloudflare challenge failed.") {
-        setResults({});
-        setError("Cloudflare challenge failed. Please try again later.");
+        setError(data.message);
       } else {
         setResults(data);
         setError("");
@@ -128,6 +123,7 @@ function App() {
     if (chapterIds.length === 0) return;
 
     setIsDownloading(true);
+    setDownloadError(""); // Clear any previous errors
     try {
       // Format chapter IDs as array parameters with chapter numbers
       const params = new URLSearchParams();
@@ -163,7 +159,7 @@ function App() {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Download error:", error);
-      // Handle error here
+      setDownloadError("Failed to download chapters. Please try again later.");
     } finally {
       setIsDownloading(false);
     }
@@ -172,6 +168,29 @@ function App() {
   return (
     // Main container with theme-aware background
     <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-white via-pink-100 to-purple-100 dark:from-[#0d0c1b] dark:via-[#1a152b] dark:to-[#2d1b4d] text-gray-900 dark:text-[#f4f4ff] relative">
+      {/* Error popup */}
+      <AnimatePresence>
+        {downloadError && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+              <FontAwesomeIcon icon={faCircleXmark} className="text-lg" />
+              <span>{downloadError}</span>
+              <button
+                onClick={() => setDownloadError("")}
+                className="ml-4 hover:opacity-80 cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Theme toggle button */}
       <div className="absolute top-4 right-4">
         <button
