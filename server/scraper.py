@@ -58,15 +58,15 @@ def search(title, source):
                                }
             return comics
         case 2: #Yakshascans
-            return
+            raise NotImplementedError("Yakshascans is not implemented yet.")
         case 3: #Asurascan
-            return
+            raise NotImplementedError("Asurascan is not implemented yet.")
         case 4: #Kunmanga
-            return
+            raise NotImplementedError("Kunmanga is not implemented yet.")
         case 5: #Toonily
-            return
+            raise NotImplementedError("Toonily is not implemented yet.")
         case 6: #Toongod
-            return
+            raise NotImplementedError("Toongod is not implemented yet.")
     return
 
 def get_chapters(id: str, source: int):
@@ -103,13 +103,13 @@ def get_chapters(id: str, source: int):
                 data["Vol 1"]["chapters"][str(i)] = {"id": f'{id}/{chap_id}', "chapter": chap_num}
             return data
         case 2: #Yakshascans
-            return
+            raise NotImplementedError("Yakshascans is not implemented yet.")
         case 3: #Asurascan
-            return
+            raise NotImplementedError("Asurascan is not implemented yet.")
         case 4: #Kunmanga
-            return
+            raise NotImplementedError("Kunmanga is not implemented yet.")
         case 5: #Toonily
-            return
+            raise NotImplementedError("Toonily is not implemented yet.")
         case 6: #Toongod
-            return
+            raise NotImplementedError("Toongod is not implemented yet.")
     return

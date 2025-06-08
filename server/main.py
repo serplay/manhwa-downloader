@@ -55,10 +55,13 @@ async def search(
     """
     Search for a comic.
     """
-    comics = scraper.search(title, source)
-    if comics:
-        return comics
-    return {"message": "No comics found"}
+    try:
+        comics = scraper.search(title, source)
+        if comics:
+            return comics
+        return {"message": "No comics found"}
+    except Exception as e:
+        return {"message": str(e)}
 
 
 @app.get("/chapters/")
@@ -69,5 +72,8 @@ async def get_chapters(
     """
     Get chapters of a comic.
     """
-    chapters = scraper.get_chapters(id, source)
-    return chapters
+    try:
+        chapters = scraper.get_chapters(id, source)
+        return chapters
+    except Exception as e:
+        return {"error": str(e)}
