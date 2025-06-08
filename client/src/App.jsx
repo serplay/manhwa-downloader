@@ -67,6 +67,11 @@ function App() {
       const res = await fetch(
         `${API_url}/chapters/?id=${comicId}&source=${source}`
       );
+      if (!res.ok) {
+        const errorData = await res.json();
+        const errorMessage = errorData.error || "Failed to fetch chapters";
+        throw new Error(errorMessage);
+      }
       const data = await res.json();
 
       // Process and organize chapters by volume
@@ -83,6 +88,13 @@ function App() {
       setChaptersByComicId((prev) => ({ ...prev, [comicId]: processedData }));
     } catch (err) {
       console.error("Error fetching chapters:", err);
+      setDownloadError("Failed to fetch chapters.\n" + err.message);
+      // Remove the comic from expanded state if there's an error
+      setExpandedComics((prev) => {
+        const next = new Set(prev);
+        next.delete(comicId);
+        return next;
+      });
     }
   };
 
