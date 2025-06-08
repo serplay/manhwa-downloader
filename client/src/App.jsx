@@ -140,7 +140,9 @@ function App() {
         `${API_url}/download/?${params.toString()}`
       );
       if (!response.ok) {
-        throw new Error("Download failed");
+        const errorData = await response.json();
+        const errorMessage = errorData.error || "";
+        throw new Error(errorMessage);
       }
 
       // Get the blob from the response
@@ -159,7 +161,7 @@ function App() {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Download error:", error);
-      setDownloadError("Failed to download chapters. Please try again later.");
+      setDownloadError("Failed to download chapters. Please try again later.\n" + error.message);
     } finally {
       setIsDownloading(false);
     }
@@ -179,7 +181,10 @@ function App() {
           >
             <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
               <FontAwesomeIcon icon={faCircleXmark} className="text-lg" />
-              <span>{downloadError}</span>
+              <div className="flex flex-col">
+                <span>Failed to download chapters. Please try again later.</span>
+                <span className="text-sm opacity-90">{downloadError.split('\n')[1]}</span>
+              </div>
               <button
                 onClick={() => setDownloadError("")}
                 className="ml-4 hover:opacity-80 cursor-pointer"
