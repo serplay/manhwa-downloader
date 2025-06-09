@@ -8,6 +8,5 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Analytics />
     <App />
-    <Analytics />
   </StrictMode>,
 )
