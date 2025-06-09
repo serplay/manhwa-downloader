@@ -85,7 +85,7 @@ uvicorn main:app --reload --port <your_port>
 
 ### 🎨 Frontend Setup
 
-Before running the frontend, you also need to create a `.env` file in the `frontend` directory with the same keys:
+Before running the frontend, you also need to create a `.env` file in the `client` directory with the same keys:
 
 ```env
 VITE_API_URL=http://localhost:<your_port>
