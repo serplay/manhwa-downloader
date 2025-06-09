@@ -10,7 +10,7 @@ import {
 import logo from "./assets/logo.png";
 
 function App() {
-  const API_url = "https://manhwa-downloader-1i8y.onrender.com";
+  const API_url = import.meta.env.VITE_API_URL
   // Theme state - persists in localStorage
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("theme");
