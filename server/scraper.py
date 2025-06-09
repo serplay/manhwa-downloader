@@ -1,6 +1,25 @@
 from bs4 import BeautifulSoup as bs 
 import requests as req
 import re
+from fastapi import FastAPI, Response
+from fastapi.responses import StreamingResponse
+import io
+import os
+
+ROOT_URL = os.environ["ROOT_URL"]
+
+def proxy_image(url: str):
+    try:
+        response = req.get(url, stream=True)
+        if response.status_code == 200:
+            return StreamingResponse(
+                io.BytesIO(response.content),
+                media_type=response.headers.get('content-type', 'image/jpeg')
+            )
+        return None
+    except Exception as e:
+        print(f"Error proxying image: {e}")
+        return None
 
 def search(title, source):
     try:
@@ -27,7 +46,7 @@ def search(title, source):
                     trans = com["attributes"]["availableTranslatedLanguages"]
                     for i in rel:
                         if i["type"] == "cover_art":
-                            cover_art = f'https://uploads.mangadex.org/covers/{com_id}/{i["attributes"]["fileName"]}'
+                            cover_art = f'{ROOT_URL}/proxy-image?url=https://uploads.mangadex.org/covers/{com_id}/{i["attributes"]["fileName"]}'
                             break
                     comics[num] = {"id":com_id, 
                                    "title":title, 
