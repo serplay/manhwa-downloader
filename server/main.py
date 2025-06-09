@@ -8,6 +8,7 @@ from scraper import search, get_chapters, proxy_image
 from dotenv import load_dotenv
 
 load_dotenv()
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -84,11 +85,14 @@ async def chapters_endpoint(
 
 
 @app.get("/proxy-image")
-async def proxy_image_endpoint(url: str = Query(..., description="URL of the image to proxy")):
+async def proxy_image_endpoint(
+    url: str = Query(..., description="URL of the image to proxy"), 
+    hd: str = Query(..., description="Header of the image to proxy")
+    ):
     """
     Proxy image requests to handle MangaDex cover art.
     """
     try:
-        return scraper.proxy_image(url)
+        return scraper.proxy_image(url,hd)
     except Exception as e:
         return {"error": str(e)}

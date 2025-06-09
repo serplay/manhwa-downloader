@@ -8,12 +8,14 @@ import uuid
 from zipfile import ZipFile
 from PIL import Image
 
+MANGAPI_URL = os.environ.get("MANGAPI_URL")
+
 
 def get_chapter_images(ids, source):
     try:
         source = int(source)
     except ValueError:
-        raise ValueError("Source must be an integer.")
+        raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     
     match source:
         case 0:  # MangaDex
@@ -133,7 +135,7 @@ def get_chapter_images(ids, source):
             raise NotImplementedError("Toongod is not implemented yet.")
 
         case _:
-            raise ValueError(f"Unknown source: {source}")
+            raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
 
 
 # generate PDF
