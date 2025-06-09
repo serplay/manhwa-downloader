@@ -1,14 +1,18 @@
 from fastapi import FastAPI, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from starlette.background import BackgroundTask
 import scraper
 import pdf_gen
+from scraper import search, get_chapters, proxy_image
+from dotenv import load_dotenv
 
+load_dotenv()
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -48,7 +52,7 @@ async def download_chapter(
 
 
 @app.get("/search/")
-async def search(
+async def search_endpoint(
     title: str = Query(..., description="Title of the comic"),
     source: str = Query(..., description="Source of the book"),
 ):
@@ -65,7 +69,7 @@ async def search(
 
 
 @app.get("/chapters/")
-async def get_chapters(
+async def chapters_endpoint(
     id: str = Query(..., description="Id of the comic"),
     source: str = Query(..., description="Source of the comic"),
 ):
@@ -75,5 +79,16 @@ async def get_chapters(
     try:
         chapters = scraper.get_chapters(id, source)
         return chapters
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/proxy-image")
+async def proxy_image_endpoint(url: str = Query(..., description="URL of the image to proxy")):
+    """
+    Proxy image requests to handle MangaDex cover art.
+    """
+    try:
+        return scraper.proxy_image(url)
     except Exception as e:
         return {"error": str(e)}
