@@ -15,6 +15,7 @@ venv
 __pycache__
 test.json
 test.py
+.env
 
 # Editor directories and files
 .vscode/*
