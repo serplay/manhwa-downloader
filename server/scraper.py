@@ -46,7 +46,7 @@ def search(title, source):
                     trans = com["attributes"]["availableTranslatedLanguages"]
                     for i in rel:
                         if i["type"] == "cover_art":
-                            cover_art = f'{ROOT_URL}/proxy-image?url=https://uploads.mangadex.org/covers/{com_id}/{i["attributes"]["fileName"]}'
+                            cover_art = f'{ROOT_URL}/proxy-image?url=https://uploads.mangadex.org/covers/{com_id}/{i["attributes"]["fileName"]}.256.jpg'
                             break
                     comics[num] = {"id":com_id, 
                                    "title":title, 
