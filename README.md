@@ -23,8 +23,9 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - 📡 API endpoints:
   - `/search/` – Fetch titles from supported sources.
   - `/chapters/` – Retrieve volume and chapter information for a given title.
-  - `/download/` - Download specified chapters
-- 📥 Download-ready architecture (future feature).
+  - `/download/` - Download specified chapters.
+  - `/proxy-image` - Proxy cover art image through backend.
+- 📥 Download-ready architecture.
 - 🧼 Clean HTML scraping with BeautifulSoup.
 
 ---
@@ -33,7 +34,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 
 | Layer     | Tech                                                                 |
 |-----------|----------------------------------------------------------------------|
-| Frontend  | React, Tailwind CSS, Framer Motion, FontAwesome                      |
+| Frontend  | Vite, React, Tailwind CSS, Framer Motion, FontAwesome                |
 | Backend   | FastAPI, Uvicorn, BeautifulSoup, img2pdf, requests                   |
 
 ---
@@ -46,15 +47,28 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - Python (>=3.10)
 - npm or yarn
 - pip
+- Self-hosted [Consumet API](https://github.com/consumet/api.consumet.org)
 
 ---
 
 ### 📦 Backend Setup
 
+Before running the backend, you need to create a `.env` file in the `server` directory with the following keys:
+
+```env
+VITE_API_URL=http://localhost:<your_port>
+ROOT_URL=http://localhost:<your_port>
+MANGAPI_URL=<address_of_your_self_hosted_consumet_api>
+```
+
+> Ensure that VITE_API_URL and ROOT_URL have the same port
+
+Then run:
+
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/manga-downloader.git
-cd manga-downloader/backend
+cd manga-downloader/server
 
 # Create virtual environment
 python -m venv venv
@@ -64,17 +78,27 @@ source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 
 # Run FastAPI server
-uvicorn main:app --port 8000
-````
-
-> Ensure your backend is running at `http://localhost:8000` for frontend requests.
+uvicorn main:app --reload --port <your_port>
+```
 
 ---
 
 ### 🎨 Frontend Setup
 
+Before running the frontend, you also need to create a `.env` file in the `frontend` directory with the same keys:
+
+```env
+VITE_API_URL=http://localhost:<your_port>
+ROOT_URL=http://localhost:<your_port>
+MANGAPI_URL=<address_of_your_self_hosted_consumet_api>
+```
+
+> Ensure that VITE_API_URL and ROOT_URL have the same port
+
+Then run:
+
 ```bash
-cd ../frontend  # or wherever your React code lives
+cd ../client  # or wherever your React code lives
 
 # Install Node dependencies
 npm install
@@ -82,6 +106,8 @@ npm install
 # Start development server
 npm run dev
 ```
+
+---
 
 ---
 
@@ -93,7 +119,7 @@ npm run dev
 - [x] Chapter selection UI
 - [x] Implement backend support for chapter image retrieval
 - [x] Add "Download" functionality (PDF/image bundles)
-- [ ] Deploy frontend & backend
+- [x] Deploy frontend & backend
 - [ ] Write tests and error handling
 
 ---
