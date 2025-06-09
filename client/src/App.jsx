@@ -51,7 +51,6 @@ function App() {
         setResults({});
         setError(data.message);
       } else {
-        console.log("Search results:", data);
         setResults(data);
         setError("");
       }
