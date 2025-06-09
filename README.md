@@ -113,14 +113,14 @@ npm run dev
 
 ## 🛠️ To-Do
 
-- [x] Title search from multiple sources
-- [x] Animated dark mode toggle
-- [x] Display chapter list under each comic with dropdown
-- [x] Chapter selection UI
-- [x] Implement backend support for chapter image retrieval
-- [x] Add "Download" functionality (PDF/image bundles)
-- [x] Deploy frontend & backend
-- [ ] Write tests and error handling
+- ✅ Title search from multiple sources
+- ✅ Animated dark mode toggle
+- ✅ Display chapter list under each comic with dropdown
+- ✅ Chapter selection UI
+- ✅ Implement backend support for chapter image retrieval
+- ✅ Add "Download" functionality (PDF/image bundles)
+- ✅ Deploy frontend & backend
+- 🔄 Write tests and error handling
 
 ---
 
