@@ -45,6 +45,12 @@ function App() {
           title
         )}&source=${source}`
       );
+      if (!res.ok) {
+        const errorData = await res.json();
+        const errorMessage = errorData.error || "Failed to fetch chapters";
+        throw new Error(errorMessage);
+      }
+      
       const data = await res.json();
 
       if (data.message) {
@@ -76,6 +82,9 @@ function App() {
         throw new Error(errorMessage);
       }
       const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       // Process and organize chapters by volume
       const processedData = {};
