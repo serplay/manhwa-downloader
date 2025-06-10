@@ -7,6 +7,9 @@ import shutil
 import uuid
 from zipfile import ZipFile
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
 

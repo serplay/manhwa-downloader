@@ -6,6 +6,9 @@ from fastapi import FastAPI, Response
 from fastapi.responses import StreamingResponse
 import io
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ROOT_URL = os.environ.get("ROOT_URL")
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
