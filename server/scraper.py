@@ -122,17 +122,11 @@ def search(title, source):
                                }
             return comics
         case 9: #Mangapill
-            r = req.get(f"{MANGAPI_URL}/manga/mangapill/{req_quote(title)}")
-            data = r.json()
-            return
+            raise NotImplementedError("Mangapill is not implemented yet.")
         case 10: #Mangareader
-            r = req.get(f"{MANGAPI_URL}/manga/mangahere/{req_quote(title)}")
-            data = r.json()
-            return
+            raise NotImplementedError("Mangareader is not implemented yet.")
         case 11: #Mangasee123
-            r = req.get(f"{MANGAPI_URL}/manga/mangahere/{req_quote(title)}")
-            data = r.json()
-            return
+            raise NotImplementedError("Mangasee123 is not implemented yet.")
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     return
@@ -171,31 +165,26 @@ def get_chapters(id: str, source: int):
                 chap_id = chap_data["href"].split("/")[-2]
                 data["Vol 1"]["chapters"][str(i)] = {"id": f'{id}/{chap_id}', "chapter": chap_num}
             return data
-        case 2: #Yakshascans
-            raise NotImplementedError("Yakshascans is not implemented yet.")
-        case 3: #Asurascan
-            raise NotImplementedError("Asurascan is not implemented yet.")
-        case 4: #Kunmanga
-            raise NotImplementedError("Kunmanga is not implemented yet.")
-        case 5: #Toonily
-            raise NotImplementedError("Toonily is not implemented yet.")
-        case 6: #Toongod
-            raise NotImplementedError("Toongod is not implemented yet.")
-        case 7: #Mangahere
-            r = req.get(f"{MANGAPI_URL}/mangahere/{req_quote(title)}")
-            data = r.json()
-            print(data)
-            return {'message': 'This source is not implemented yet.'}
-        case 8: #MangaKakalot
-            return
-        case 9: #Mangapark
-            return
-        case 10: #Mangapill
-            return
-        case 11: #Mangareader
-            return
-        case 12: #Mangasee123
-            return
+        case 2:  # Yakshascans
+            raise NotImplementedError("Pulling chapters from Yakshascans is not implemented yet.")
+        case 3:  # Asurascan
+            raise NotImplementedError("Pulling chapters from Asurascan is not implemented yet.")
+        case 4:  # Kunmanga
+            raise NotImplementedError("Pulling chapters from Kunmanga is not implemented yet.")
+        case 5:  # Toonily
+            raise NotImplementedError("Pulling chapters from Toonily is not implemented yet.")
+        case 6:  # Toongod
+            raise NotImplementedError("Pulling chapters from Toongod is not implemented yet.")
+        case 7:  # Mangahere        
+            raise NotImplementedError("Pulling chapters from Mangahere is not implemented yet.")
+        case 8:  # Mangapark
+            raise NotImplementedError("Pulling chapters from Mangapark is not implemented yet.")
+        case 9:  # Mangapill
+            raise NotImplementedError("Pulling chapters from Mangapill is not implemented yet.")
+        case 10:  # Mangareader
+            raise NotImplementedError("Pulling chapters from Mangareader is not implemented yet.")
+        case 11:  # Mangasee123
+            raise NotImplementedError("Pulling chapters from Mangasee123 is not implemented yet.")
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     return
