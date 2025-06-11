@@ -37,10 +37,15 @@ def search(title, source):
     match source:
         case 0: #MangaDex
             base_url = "https://api.mangadex.org"
-            r = req.get(f"{base_url}/manga",
-                        params={"title": title,
-                                "includes[]":["cover_art"]}
-                        )
+            try:
+                r = req.get(f"{base_url}/manga",
+                            params={"title": title,
+                                    "includes[]":["cover_art"]}
+                            )
+                r.raise_for_status()
+            except req.RequestException as e:
+                raise Exception(f"Failed to fetch data from MangaDex: {e}")
+            
             data = r.json()["data"]
             if data:
                 comics = {}
@@ -61,14 +66,20 @@ def search(title, source):
                 return comics
         case 1: #Manhuaus
             base_url = "https://manhuaus.com"
-            r = req.get(base_url,
-                        params={
-                            "s":title,
-                            "post_type":"wp-manga"
-                        })
+            try:
+                r = req.get(base_url,
+                            params={
+                                "s":title,
+                                "post_type":"wp-manga"
+                            })
+                r.raise_for_status()
+            except req.RequestException as e:
+                return Exception(f"Failed to fetch data from Manhuaus: {e}")
+            
             soup = bs(r.text, "html.parser")
             if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
                 return {"message": "Cloudflare challenge failed."}
+            
             comics = {}
             for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
                 title_and_link = com.find("h3",{"class":"h4"}).find("a")
@@ -92,9 +103,14 @@ def search(title, source):
         case 6: #Toongod
             raise NotImplementedError("Toongod is not implemented yet.")
         case 7: #Mangahere
-            r = req.get(f"{MANGAPI_URL}/manga/mangahere/{req_quote(title)}")
+            try:
+                r = req.get(f"{MANGAPI_URL}/manga/mangahere/{req_quote(title)}")
+            except req.RequestException as e:
+                raise Exception(f"Failed to fetch data from Mangapark API.")
+            
             data = r.json()["results"]
             comics = {}
+            
             for num, com in enumerate(data):
                 com_id = com["id"]
                 title = {'en':com["title"]}
@@ -108,9 +124,15 @@ def search(title, source):
                                }
             return comics
         case 8: #Mangapark
-            r = req.get(f"{MANGAPI_URL}/manga/mangapark/{req_quote(title)}")
+            try:
+                r = req.get(f"{MANGAPI_URL}/manga/mangapark/{req_quote(title)}")
+                r.raise_for_status()
+            except req.RequestException as e:
+                raise Exception(f"Failed to fetch data from Mangapark API.")
+            
             data = r.json()["results"]
             comics = {}
+            
             for num, com in enumerate(data):
                 com_id = com["id"]
                 title = {'en':com["title"]}
@@ -140,6 +162,15 @@ def get_chapters(id: str, source: int):
     match source:
         case 0: #MangaDex
             base_url = "https://api.mangadex.org"
+            try:
+                r = req.get(f"{base_url}/manga/{id}/aggregate",
+                            params={"translatedLanguage[]": ["en"]
+                                    }
+                            )
+                r.raise_for_status()
+            except req.RequestException as e:
+                return {"message": f"Failed to fetch data from MangaDex: {e}"}
+            
             r = req.get(f"{base_url}/manga/{id}/aggregate",
                         params={"translatedLanguage[]": ["en"]
                                 }
@@ -153,12 +184,19 @@ def get_chapters(id: str, source: int):
             return data
         case 1: #Manhuaus
             base_url = "https://manhuaus.com/manga/"
-            r = req.get(f"{base_url}{id}/")
+            try:
+                r = req.get(f"{base_url}{id}/")
+                r.raise_for_status()
+            except req.RequestException as e:
+                return {"message": f"Failed to fetch data from Manhuaus: {e}"}
+            
             soup = bs(r.text, "html.parser")
             if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
                 return {"message": "Cloudflare challenge failed."}
+            
             chapters = soup.find("ul",{"class":"main version-chap no-volumn"}).find_all("li")
             data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
+            
             for i, chap in enumerate(chapters):
                 chap_data = chap.a
                 chap_num =re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap_data.contents[0])
