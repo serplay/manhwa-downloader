@@ -123,20 +123,31 @@ def get_chapter_images(ids, source):
                 raise e
 
         case 2:  # Yakshascans
-            raise NotImplementedError("Yakshascans is not implemented yet.")
+            raise NotImplementedError("Downloading chapters from Yakshascans is not implemented yet.")
         
         case 3:  # Asurascan
-            raise NotImplementedError("Asurascan is not implemented yet.")
+            raise NotImplementedError("Downloading chapters from Asurascan is not implemented yet.")
 
         case 4:  # Kunmanga
-            raise NotImplementedError("Kunmanga is not implemented yet.")
+            raise NotImplementedError("Downloading chapters from Kunmanga is not implemented yet.")
 
         case 5:  # Toonily
-            raise NotImplementedError("Toonily is not implemented yet.")
+            raise NotImplementedError("Downloading chapters from Toonily is not implemented yet.")
 
         case 6:  # Toongod
-            raise NotImplementedError("Toongod is not implemented yet.")
+            raise NotImplementedError("Downloading chapters from Toongod is not implemented yet.")
 
+        case 7:  # Mangahere        
+            raise NotImplementedError("Downloading chapters from Mangahere is not implemented yet.")
+        
+        case 8:  # Mangapill
+            raise NotImplementedError("Downloading chapters from Mangapill is not implemented yet.")
+        
+        case 9:  # Mangareader
+            raise NotImplementedError("Downloading chapters from Mangareader is not implemented yet.")
+        
+        case 10:  # Mangasee123
+            raise NotImplementedError("Downloading chapters from Mangasee123 is not implemented yet.")
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
 
