@@ -11,7 +11,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 
 ### Frontend (React)
 
-- 🔍 Title search from multiple sources like MangaDex, Asurascan, Toonily, etc. (For now only MangaDex is functional)
+- 🔍 Title search from multiple sources like MangaDex, Asurascan, Toonily, etc.
 - 🌗 Fully functional dark/light mode toggle.
 - 🎨 Smooth animations via Framer Motion.
 - 📚 Shows available chapters grouped by volume with dynamic dropdowns.
