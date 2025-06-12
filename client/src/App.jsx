@@ -94,7 +94,14 @@ function App() {
           volume.volume === "none" || !volume.volume
             ? "Unknown Volume"
             : volume.volume;
-        processedData[displayName] = volume.chapters;
+        // Convert chapters object to array and sort by chapter number
+        const chaptersArray = Object.entries(volume.chapters)
+          .map(([key, value]) => ({
+            key,
+            ...value
+          }))
+          .sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
+        processedData[displayName] = chaptersArray;
       }
 
       setChaptersByComicId((prev) => ({ ...prev, [comicId]: processedData }));
@@ -406,8 +413,8 @@ function App() {
                                       {volumeName}
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
-                                      {Object.entries(chapters).map(
-                                        ([chNumber, chData]) => (
+                                      {chapters.map(
+                                        (chData) => (
                                           <button
                                             key={chData.id}
                                             onClick={() =>
