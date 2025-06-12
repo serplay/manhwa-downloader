@@ -74,7 +74,7 @@ def search(title, source):
                             })
                 r.raise_for_status()
             except req.RequestException as e:
-                return Exception(f"Failed to fetch data from Manhuaus: {e}")
+                raise Exception(f"Failed to fetch data from Manhuaus: {e}")
             
             soup = bs(r.text, "html.parser")
             if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
@@ -106,7 +106,7 @@ def search(title, source):
             try:
                 r = req.get(f"{MANGAPI_URL}/manga/mangahere/{req_quote(title)}")
             except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangapark API.")
+                raise Exception(f"Failed to fetch data from Mangahere API.")
             
             data = r.json()["results"]
             comics = {}
@@ -140,6 +140,20 @@ def get_chapters(id: str, source: int):
         raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
         
     match source:
+        
+        # response general structure:
+        # {
+        #     "{volume number}" or "Vol {volume number}": {
+        #         "volume": "{volume number}",
+        #         "chapters": {
+        #             "{chapter number}": {
+        #                 "id": "{chapter id}",
+        #                 "chapter": "{chapter number}"
+        #             }
+        #         }
+        #     }
+        # }
+        
         case 0: #MangaDex
             base_url = "https://api.mangadex.org"
             try:
@@ -149,7 +163,7 @@ def get_chapters(id: str, source: int):
                             )
                 r.raise_for_status()
             except req.RequestException as e:
-                return {"message": f"Failed to fetch data from MangaDex: {e}"}
+                raise Exception(f"Failed to fetch data from MangaDex: {e}")
             
             r = req.get(f"{base_url}/manga/{id}/aggregate",
                         params={"translatedLanguage[]": ["en"]
@@ -157,22 +171,31 @@ def get_chapters(id: str, source: int):
                         )
             data = r.json()["volumes"]
             
+            new_data = {}
             for vol in data:
-                for chap in data[vol]["chapters"]:
-                    del data[vol]["chapters"][chap]["others"]
-                    del data[vol]["chapters"][chap]["count"]
-            return data
+                new_vol = f"Vol {vol}"
+                new_data[new_vol] = {
+                    "chapters": {
+                        chap: {
+                            k: v for k, v in data[vol]["chapters"][chap].items()
+                            if k not in ("others", "count")
+                        }
+                        for chap in data[vol]["chapters"]
+                    }
+                }
+                
+            return new_data
         case 1: #Manhuaus
             base_url = "https://manhuaus.com/manga/"
             try:
                 r = req.get(f"{base_url}{id}/")
                 r.raise_for_status()
             except req.RequestException as e:
-                return {"message": f"Failed to fetch data from Manhuaus: {e}"}
+                raise Exception(f"Failed to fetch data from Manhuaus: {e}")
             
             soup = bs(r.text, "html.parser")
             if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
-                return {"message": "Cloudflare challenge failed."}
+                raise Exception("Cloudflare challenge failed.")
             
             chapters = soup.find("ul",{"class":"main version-chap no-volumn"}).find_all("li")
             data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
@@ -194,7 +217,32 @@ def get_chapters(id: str, source: int):
         case 6:  # Toongod
             raise NotImplementedError("Pulling chapters from Toongod is not implemented yet.")
         case 7:  # Mangahere        
-            raise NotImplementedError("Pulling chapters from Mangahere is not implemented yet.")
+            base_url = f"{MANGAPI_URL}/manga/mangahere/info"
+            try:
+                r = req.get(base_url, params={"id": id})
+                r.raise_for_status()
+            except req.RequestException as e:
+                raise Exception(f"Failed to fetch data from Mangahere API: {e}")
+            
+            data = {}
+            for num, chap in enumerate(r.json()["chapters"]):
+                if "Vol" in chap["title"]:
+                    volume, title = re.search(r'Vol\.(\d+)\s+Ch\.(\d+(?:\.\d+)?)', chap["title"]).groups() #I hate regex, but its so useful 😵‍💫
+                    volume = "Vol " + str(int(volume)) if volume.isdigit() else str(float(volume))
+                    title = str(int(title)) if title.isdigit() else str(float(title))
+                else:
+                    volume = "Vol 1"
+                    title = re.search(r'\d+(?:\.\d+)?', chap["title"])[0]
+                    title = str(int(title)) if title.isdigit() else str(float(title))
+
+                chap_id = chap["id"]
+                if volume not in data:
+                    data[volume] = {"volume": volume, "chapters": {}}
+                    data[volume]["chapters"][str(num)] = {"id": chap_id, "chapter": title}
+                else:
+                    data[volume]["chapters"][str(num)] = {"id": chap_id, "chapter": title}
+
+            return data
         case 8:  # Mangapill
             raise NotImplementedError("Pulling chapters from Mangapill is not implemented yet.")
         case 9:  # Mangareader
