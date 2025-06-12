@@ -123,31 +123,11 @@ def search(title, source):
                                "availableLanguages":trans, 
                                }
             return comics
-        case 8: #Mangapark
-            try:
-                r = req.get(f"{MANGAPI_URL}/manga/mangapark/{req_quote(title)}")
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangapark API.")
-            
-            data = r.json()["results"]
-            comics = {}
-            
-            for num, com in enumerate(data):
-                com_id = com["id"]
-                title = {'en':com["title"]}
-                cover_art = com["image"]
-                comics[num] = {"id":com_id,
-                               "title":title,
-                               "cover_art":cover_art,
-                               "availableLanguages": ["en"], 
-                               }
-            return comics
-        case 9: #Mangapill
+        case 8: #Mangapill
             raise NotImplementedError("Mangapill is not implemented yet.")
-        case 10: #Mangareader
+        case 9: #Mangareader
             raise NotImplementedError("Mangareader is not implemented yet.")
-        case 11: #Mangasee123
+        case 10: #Mangasee123
             raise NotImplementedError("Mangasee123 is not implemented yet.")
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
@@ -215,13 +195,11 @@ def get_chapters(id: str, source: int):
             raise NotImplementedError("Pulling chapters from Toongod is not implemented yet.")
         case 7:  # Mangahere        
             raise NotImplementedError("Pulling chapters from Mangahere is not implemented yet.")
-        case 8:  # Mangapark
-            raise NotImplementedError("Pulling chapters from Mangapark is not implemented yet.")
-        case 9:  # Mangapill
+        case 8:  # Mangapill
             raise NotImplementedError("Pulling chapters from Mangapill is not implemented yet.")
-        case 10:  # Mangareader
+        case 9:  # Mangareader
             raise NotImplementedError("Pulling chapters from Mangareader is not implemented yet.")
-        case 11:  # Mangasee123
+        case 10:  # Mangasee123
             raise NotImplementedError("Pulling chapters from Mangasee123 is not implemented yet.")
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
