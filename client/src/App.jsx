@@ -39,6 +39,7 @@ function App() {
 
   // Search for comics based on title and source
   const handleSearch = async () => {
+    setDownloadError("");
     try {
       const res = await fetch(
         `${API_url}/search/?title=${encodeURIComponent(
@@ -72,6 +73,7 @@ function App() {
 
   // Fetch chapters for a specific comic
   const fetchChapters = async (comicId) => {
+    setDownloadError("");
     try {
       const res = await fetch(
         `${API_url}/chapters/?id=${comicId}&source=${source}`
