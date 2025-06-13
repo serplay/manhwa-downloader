@@ -151,10 +151,10 @@ function App() {
   };
 
   // Handle chapter download
-  const handleDownload = async (comicId) => {
+  const handleDownload = async (comicId, comicTitle) => {
     const chapterIds = selectedChapters[comicId] || [];
     if (chapterIds.length === 0) return;
-
+  
     setIsDownloading(true);
     setDownloadError(""); // Clear any previous errors
     try {
@@ -168,27 +168,26 @@ function App() {
         });
       });
       params.append("source", source);
-
-      const response = await fetch(
-        `${API_url}/download/?${params.toString()}`
-      );
+  
+      const response = await fetch(`${API_url}/download/?${params.toString()}`);
       if (!response.ok) {
         const errorData = await response.json();
         const errorMessage = errorData.error || "";
         throw new Error(errorMessage);
       }
-
-      // Get the blob from the response
+  
       const blob = await response.blob();
-      
-      // Create a download link and trigger the download
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = 'Chapters.zip';
+  
+      // Sanitize title and use it for the file name
+      const safeTitle = comicTitle.replace(/[<>:"/\\|?*]+/g, "");
+      a.download = `${safeTitle}.zip`;
+  
       document.body.appendChild(a);
       a.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
@@ -449,7 +448,7 @@ function App() {
                                   Select All
                                 </button>
                                 <button
-                                  onClick={() => handleDownload(comic.id)}
+                                  onClick={() => handleDownload(comic.id, comic.title.en || Object.values(comic.title)[0])}
                                   disabled={
                                     isDownloading ||
                                     !selectedChapters[comic.id]?.length
