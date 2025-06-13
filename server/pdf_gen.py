@@ -138,7 +138,7 @@ def get_chapter_images(ids, source):
             raise NotImplementedError("Downloading chapters from Toongod is not implemented yet.")
 
         case 7:  # Mangahere        
-            base_url = "https://consumet-api-ty8c.onrender.com/manga/mangahere/read"
+            base_url = f"{MANGAPI_URL}/manga/mangahere/read"
             path = uuid.uuid4().hex
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
@@ -175,15 +175,52 @@ def get_chapter_images(ids, source):
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
                 return zip_path
-                    
-                raise Exception()
-            
+                                
             except Exception as e:
                 cleanup(path)
                 raise e
         
         case 8:  # Mangapill
-            raise NotImplementedError("Downloading chapters from Mangapill is not implemented yet.")
+            base_url = f"{MANGAPI_URL}/manga/mangapill/read"
+            path = uuid.uuid4().hex
+            pdfs = []
+            os.makedirs(f"{path}", exist_ok=True)
+            
+            try:
+                for chap_id in ids:
+                    temp = chap_id.split("_")
+                    if len(temp) != 2:
+                        chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
+                    else:
+                        chap_id, chap_num = temp
+                        
+                    ch_path = f"{path}/{chap_num}"
+                    os.makedirs(ch_path, exist_ok=True)
+                    
+                    response = req.get(f"{base_url}", timeout=10, params={"chapterId": chap_id})
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    image_links = []
+                    for page in data:
+                        image_links.append((page["img"], "https://mangapill.com"))
+                    
+                    pdf.append(gen_pdf(image_links, chap_num, path, referer=True))
+                    shutil.rmtree(ch_path)
+                
+                if not pdfs:
+                    raise Exception("No PDFs were generated, ZIP will not be created.")
+                
+                zip_path = f"{path}/Chapters.zip"
+                with ZipFile(zip_path, "w") as chapters_zip:
+                    for pdf in pdfs:
+                        chapters_zip.write(pdf, os.path.basename(pdf))
+                        os.remove(pdf)
+                return zip_path
+                    
+            except Exception as e:
+                cleanup(path)
+                raise e
         
         case 9:  # Mangareader
             raise NotImplementedError("Downloading chapters from Mangareader is not implemented yet.")

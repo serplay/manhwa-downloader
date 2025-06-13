@@ -124,7 +124,31 @@ def search(title, source):
                                }
             return comics
         case 8: #Mangapill
-            raise NotImplementedError("Mangapill is not implemented yet.")
+            base_url = f"{MANGAPI_URL}/manga/mangapill"
+            try:
+                r = req.get(f'{base_url}/{title}')
+                r.raise_for_status()
+            except req.RequestException as e:
+                raise Exception(f"Failed to fetch data from Mangapill API: {e}")
+            
+            data = r.json()["results"]
+            comics = {}
+            
+            for num, com in enumerate(data):
+                com_id = com["id"]
+                title = {'en': com["title"]}
+                cover_art = com["image"]
+                header = {'Referer':'https://mangapill.com'} # guessed referer first try 😅
+                trans = ["en"]
+                comics[num] = {
+                    "id": com_id,
+                    "title": title,
+                    "cover_art": f'{ROOT_URL}/proxy-image?url={cover_art}&hd={header}',
+                    "availableLanguages": trans,
+                }
+            
+            return comics
+        
         case 9: #Mangareader
             raise NotImplementedError("Mangareader is not implemented yet.")
         case 10: #Mangasee123
@@ -143,7 +167,7 @@ def get_chapters(id: str, source: int):
         
         # response general structure:
         # {
-        #     "{volume number}" or "Vol {volume number}": {
+        #     "Vol {volume number}": {
         #         "volume": "{volume number}",
         #         "chapters": {
         #             "{chapter number}": {
@@ -244,7 +268,21 @@ def get_chapters(id: str, source: int):
 
             return data
         case 8:  # Mangapill
-            raise NotImplementedError("Pulling chapters from Mangapill is not implemented yet.")
+            base_url = f"{MANGAPI_URL}/manga/mangapill/info"
+            try:
+                r = req.get(base_url, params={"id": id})
+                r.raise_for_status()
+            except req.RequestException as e:
+                raise Exception(f"Failed to fetch data from Mangahere API: {e}")
+            
+            data = {"Vol 1":{ "volume": "Vol 1", "chapters": {}}}
+            for num, chap in enumerate(r.json()["chapters"]):
+                data["Vol 1"]["chapters"][str(num)] = {
+                    "id": chap["id"],
+                    "chapter": chap["chapter"]
+                }
+            
+            return data
         case 9:  # Mangareader
             raise NotImplementedError("Pulling chapters from Mangareader is not implemented yet.")
         case 10:  # Mangasee123
