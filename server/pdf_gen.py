@@ -138,7 +138,49 @@ def get_chapter_images(ids, source):
             raise NotImplementedError("Downloading chapters from Toongod is not implemented yet.")
 
         case 7:  # Mangahere        
-            raise NotImplementedError("Downloading chapters from Mangahere is not implemented yet.")
+            base_url = "https://consumet-api-ty8c.onrender.com/manga/mangahere/read"
+            path = uuid.uuid4().hex
+            pdfs = []
+            os.makedirs(f"{path}", exist_ok=True)
+            
+            try:
+                for chap_id in ids:
+                    
+                    temp = chap_id.split("_")
+                    if len(temp) != 2:
+                        chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
+                    else:
+                        chap_id, chap_num = temp
+
+                    ch_path = f"{path}/{chap_num}"
+                    os.makedirs(ch_path, exist_ok=True)
+                    
+                    response = req.get(f"{base_url}", timeout=10, params={"chapterId": chap_id})
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    image_links = []
+                    for page in data:
+                        image_links.append((page["img"], page["headerForImage"]["Referer"]))
+                    
+                    pdfs.append(gen_pdf(image_links, chap_num, path, referer=True))
+                    shutil.rmtree(ch_path)
+
+                if not pdfs:
+                    raise Exception("No PDFs were generated, ZIP will not be created.")
+
+                zip_path = f"{path}/Chapters.zip"
+                with ZipFile(zip_path, "w") as chapters_zip:
+                    for pdf in pdfs:
+                        chapters_zip.write(pdf, os.path.basename(pdf))
+                        os.remove(pdf)
+                return zip_path
+                    
+                raise Exception()
+            
+            except Exception as e:
+                cleanup(path)
+                raise e
         
         case 8:  # Mangapill
             raise NotImplementedError("Downloading chapters from Mangapill is not implemented yet.")
@@ -153,26 +195,34 @@ def get_chapter_images(ids, source):
 
 
 # generate PDF
-def gen_pdf(images, chap_num, path):
+def gen_pdf(images, chap_num, path, referer=None):
     image_paths = []
     ch_path = f"{path}/{chap_num}"
     os.makedirs(ch_path, exist_ok=True)
 
     try:
         for i, img_url in enumerate(images):
+            is_corrupted = False
             try:
-                img_resp = req.get(img_url, timeout=10)
+                if referer:
+                    headers = {'Referer': img_url[1]}
+                    img_url = img_url[0]
+                img_resp = req.get(img_url, timeout=10, headers=headers if referer else None)
                 img_resp.raise_for_status()
                 img_data = img_resp.content
             except req.RequestException as e:
-                raise Exception(f"Failed to download image {img_url}: {e}")
+                is_corrupted = True
+                
+            if not is_corrupted:
+                extension = img_url.split(".")[-1].split("?")[0]  # handle URLs with query params
+                img_path = f"{ch_path}/{i}.{extension}"
 
-            extension = img_url.split(".")[-1].split("?")[0]  # handle URLs with query params
-            img_path = f"{ch_path}/{i}.{extension}"
-
-            with open(img_path, "wb") as img_file:
-                img_file.write(img_data)
-
+                with open(img_path, "wb") as img_file:
+                    img_file.write(img_data)
+            else:
+                extestion = "png"
+                img_path = "corrupt.png"
+            
             if extension.lower() == "webp":
                 try:
                     im = Image.open(img_path).convert("RGB")
