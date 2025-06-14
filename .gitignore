@@ -17,6 +17,7 @@ test.json
 test.py
 .env
 .env.production
+source.html
 
 # Editor directories and files
 .vscode/*
