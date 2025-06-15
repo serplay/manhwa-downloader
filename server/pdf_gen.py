@@ -257,7 +257,7 @@ def gen_pdf(images, chap_num, path, referer=None):
                 with open(img_path, "wb") as img_file:
                     img_file.write(img_data)
             else:
-                extestion = "png"
+                extension = "png"
                 img_path = "corrupt.png"
             
             if extension.lower() == "webp":
