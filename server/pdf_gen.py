@@ -205,9 +205,9 @@ def get_chapter_images(ids, source):
                     for page in data:
                         image_links.append((page["img"], "https://mangapill.com"))
                     
-                    pdf.append(gen_pdf(image_links, chap_num, path, referer=True))
+                    pdfs.append(gen_pdf(image_links, chap_num, path, referer=True))
                     shutil.rmtree(ch_path)
-                
+
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
                 

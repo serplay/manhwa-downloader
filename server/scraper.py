@@ -329,7 +329,7 @@ def get_chapters(id: str, source: int):
                 data = {"Vol 1":{ "volume": "Vol 1", "chapters": {}}}
                 for num, chap in enumerate(soup.find_all("li", {"class":"item reading-item chapter-item"})):
                     data["Vol 1"]["chapters"][str(num)] = {
-                        "id": chap.a["href"].split("/")[-1],
+                        "id": chap.a["href"],
                         "chapter": chap["data-number"]
                     }
                     
