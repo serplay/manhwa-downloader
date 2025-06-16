@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 import io
 import os
 from dotenv import load_dotenv
+from bot_evasion import get_with_captcha
 
 load_dotenv()
 
@@ -190,8 +191,32 @@ def search(title, source):
                 
             return comics
                 
-        case 10: #Mangasee123
-            raise NotImplementedError("Mangasee123 is not implemented yet.")
+        case 10: # Weebcentral
+            base_url = f"https://weebcentral.com/search?text={title}&sort=Best+Match&order=Descending&official=Any&anime=Any&adult=Any&display_mode=Full+Display"
+            
+            try:
+                soup = get_with_captcha(base_url, 'article')
+            except Exception as e:
+                raise Exception(f"Failed to fetch data from Weebcentral: {e}")
+
+            data = soup.find_all("article", {"class":"bg-base-300 flex gap-4 p-4"})
+            comics = {}
+            
+            for num, com in enumerate(data):
+                title_and_link_and_cover = com.find("section", {"class":"w-full lg:w-[25%] xl:w-[20%]"}).a
+                link = title_and_link_and_cover["href"][30:]
+                cover_and_title = title_and_link_and_cover.find_all("article")
+                cover = cover_and_title[0].picture.img["src"]
+                title = {"en": cover_and_title[1].find("div", {"class":"text-ellipsis truncate text-white text-center text-lg z-20 w-[90%]"}).contents[0]}
+                comics[num] = {
+                    "id": link,
+                    "title": title,
+                    "cover_art": cover,
+                    "availableLanguages": ["en"],
+                }
+
+            return comics
+        
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     return
@@ -365,7 +390,21 @@ def get_chapters(id: str, source: int):
             return chapters
             
         case 10:  # Weebcentral
-            raise NotImplementedError("Pulling chapters from Weebcentral is not implemented yet.")
+            base_url = f"https://weebcentral.com/series{id}"
+            
+            try:
+                soup = get_with_captcha(base_url, 'div[id="chapter-list"]', click=True)
+            except Exception as e:
+                raise Exception(f"Failed to fetch data from Weebcentral: {e}")
+            
+            data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
+            for num, chap in enumerate(soup.find("div", {"id": "chapter-list"}).find_all("div", {"class": "flex items-center"})):
+                chap_id = chap.a["href"].split("/")[-1]
+                chap_num = chap.find("span", {'class':"grow flex items-center gap-2"}).span.contents[0]
+                chap_num = re.search(r'\d+\.\d+|\d+', chap_num).group()
+                data["Vol 1"]["chapters"][str(num)] = {"id": chap_id, "chapter": chap_num}
+                
+            return data
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     return
