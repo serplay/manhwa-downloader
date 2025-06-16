@@ -30,6 +30,9 @@ function App() {
   const [expandedComics, setExpandedComics] = useState(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
+  const [isFetchingChapters, setIsFetchingChapters] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [loadedImages, setLoadedImages] = useState(new Set());
 
   // Apply theme changes to document
   useEffect(() => {
@@ -40,6 +43,7 @@ function App() {
   // Search for comics based on title and source
   const handleSearch = async () => {
     setDownloadError("");
+    setIsSearching(true);
     try {
       const res = await fetch(
         `${API_url}/search/?title=${encodeURIComponent(
@@ -68,12 +72,15 @@ function App() {
     } catch (err) {
       setError("There was an error fetching the data");
       setResults({});
+    } finally {
+      setIsSearching(false);
     }
   };
 
   // Fetch chapters for a specific comic
   const fetchChapters = async (comicId) => {
     setDownloadError("");
+    setIsFetchingChapters(true);
     try {
       const res = await fetch(
         `${API_url}/chapters/?id=${comicId}&source=${source}`
@@ -116,6 +123,8 @@ function App() {
         next.delete(comicId);
         return next;
       });
+    } finally {
+      setIsFetchingChapters(false);
     }
   };
 
@@ -223,6 +232,23 @@ function App() {
               >
                 ×
               </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Loading popup */}
+      <AnimatePresence>
+        {(isFetchingChapters || isSearching) && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <div className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>{isFetchingChapters ? "Fetching chapters..." : "Searching titles..."}</span>
             </div>
           </motion.div>
         )}
@@ -355,10 +381,18 @@ function App() {
                         >
                           {/* Cover art */}
                           <div className="relative w-20 h-28 flex-shrink-0">
+                            {!loadedImages.has(comic.cover_art) && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-[#2e2b40] rounded-lg">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 dark:border-violet-500"></div>
+                              </div>
+                            )}
                             <img
                               src={comic.cover_art}
                               alt="cover"
-                              className="w-full h-full object-cover rounded-lg group-hover:opacity-50 transition-opacity"
+                              className={`w-full h-full object-cover rounded-lg group-hover:opacity-50 transition-opacity ${
+                                !loadedImages.has(comic.cover_art) ? 'opacity-0' : 'opacity-100'
+                              }`}
+                              onLoad={() => setLoadedImages(prev => new Set(prev).add(comic.cover_art))}
                             />
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <span className="text-white text-3xl font-bold">
