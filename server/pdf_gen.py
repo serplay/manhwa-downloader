@@ -222,11 +222,59 @@ def get_chapter_images(ids, source):
                 cleanup(path)
                 raise e
         
-        case 9:  # Mangareader
-            raise NotImplementedError("Downloading chapters from Mangareader is not implemented yet.")
+        case 9:  # Bato
+            base_url = "https://bato.si"
+            body = '''
+                query Images($getChapterNodeId: ID!) {
+                  get_chapterNode(id: $getChapterNodeId) {
+                    data {
+                      imageFile {
+                        urlList
+                      }
+                    }
+                  }
+                }
+            '''
+            
+            path = uuid.uuid4().hex
+            pdfs = []
+            os.makedirs(f"{path}", exist_ok=True)
+            
+            try:
+                for chap_id in ids:
+                    temp = chap_id.split("_")
+
+                    if len(temp) != 2:
+                        chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
+                    else:
+                        chap_id, chap_num = temp
+                        
+                    ch_path = f"{path}/{chap_num}"
+                    os.makedirs(ch_path, exist_ok=True)
+                    
+                    
+                    r = req.post(f'{base_url}/ap2/', json={"query": body, "variables": {"getChapterNodeId": chap_id, "operationName": "Images"}})
+                    r.raise_for_status()
+                    image_links = r.json()["data"]["get_chapterNode"]["data"]["imageFile"]["urlList"]
+                    
+                    pdfs.append(gen_pdf(image_links, chap_num, path))
+                    shutil.rmtree(ch_path)
+                if not pdfs:
+                    raise Exception("No PDFs were generated, ZIP will not be created.")
+                
+                zip_path = f"{path}/Chapters.zip"
+                with ZipFile(zip_path, "w") as chapters_zip:
+                    for pdf in pdfs:
+                        chapters_zip.write(pdf, os.path.basename(pdf))
+                        os.remove(pdf)
+                return zip_path
+                        
+            except Exception as e:
+                cleanup(path)
+                raise e
         
-        case 10:  # Mangasee123
-            raise NotImplementedError("Downloading chapters from Mangasee123 is not implemented yet.")
+        case 10:  # Weebcentral
+            raise NotImplementedError("Downloading chapters from Weebcentral is not implemented yet.")
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
 

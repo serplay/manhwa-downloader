@@ -292,8 +292,8 @@ function App() {
             <option value="6">Toongod</option>
             <option value="7">Mangahere</option>
             <option value="8">Mangapill</option>
-            <option value="9">Mangareader</option>
-            <option value="10">Mangasee123</option>
+            <option value="9">Bato</option>
+            <option value="10">Weebcentral</option>
           </select>
           <button
             onClick={handleSearch}

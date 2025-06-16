@@ -148,36 +148,46 @@ def search(title, source):
                 }
             
             return comics
-        case 9: #Mangareader
-            base_url = f"https://mangareader.to/search"
+        case 9: #Bato
+            base_url = "https://bato.si"
+            
+            body = '''
+                query Search($select: Search_Comic_Select) {
+                  get_search_comic(select: $select) {
+                    items {
+                      data {
+                        id
+                        name
+                        urlCover300
+                        urlPath
+                      }
+                    }
+                  }
+                }
+                '''
             try:
-                r = req.get(base_url,
-                            params={
-                                "keyword":title,
-                            })
+                r = req.post(f'{base_url}/ap2/', json={"query": body, "variables": {"select": {"word": title}, "operationName": "Search"}})
                 r.raise_for_status()
             except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangareader: {e}")
+                raise Exception(f"Failed to fetch data from Bato API: {e}")
 
-            soup = bs(r.text, 'html.parser')
-
-            try:
-                if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
-                    raise Exception("Cloudflare challenge failed.")
-                comics = {}
-                for num,com in enumerate(soup.find_all("div",{"class":"item item-spc"})):
-                    languages = com.find("span",{"class":"tick tick-item tick-lang"}).contents[0].lower().split("/")
-                    com_id = com.find("a",{'class':"manga-poster"})['href']
-                    cover_art = com.a.img['src']
-                    title = {'en': com.find("h3").a.contents[0]}
-                    comics[num] = {"id": com_id,
-                                   "title": title,
-                                   "cover_art": cover_art,
-                                   "availableLanguages": languages
-                                   }
-            except Exception as e:
-                raise Exception(f"Error parsing response from MangaReader: {e}")
-
+            data = r.json()["data"]["get_search_comic"]["items"]
+            if not data:
+                return {"message": "No results found."}
+            
+            comics = {}
+            for num, com in enumerate(data):
+                com_id = com['data']['id']
+                title = {'en': com['data']['name']}
+                cover_art = base_url + com['data']['urlCover300']
+                trans = ['en']
+                comics[num] = {
+                    "id": com_id,
+                    "title": title,
+                    "cover_art": cover_art,
+                    "availableLanguages":trans,
+                }
+                
             return comics
                 
         case 10: #Mangasee123
@@ -312,34 +322,50 @@ def get_chapters(id: str, source: int):
                 }
             
             return data
-        case 9:  # Mangareader
-            base_url = f"https://mangareader.to"
+        case 9:  # Bato
+            base_url = "https://bato.si"
+            body = '''
+                query Chapters($comicId: ID!) {
+                  get_comic_chapterList(comicId: $comicId) {
+                    data {
+                      id
+                      volume
+                      count_images
+                      serial
+                    }
+                  }
+                }
+            '''
+            
             try:
-                r = req.get(f'{base_url}{id}')
+                r = req.post(f'{base_url}/ap2/', json={"query": body, "variables": {"comicId": id, "operationName": "Chapters"}})
                 r.raise_for_status()
             except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangareader: {e}")
+                raise Exception(f"Failed to fetch data from Bato API: {e}")
 
-            soup = bs(r.text, 'html.parser')
-
-            try:
-                if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
-                    raise Exception("Cloudflare challenge failed.")
-                
-                data = {"Vol 1":{ "volume": "Vol 1", "chapters": {}}}
-                for num, chap in enumerate(soup.find_all("li", {"class":"item reading-item chapter-item"})):
-                    data["Vol 1"]["chapters"][str(num)] = {
-                        "id": chap.a["href"],
-                        "chapter": chap["data-number"]
-                    }
-                    
-                return data
-                
-            except Exception as e:
-                raise Exception(f"Error parsing response from MangaReader: {e}")
+            data = r.json()["data"]["get_comic_chapterList"]
+            if not data:
+                raise Exception("No chapters found for this comic.")
             
-        case 10:  # Mangasee123
-            raise NotImplementedError("Pulling chapters from Mangasee123 is not implemented yet.")
+            chapters = {}
+            for num, chap in enumerate(data):
+                if chap["data"]["volume"] is not None:
+                    volume = f"Vol {chap['volume']}"
+                else:
+                    volume = "Vol 1"
+                chapter_num = chap["data"]["serial"]
+                chapter_id = chap["data"]["id"]
+                if volume not in chapters:
+                    chapters[volume] = {"volume": volume, "chapters": {}}
+                chapters[volume]["chapters"][str(num)] = {
+                    "id": chapter_id,
+                    "chapter": chapter_num
+                }
+            
+            return chapters
+            
+        case 10:  # Weebcentral
+            raise NotImplementedError("Pulling chapters from Weebcentral is not implemented yet.")
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     return
