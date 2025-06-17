@@ -132,8 +132,5 @@ RUN cd /
 COPY /server /server
 RUN cd /server
 WORKDIR /server
-ENV VITE_API_URL=http://192.168.0.120:8000
-ENV ROOT_URL=http://192.168.0.120:8000
-ENV MANGAPI_URL=https://consumet-api-ty8c.onrender.com
 
 CMD ["uvicorn","main:app","--port","8000","--host","0.0.0.0","--workers","4"]
