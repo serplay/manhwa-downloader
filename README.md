@@ -4,6 +4,19 @@
 A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading .
 
 > ⚠️ This project is under **active development**. Most functionality is not complete.
+> 
+> Currently working sources:
+> - MangaDex ✅
+> - Bato ✅
+> - Mangapill ✅
+> - Mangahere ✅
+> - Weebcentral ✅
+> - Manhuaus ✅ (locally, render web service halts on this source [working on it])
+> - Yakshascans ❌
+> - Asurascan ❌
+> - Kunmanga ❌
+> - Toonily ❌
+> - Toongod ❌
 
 ---
 
