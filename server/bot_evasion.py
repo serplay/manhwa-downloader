@@ -5,7 +5,10 @@ def get_with_captcha(url, elem, click=False):
         sb.uc_open_with_reconnect(url, 4)
         sb.uc_gui_click_captcha()
         if elem:
-            sb.wait_for_element(elem, timeout=10)
+            try:
+                sb.wait_for_element(elem, timeout=10)
+            except Exception as e:
+                raise Exception()
         if click:
             sb.click('button:contains("Show All Chapters")')
         soup = sb.get_beautiful_soup()

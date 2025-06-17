@@ -68,18 +68,9 @@ def search(title, source):
         case 1: #Manhuaus
             base_url = "https://manhuaus.com"
             try:
-                r = req.get(base_url,
-                            params={
-                                "s":title,
-                                "post_type":"wp-manga"
-                            })
-                r.raise_for_status()
-            except req.RequestException as e:
+                soup = get_with_captcha(f"{base_url}/?s={title}&post_type=wp-manga", 'div[class="row c-tabs-item__content"]')
+            except Exception as e:
                 raise Exception(f"Failed to fetch data from Manhuaus: {e}")
-            
-            soup = bs(r.text, "html.parser")
-            if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
-                return {"message": "Cloudflare challenge failed."}
             
             comics = {}
             for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
@@ -263,6 +254,7 @@ def get_chapters(id: str, source: int):
             for vol in data:
                 new_vol = f"Vol {vol}"
                 new_data[new_vol] = {
+                    "volume": vol,
                     "chapters": {
                         chap: {
                             k: v for k, v in data[vol]["chapters"][chap].items()
@@ -276,16 +268,11 @@ def get_chapters(id: str, source: int):
         case 1: #Manhuaus
             base_url = "https://manhuaus.com/manga/"
             try:
-                r = req.get(f"{base_url}{id}/")
-                r.raise_for_status()
-            except req.RequestException as e:
+                soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn active"]')
+            except Exception as e:
                 raise Exception(f"Failed to fetch data from Manhuaus: {e}")
             
-            soup = bs(r.text, "html.parser")
-            if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
-                raise Exception("Cloudflare challenge failed.")
-            
-            chapters = soup.find("ul",{"class":"main version-chap no-volumn"}).find_all("li")
+            chapters = soup.find("ul",{"class":"main version-chap no-volumn active"}).find_all("li")
             data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
             
             for i, chap in enumerate(chapters):

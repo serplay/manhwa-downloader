@@ -1,13 +1,15 @@
 import img2pdf
-import requests as req
-from bs4 import BeautifulSoup as bs
-import re
 import os
+import re
+import requests as req
 import shutil
 import uuid
 from zipfile import ZipFile
-from PIL import Image
+
+from bs4 import BeautifulSoup as bs
 from dotenv import load_dotenv
+from PIL import Image
+from seleniumbase import SB
 
 load_dotenv()
 
@@ -77,36 +79,34 @@ def get_chapter_images(ids, source):
             os.makedirs(f"{path}", exist_ok=True)
 
             try:
-                for chap_id in ids:
-                    chap_id, chap_num = chap_id.split("_")
-                    try:
-                        r = req.get(f"{base_url}{chap_id}/", timeout=10)
-                        r.raise_for_status()
-                        soup = bs(r.text, "html.parser")
-                    except req.RequestException as e:
-                        print(f"Skipping chapter {chap_num} due to network error: {e}")
-                        continue
+                with SB(uc=True, xvfb=True) as sb:
+                    for chap_id in ids:
+                        chap_id, chap_num = chap_id.split("_")
+                        
+                        try:
+                            sb.uc_open_with_reconnect(f"{base_url}{chap_id}/", 4)
+                            sb.uc_gui_click_captcha()
+                            soup = sb.get_beautiful_soup()
+                        except Exception as e:
+                            print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
+                            continue
 
-                    if "Just a moment" in soup.text or "Please wait while we are checking your browser..." in soup.text:
-                        print(f"Skipping chapter {chap_num} due to Cloudflare block.")
-                        continue
+                        read_container = soup.find("div", {"class": "read-container"})
+                        if not read_container:
+                            print(f"Skipping chapter {chap_num} - read-container not found.")
+                            continue
 
-                    read_container = soup.find("div", {"class": "read-container"})
-                    if not read_container:
-                        print(f"Skipping chapter {chap_num} - read-container not found.")
-                        continue
+                        images = read_container.find_all("img")
+                        image_links = [
+                            re.sub(r'[\t\r\n]', "", img.get("data-src", "")) for img in images if img.get("data-src")
+                        ]
 
-                    images = read_container.find_all("img")
-                    image_links = [
-                        re.sub(r'[\t\r\n]', "", img.get("data-src", "")) for img in images if img.get("data-src")
-                    ]
+                        if not image_links:
+                            print(f"No images found for chapter {chap_num}. Skipping.")
+                            continue
 
-                    if not image_links:
-                        print(f"No images found for chapter {chap_num}. Skipping.")
-                        continue
-
-                    pdfs.append(gen_pdf(image_links, chap_num, path))
-                    shutil.rmtree(f"{path}/{chap_num}")
+                        pdfs.append(gen_pdf(image_links, chap_num, path))
+                        shutil.rmtree(f"{path}/{chap_num}")
 
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
