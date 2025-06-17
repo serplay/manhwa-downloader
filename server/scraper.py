@@ -66,13 +66,14 @@ def search(title, source):
                                    }
                 return comics
         case 1: #Manhuaus
-            raise NotImplementedError("Manhuaus is not implemented yet.")
             base_url = "https://manhuaus.com"
             try:
                 soup = get_with_captcha(f"{base_url}/?s={title}&post_type=wp-manga", 'div[class="row c-tabs-item__content"]')
             except Exception as e:
                 raise Exception(f"Failed to fetch data from Manhuaus: {e}")
             
+            if not soup:
+                return {"message": "No results found."}
             comics = {}
             for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
                 title_and_link = com.find("h3",{"class":"h4"}).find("a")
@@ -93,6 +94,8 @@ def search(title, source):
             except Exception as e:
                 raise Exception(f"Failed to fetch data from Yakshascans: {e}")
             
+            if not soup:
+                return {"message": "No results found."}
             comics = {}
             for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
                 title_and_link = com.find("h3",{"class":"h4"}).find("a")
@@ -108,7 +111,26 @@ def search(title, source):
             return comics
         
         case 3: #Asurascan
-            raise NotImplementedError("Asurascan is not implemented yet.")
+            try:
+                soup = get_with_captcha(f"https://asuracomic.net/series?page=1&name={title}", 'div[class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 p-4"]')
+            except Exception as e:
+                raise Exception(f"Failed to fetch data from Asurascan: {e}")
+            
+            if not soup:
+                return {"message": "No results found."}
+            comics = {}
+            for num,com in enumerate(soup.find("div",{"class":"grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 p-4"}).find_all("a")):
+                link = com["href"][6:]
+                title = {"en":com.find("span", {"class":"block text-[13.3px] font-bold"}).contents[0]}
+                cover_art = com.find("img")["src"]
+                comics[num] = {
+                    "title": title,
+                    "id": link,
+                    "cover_art": cover_art,
+                    "availableLanguages": ["en"]
+                }
+                
+            return comics
         case 4: #Kunmanga
             raise NotImplementedError("Kunmanga is not implemented yet.")
         case 5: #Toonily
@@ -210,7 +232,8 @@ def search(title, source):
                 soup = get_with_captcha(base_url, 'article')
             except Exception as e:
                 raise Exception(f"Failed to fetch data from Weebcentral: {e}")
-
+            if not soup:
+                return {"message": "No results found."}
             data = soup.find_all("article", {"class":"bg-base-300 flex gap-4 p-4"})
             comics = {}
             
@@ -287,7 +310,6 @@ def get_chapters(id: str, source: int):
                 
             return new_data
         case 1: #Manhuaus
-            raise NotImplementedError("Manhuaus is not implemented yet.")
             base_url = "https://manhuaus.com/manga/"
             try:
                 soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn active"]')
@@ -321,7 +343,24 @@ def get_chapters(id: str, source: int):
             return data
             
         case 3:  # Asurascan
-            raise NotImplementedError("Pulling chapters from Asurascan is not implemented yet.")
+            base_url = f'https://asuracomic.net/series/{id}'
+            try:
+                soup = get_with_captcha(base_url,'div[class="pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"]')
+            except Exception as e:
+                raise Exception(f"Failed to fetch data from Asurascan: {e}")
+            
+            data = soup.find('div', {'class': "pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"}).find_all('a')
+            
+            chapters = {"Vol 1":{"volume": "Vol 1", "chapters": {}}}
+            for num, chap in enumerate(data):
+                chap_id = chap['href']
+                chap_num = re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap.find("h3").contents[0])
+                chapters["Vol 1"]["chapters"][str(num)] = {
+                    "id": chap_id,
+                    "chapter": chap_num
+                }
+
+            return chapters
         case 4:  # Kunmanga
             raise NotImplementedError("Pulling chapters from Kunmanga is not implemented yet.")
         case 5:  # Toonily

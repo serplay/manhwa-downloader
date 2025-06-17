@@ -173,7 +173,53 @@ def get_chapter_images(ids, source):
                 raise e
         
         case 3:  # Asurascan
-            raise NotImplementedError("Downloading chapters from Asurascan is not implemented yet.")
+            base_url = "https://asuracomic.net/series/"
+            path = uuid.uuid4().hex
+            pdfs = []
+            os.makedirs(f"{path}", exist_ok=True)
+
+            try:
+                with SB(uc=True, xvfb=True) as sb:
+                    for chap_id in ids:
+                        chap_id, chap_num = chap_id.split("_")
+                        
+                        try:
+                            sb.uc_open_with_reconnect(f"{base_url}{chap_id}/", 4)
+                            sb.uc_gui_click_captcha()
+                            soup = sb.get_beautiful_soup()
+                        except Exception as e:
+                            print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
+                            continue
+
+                        read_container = soup.find_all("div", {"class": "w-full mx-auto center"})
+                        if not read_container:
+                            print(f"Skipping chapter {chap_num} - read-container not found.")
+                            continue
+
+                        image_links = [
+                            container.img["src"] for container in read_container if container.img and container.img.get("src")
+                        ]
+
+                        if not image_links:
+                            print(f"No images found for chapter {chap_num}. Skipping.")
+                            continue
+
+                        pdfs.append(gen_pdf(image_links, chap_num, path))
+                        shutil.rmtree(f"{path}/{chap_num}")
+
+                if not pdfs:
+                    raise Exception("No PDFs were generated, ZIP will not be created.")
+
+                zip_path = f"{path}/Chapters.zip"
+                with ZipFile(zip_path, "w") as chapters_zip:
+                    for pdf in pdfs:
+                        chapters_zip.write(pdf, os.path.basename(pdf))
+                        os.remove(pdf)
+                return zip_path
+            
+            except Exception as e:
+                cleanup(path)
+                raise e
 
         case 4:  # Kunmanga
             raise NotImplementedError("Downloading chapters from Kunmanga is not implemented yet.")
@@ -321,7 +367,53 @@ def get_chapter_images(ids, source):
                 raise e
         
         case 10:  # Weebcentral
-            raise NotImplementedError("Downloading chapters from Weebcentral is not implemented yet.")
+            base_url = "https://weebcentral.com/chapters/"
+            path = uuid.uuid4().hex
+            pdfs = []
+            os.makedirs(f"{path}", exist_ok=True)
+
+            try:
+                with SB(uc=True, xvfb=True) as sb:
+                    for chap_id in ids:
+                        chap_id, chap_num = chap_id.split("_")
+                        
+                        try:
+                            sb.uc_open_with_reconnect(f"{base_url}{chap_id}/", 4)
+                            sb.uc_gui_click_captcha()
+                            soup = sb.get_beautiful_soup()
+                        except Exception as e:
+                            print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
+                            continue
+
+                        read_container = soup.find("section", {"class": "flex-1 flex flex-col pb-4 cursor-pointer gap-4"})
+                        if not read_container:
+                            print(f"Skipping chapter {chap_num} - read-container not found.")
+                            continue
+
+                        image_links = [
+                            image["src"] for image in read_container.find_all("img") if image.get("src")
+                        ]
+
+                        if not image_links:
+                            print(f"No images found for chapter {chap_num}. Skipping.")
+                            continue
+
+                        pdfs.append(gen_pdf(image_links, chap_num, path))
+                        shutil.rmtree(f"{path}/{chap_num}")
+
+                if not pdfs:
+                    raise Exception("No PDFs were generated, ZIP will not be created.")
+
+                zip_path = f"{path}/Chapters.zip"
+                with ZipFile(zip_path, "w") as chapters_zip:
+                    for pdf in pdfs:
+                        chapters_zip.write(pdf, os.path.basename(pdf))
+                        os.remove(pdf)
+                return zip_path
+            
+            except Exception as e:
+                cleanup(path)
+                raise e
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
 
