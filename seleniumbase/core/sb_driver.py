@@ -1,0 +1,375 @@
+"""Add new methods to extend the driver"""
+from contextlib import suppress
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
+from seleniumbase.config import settings
+from seleniumbase.fixtures import js_utils
+from seleniumbase.fixtures import page_actions
+from seleniumbase.fixtures import page_utils
+from seleniumbase.fixtures import shared_utils
+
+
+class DriverMethods(WebDriver):
+    def __init__(self, driver):
+        self.driver = driver
+
+    def __is_cdp_swap_needed(self):
+        """If the driver is disconnected, use a CDP method when available."""
+        return shared_utils.is_cdp_swap_needed(self.driver)
+
+    def find_element(self, by=None, value=None):
+        if not value:
+            value = by
+            by = "css selector"
+        elif not by:
+            by = "css selector"
+        else:
+            value, by = page_utils.swap_selector_and_by_if_reversed(value, by)
+        return self.driver.default_find_element(by=by, value=value)
+
+    def find_elements(self, by=None, value=None):
+        if not value:
+            value = by
+            by = "css selector"
+        elif not by:
+            by = "css selector"
+        else:
+            value, by = page_utils.swap_selector_and_by_if_reversed(value, by)
+        return self.driver.default_find_elements(by=by, value=value)
+
+    def locator(self, selector, by=None):
+        if not by:
+            by = "css selector"
+        else:
+            selector, by = page_utils.swap_selector_and_by_if_reversed(
+                selector, by
+            )
+        with suppress(Exception):
+            return self.driver.default_find_element(by=by, value=selector)
+        raise Exception('No such Element: {%s} (by="%s")!' % (selector, by))
+
+    def get_attribute(self, selector, attribute, by="css selector"):
+        element = self.locator(selector, by=by)
+        return element.get_attribute(attribute)
+
+    def get_parent(self, element):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_parent(element)
+        if isinstance(element, str):
+            element = self.locator(element)
+        return element.find_element(by="xpath", value="..")
+
+    def get_current_url(self):
+        if self.__is_cdp_swap_needed():
+            current_url = self.driver.cdp.get_current_url()
+        else:
+            current_url = self.driver.current_url
+        return current_url
+
+    def get_page_source(self):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_page_source()
+        return self.driver.page_source
+
+    def get_title(self):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_title()
+        return self.driver.title
+
+    def open_url(self, *args, **kwargs):
+        page_actions.open_url(self.driver, *args, **kwargs)
+
+    def click(self, *args, **kwargs):
+        page_actions.click(self.driver, *args, **kwargs)
+
+    def click_link(self, *args, **kwargs):
+        page_actions.click_link(self.driver, *args, **kwargs)
+
+    def click_if_visible(self, *args, **kwargs):
+        page_actions.click_if_visible(self.driver, *args, **kwargs)
+
+    def click_active_element(self, *args, **kwargs):
+        page_actions.click_active_element(self.driver, *args, **kwargs)
+
+    def send_keys(self, *args, **kwargs):
+        page_actions.send_keys(self.driver, *args, **kwargs)
+
+    def press_keys(self, *args, **kwargs):
+        page_actions.press_keys(self.driver, *args, **kwargs)
+
+    def update_text(self, *args, **kwargs):
+        page_actions.update_text(self.driver, *args, **kwargs)
+
+    def submit(self, *args, **kwargs):
+        page_actions.submit(self.driver, *args, **kwargs)
+
+    def assert_element_visible(self, *args, **kwargs):
+        page_actions.assert_element_visible(self.driver, *args, **kwargs)
+
+    def assert_element_present(self, *args, **kwargs):
+        page_actions.assert_element_present(self.driver, *args, **kwargs)
+
+    def assert_element_not_visible(self, *args, **kwargs):
+        page_actions.assert_element_not_visible(self.driver, *args, **kwargs)
+
+    def assert_text(self, *args, **kwargs):
+        page_actions.assert_text(self.driver, *args, **kwargs)
+
+    def assert_exact_text(self, *args, **kwargs):
+        page_actions.assert_exact_text(self.driver, *args, **kwargs)
+
+    def assert_non_empty_text(self, *args, **kwargs):
+        return page_actions.assert_non_empty_text(
+            self.driver, *args, **kwargs
+        )
+
+    def assert_text_not_visible(self, *args, **kwargs):
+        return page_actions.assert_text_not_visible(
+            self.driver, *args, **kwargs
+        )
+
+    def wait_for_element(self, *args, **kwargs):
+        return page_actions.wait_for_element(self.driver, *args, **kwargs)
+
+    def wait_for_element_visible(self, *args, **kwargs):
+        return page_actions.wait_for_element(self.driver, *args, **kwargs)
+
+    def wait_for_element_present(self, *args, **kwargs):
+        return page_actions.wait_for_selector(self.driver, *args, **kwargs)
+
+    def wait_for_selector(self, *args, **kwargs):
+        return page_actions.wait_for_selector(self.driver, *args, **kwargs)
+
+    def wait_for_text(self, *args, **kwargs):
+        return page_actions.wait_for_text(self.driver, *args, **kwargs)
+
+    def wait_for_exact_text(self, *args, **kwargs):
+        return page_actions.wait_for_exact_text(self.driver, *args, **kwargs)
+
+    def wait_for_non_empty_text(self, *args, **kwargs):
+        return page_actions.wait_for_non_empty_text(
+            self.driver, *args, **kwargs
+        )
+
+    def wait_for_text_not_visible(self, *args, **kwargs):
+        return page_actions.wait_for_text_not_visible(
+            self.driver, *args, **kwargs
+        )
+
+    def wait_for_and_accept_alert(self, *args, **kwargs):
+        return page_actions.wait_for_and_accept_alert(
+            self.driver, *args, **kwargs
+        )
+
+    def wait_for_and_dismiss_alert(self, *args, **kwargs):
+        return page_actions.wait_for_and_dismiss_alert(
+            self.driver, *args, **kwargs
+        )
+
+    def is_element_present(self, *args, **kwargs):
+        return page_actions.is_element_present(self.driver, *args, **kwargs)
+
+    def is_element_visible(self, *args, **kwargs):
+        return page_actions.is_element_visible(self.driver, *args, **kwargs)
+
+    def is_text_visible(self, *args, **kwargs):
+        return page_actions.is_text_visible(self.driver, *args, **kwargs)
+
+    def is_exact_text_visible(self, *args, **kwargs):
+        return page_actions.is_exact_text_visible(self.driver, *args, **kwargs)
+
+    def is_attribute_present(self, *args, **kwargs):
+        return page_actions.has_attribute(self.driver, *args, **kwargs)
+
+    def is_non_empty_text_visible(self, *args, **kwargs):
+        return page_actions.is_non_empty_text_visible(
+            self.driver, *args, **kwargs
+        )
+
+    def is_valid_url(self, url):
+        """Return True if the url is a valid url."""
+        return page_utils.is_valid_url(url)
+
+    def is_alert_present(self):
+        try:
+            self.driver.switch_to.alert
+            return True
+        except Exception:
+            return False
+
+    def is_online(self):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.evaluate("navigator.onLine;")
+        return self.driver.execute_script("return navigator.onLine;")
+
+    def is_connected(self):
+        """
+        Return True if WebDriver is connected to the browser.
+        Note that the stealthy CDP-Driver isn't a WebDriver.
+        In CDP Mode, the CDP-Driver controls the web browser.
+        The CDP-Driver can be connected while WebDriver isn't.
+        """
+        if shared_utils.is_windows():
+            return (
+                not hasattr(self.driver, "_is_connected")
+                or self.driver._is_connected
+            )
+        try:
+            self.driver.window_handles
+            return True
+        except Exception:
+            return False
+
+    def is_uc_mode_active(self):
+        """Return True if the driver is using UC Mode. False otherwise."""
+        return (
+            hasattr(self.driver, "_is_using_uc")
+            and self.driver._is_using_uc
+        )
+
+    def is_cdp_mode_active(self):
+        """CDP Mode is a special mode within UC Mode. Activated separately.
+        Return True if CDP Mode is loaded in the driver. False otherwise."""
+        return (
+            hasattr(self.driver, "_is_using_cdp")
+            and self.driver._is_using_cdp
+        )
+
+    def js_click(self, *args, **kwargs):
+        return page_actions.js_click(self.driver, *args, **kwargs)
+
+    def get_text(self, *args, **kwargs):
+        return page_actions.get_text(self.driver, *args, **kwargs)
+
+    def get_active_element_css(self, *args, **kwargs):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_active_element_css()
+        return js_utils.get_active_element_css(self.driver, *args, **kwargs)
+
+    def get_locale_code(self, *args, **kwargs):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_locale_code()
+        return js_utils.get_locale_code(self.driver, *args, **kwargs)
+
+    def get_screen_rect(self, *args, **kwargs):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_screen_rect()
+        return js_utils.get_screen_rect(self.driver, *args, **kwargs)
+
+    def get_origin(self, *args, **kwargs):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_origin()
+        return js_utils.get_origin(self.driver, *args, **kwargs)
+
+    def get_user_agent(self, *args, **kwargs):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_user_agent()
+        return js_utils.get_user_agent(self.driver, *args, **kwargs)
+
+    def get_cookie_string(self, *args, **kwargs):
+        if self.__is_cdp_swap_needed():
+            return self.driver.cdp.get_cookie_string()
+        return js_utils.get_cookie_string(self.driver, *args, **kwargs)
+
+    def highlight(self, *args, **kwargs):
+        if self.__is_cdp_swap_needed():
+            selector = None
+            if "selector" in kwargs:
+                selector = kwargs["selector"]
+            else:
+                selector = args[0]
+            if ":contains(" not in selector:
+                self.driver.cdp.highlight(selector)
+                return
+            else:
+                self.driver.connect()
+        if "scroll" in kwargs:
+            kwargs.pop("scroll")
+        w_args = kwargs.copy()
+        if "loops" in w_args:
+            w_args.pop("loops")
+        element = page_actions.wait_for_element(self.driver, *args, **w_args)
+        browser = self.driver.capabilities["browserName"].lower()
+        js_utils.slow_scroll_to_element(self.driver, element, browser)
+        if "timeout" in kwargs:
+            kwargs.pop("timeout")
+        js_utils.highlight(self.driver, *args, **kwargs)
+
+    def highlight_click(self, *args, **kwargs):
+        self.highlight(*args, **kwargs)
+        if "loops" in kwargs:
+            kwargs.pop("loops")
+        if "scroll" in kwargs:
+            kwargs.pop("scroll")
+        page_actions.click(self.driver, *args, **kwargs)
+
+    def highlight_if_visible(
+        self, selector, by="css selector", loops=4, scroll=True
+    ):
+        if self.is_element_visible(selector, by=by):
+            self.highlight(selector, by=by, loops=loops, scroll=scroll)
+
+    def switch_to_default_window(self):
+        self.driver.switch_to.window(self.driver.window_handles[0])
+
+    def switch_to_newest_window(self):
+        self.driver.switch_to.window(self.driver.window_handles[-1])
+
+    def open_new_window(self, switch_to=True):
+        if switch_to:
+            try:
+                self.driver.switch_to.new_window("tab")
+            except Exception:
+                self.driver.execute_script("window.open('');")
+                self.switch_to_newest_window()
+        else:
+            self.driver.execute_script("window.open('');")
+
+    def open_new_tab(self, switch_to=True):
+        self.open_new_window(switch_to=switch_to)
+
+    def switch_to_window(self, *args, **kwargs):
+        page_actions.switch_to_window(self.driver, *args, **kwargs)
+
+    def switch_to_tab(self, *args, **kwargs):
+        self.switch_to_window(*args, **kwargs)
+
+    def switch_to_frame(self, frame="iframe"):
+        if isinstance(frame, WebElement):
+            self.driver.switch_to.frame(frame)
+        else:
+            iframe = self.locator(frame)
+            self.driver.switch_to.frame(iframe)
+
+    def reset_window_size(self):
+        if self.__is_cdp_swap_needed():
+            self.driver.cdp.reset_window_size()
+            return
+        x = settings.WINDOW_START_X
+        y = settings.WINDOW_START_Y
+        width = settings.CHROME_START_WIDTH
+        height = settings.CHROME_START_HEIGHT
+        self.driver.set_window_rect(x, y, width, height)
+
+    def set_wire_proxy(self, string):
+        """Set a proxy server for selenium-wire mode ("--wire")
+        Examples:  (ONLY avilable if using selenium-wire mode!)
+        driver.set_wire_proxy("SERVER:PORT")
+        driver.set_wire_proxy("socks5://SERVER:PORT")
+        driver.set_wire_proxy("USERNAME:PASSWORD@SERVER:PORT")
+        """
+        the_http = "http"
+        the_https = "https"
+        if string.startswith("socks4://"):
+            the_http = "socks4"
+            the_https = "socks4"
+        elif string.startswith("socks5://"):
+            the_http = "socks5"
+            the_https = "socks5"
+        string = string.split("//")[-1]
+        if hasattr(self.driver, "proxy"):
+            self.driver.proxy = {
+                "http": "%s://%s" % (the_http, string),
+                "https": "%s://%s" % (the_https, string),
+                "no_proxy": "localhost,127.0.0.1",
+            }
