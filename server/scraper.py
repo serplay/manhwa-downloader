@@ -173,7 +173,7 @@ def search(title, source):
                 com_id = com["id"]
                 title = {'en': com["title"]}
                 cover_art = com["image"]
-                header = {'Referer':'https://mangapill.com'} # guessed referer first try 😅
+                header = 'https://mangapill.com' # guessed referer first try 😅
                 trans = ["en"]
                 comics[num] = {
                     "id": com_id,
