@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 import io
 import os
 from dotenv import load_dotenv
-from bot_evasion import get_with_captcha, get_with_captcha_simple
+from bot_evasion import get_with_captcha
 
 load_dotenv()
 
@@ -68,7 +68,7 @@ def search(title, source):
         case 1: #Manhuaus
             base_url = "https://manhuaus.com"
             try:
-                soup = get_with_captcha_simple(f"{base_url}/?s={title}&post_type=wp-manga", 'div[class="row c-tabs-item__content"]')
+                soup = get_with_captcha(f"{base_url}/?s={title}&post_type=wp-manga", 'div[class="row c-tabs-item__content"]')
             except Exception as e:
                 raise Exception(f"Failed to fetch data from Manhuaus: {e}")
             
