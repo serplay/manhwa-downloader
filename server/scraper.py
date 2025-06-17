@@ -66,6 +66,7 @@ def search(title, source):
                                    }
                 return comics
         case 1: #Manhuaus
+            raise NotImplementedError("Manhuaus is not implemented yet.")
             base_url = "https://manhuaus.com"
             try:
                 soup = get_with_captcha(f"{base_url}/?s={title}&post_type=wp-manga", 'div[class="row c-tabs-item__content"]')
@@ -85,7 +86,27 @@ def search(title, source):
                                }
             return comics
         case 2: #Yakshascans
-            raise NotImplementedError("Yakshascans is not implemented yet.")
+            base_url = f"https://yakshascans.com?s={title}&post_type=wp-manga&op=&author=&artist=&release=&adult="
+            
+            try:
+                soup = get_with_captcha(base_url, 'div[class="row c-tabs-item__content"]')
+            except Exception as e:
+                raise Exception(f"Failed to fetch data from Yakshascans: {e}")
+            
+            comics = {}
+            for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
+                title_and_link = com.find("h3",{"class":"h4"}).find("a")
+                title = {"en":title_and_link.text}
+                link = title_and_link["href"][30:-1]
+                image_cover = com.find("img")["data-src"]
+                header = "https://yakshascans.com"
+                comics[num] = {"title":title, 
+                               "id":link, 
+                               "cover_art":f'{ROOT_URL}/proxy-image?url={image_cover}&hd={header}', 
+                               "availableLanguages": ["en"], 
+                               }
+            return comics
+        
         case 3: #Asurascan
             raise NotImplementedError("Asurascan is not implemented yet.")
         case 4: #Kunmanga
@@ -266,6 +287,7 @@ def get_chapters(id: str, source: int):
                 
             return new_data
         case 1: #Manhuaus
+            raise NotImplementedError("Manhuaus is not implemented yet.")
             base_url = "https://manhuaus.com/manga/"
             try:
                 soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn active"]')
@@ -282,7 +304,22 @@ def get_chapters(id: str, source: int):
                 data["Vol 1"]["chapters"][str(i)] = {"id": f'{id}/{chap_id}', "chapter": chap_num}
             return data
         case 2:  # Yakshascans
-            raise NotImplementedError("Pulling chapters from Yakshascans is not implemented yet.")
+            base_url = "https://yakshascans.com/manga/"
+            try:
+                soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn active"]')
+            except Exception as e:
+                raise Exception(f"Failed to fetch data from Manhuaus: {e}")
+            
+            chapters = soup.find("ul",{"class":"main version-chap no-volumn active"}).find_all("li")
+            data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
+            
+            for i, chap in enumerate(chapters):
+                chap_data = chap.a
+                chap_num =re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap_data.contents[0])
+                chap_id = chap_data["href"].split("/")[-2]
+                data["Vol 1"]["chapters"][str(i)] = {"id": f'{id}/{chap_id}', "chapter": chap_num}
+            return data
+            
         case 3:  # Asurascan
             raise NotImplementedError("Pulling chapters from Asurascan is not implemented yet.")
         case 4:  # Kunmanga

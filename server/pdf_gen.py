@@ -123,7 +123,54 @@ def get_chapter_images(ids, source):
                 raise e
 
         case 2:  # Yakshascans
-            raise NotImplementedError("Downloading chapters from Yakshascans is not implemented yet.")
+            base_url = "https://yakshascans.com/manga/"
+            path = uuid.uuid4().hex
+            pdfs = []
+            os.makedirs(f"{path}", exist_ok=True)
+
+            try:
+                with SB(uc=True, xvfb=True) as sb:
+                    for chap_id in ids:
+                        chap_id, chap_num = chap_id.split("_")
+                        
+                        try:
+                            sb.uc_open_with_reconnect(f"{base_url}{chap_id}/", 4)
+                            sb.uc_gui_click_captcha()
+                            soup = sb.get_beautiful_soup()
+                        except Exception as e:
+                            print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
+                            continue
+
+                        read_container = soup.find("div", {"class": "read-container"})
+                        if not read_container:
+                            print(f"Skipping chapter {chap_num} - read-container not found.")
+                            continue
+
+                        images = read_container.find_all("img")
+                        image_links = [
+                            re.sub(r'[\t\r\n]', "", img.get("data-src", "")) for img in images if img.get("data-src")
+                        ]
+
+                        if not image_links:
+                            print(f"No images found for chapter {chap_num}. Skipping.")
+                            continue
+
+                        pdfs.append(gen_pdf(image_links, chap_num, path))
+                        shutil.rmtree(f"{path}/{chap_num}")
+
+                if not pdfs:
+                    raise Exception("No PDFs were generated, ZIP will not be created.")
+
+                zip_path = f"{path}/Chapters.zip"
+                with ZipFile(zip_path, "w") as chapters_zip:
+                    for pdf in pdfs:
+                        chapters_zip.write(pdf, os.path.basename(pdf))
+                        os.remove(pdf)
+                return zip_path
+
+            except Exception as e:
+                cleanup(path)
+                raise e
         
         case 3:  # Asurascan
             raise NotImplementedError("Downloading chapters from Asurascan is not implemented yet.")
