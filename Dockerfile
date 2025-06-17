@@ -114,7 +114,7 @@ COPY MANIFEST.in /SeleniumBase/MANIFEST.in
 COPY pytest.ini /SeleniumBase/pytest.ini
 COPY setup.cfg /SeleniumBase/setup.cfg
 COPY virtualenv_install.sh /SeleniumBase/virtualenv_install.sh
-RUN find . -name '*.pyc' -delete
+
 RUN pip install --upgrade pip setuptools wheel
 RUN cd /SeleniumBase && ls && pip install -r requirements.txt --upgrade
 RUN cd /SeleniumBase && pip install .
