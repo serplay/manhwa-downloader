@@ -9,7 +9,7 @@ def get_with_captcha(url, elem, click=False):
             try:
                 sb.wait_for_element(elem, timeout=10)
             except Exception as e:
-                raise Exception()
+                return {}
         if click:
             sb.click('button:contains("Show All Chapters")')
         soup = sb.get_beautiful_soup()
