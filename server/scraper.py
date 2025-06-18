@@ -13,6 +13,8 @@ load_dotenv()
 
 ROOT_URL = os.environ.get("ROOT_URL")
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
+if not ROOT_URL:
+    ROOT_URL = os.environ.get('RENDER_EXTERNAL_URL')
 
 def proxy_image(url: str, header: str = None):
     if header:
@@ -68,7 +70,7 @@ def search(title, source):
         case 1: #Manhuaus
             base_url = "https://manhuaus.com"
             try:
-                soup = get_with_captcha(f"{base_url}/?s={title}&post_type=wp-manga", 'div[class="row c-tabs-item__content"]')
+                soup = get_with_captcha(f"{base_url}/?s={title}&post_type=wp-manga", '') # 'div[class="row c-tabs-item__content"]'
             except Exception as e:
                 raise Exception(f"Failed to fetch data from Manhuaus: {e}")
             
@@ -79,7 +81,7 @@ def search(title, source):
                 title_and_link = com.find("h3",{"class":"h4"}).find("a")
                 title = {"en":title_and_link.text}
                 link = title_and_link["href"][27:-1]
-                image_cover = com.find("img")["data-src"]
+                image_cover = f'{ROOT_URL}/proxy-image?url={com.find("img")["data-src"]}&hd={base_url}'
                 comics[num] = {"title":title, 
                                "id":link, 
                                "cover_art":image_cover, 
