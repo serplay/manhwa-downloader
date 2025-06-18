@@ -11,10 +11,7 @@ from bot_evasion import get_with_captcha
 
 load_dotenv()
 
-ROOT_URL = os.environ.get("ROOT_URL")
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
-if not ROOT_URL:
-    ROOT_URL = os.environ.get('RENDER_EXTERNAL_URL')
 
 def proxy_image(url: str, header: str = None):
     if header:
@@ -59,7 +56,7 @@ def search(title, source):
                     trans = com["attributes"]["availableTranslatedLanguages"]
                     for i in rel:
                         if i["type"] == "cover_art":
-                            cover_art = f'{ROOT_URL}/proxy-image?url=https://uploads.mangadex.org/covers/{com_id}/{i["attributes"]["fileName"]}.256.jpg&hd='
+                            cover_art = f'api/proxy-image?url=https://uploads.mangadex.org/covers/{com_id}/{i["attributes"]["fileName"]}.256.jpg&hd='
                             break
                     comics[num] = {"id":com_id, 
                                    "title":title, 
@@ -81,7 +78,7 @@ def search(title, source):
                 title_and_link = com.find("h3",{"class":"h4"}).find("a")
                 title = {"en":title_and_link.text}
                 link = title_and_link["href"][27:-1]
-                image_cover = f'{ROOT_URL}/proxy-image?url={com.find("img")["data-src"]}&hd={base_url}'
+                image_cover = f'api/proxy-image?url={com.find("img")["data-src"]}&hd={base_url}'
                 comics[num] = {"title":title, 
                                "id":link, 
                                "cover_art":image_cover, 
@@ -107,7 +104,7 @@ def search(title, source):
                 header = "https://yakshascans.com"
                 comics[num] = {"title":title, 
                                "id":link, 
-                               "cover_art":f'{ROOT_URL}/proxy-image?url={image_cover}&hd={header}', 
+                               "cover_art":f'api/proxy-image?url={image_cover}&hd={header}', 
                                "availableLanguages": ["en"], 
                                }
             return comics
@@ -156,7 +153,7 @@ def search(title, source):
                 trans = ["en"]
                 comics[num] = {"id":com_id, 
                                "title":title, 
-                               "cover_art":f'{ROOT_URL}/proxy-image?url={cover_art}&hd={header}', 
+                               "cover_art":f'api/proxy-image?url={cover_art}&hd={header}', 
                                "availableLanguages":trans, 
                                }
             return comics
@@ -180,7 +177,7 @@ def search(title, source):
                 comics[num] = {
                     "id": com_id,
                     "title": title,
-                    "cover_art": f'{ROOT_URL}/proxy-image?url={cover_art}&hd={header}',
+                    "cover_art": f'api/proxy-image?url={cover_art}&hd={header}',
                     "availableLanguages": trans,
                 }
             

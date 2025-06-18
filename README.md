@@ -1,4 +1,3 @@
-
 # 📚 Manga & Manhwa Downloader
 
 A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading .
@@ -69,12 +68,8 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 Before running the backend, you need to create a `.env` file in the `server` directory with the following keys:
 
 ```env
-VITE_API_URL=http://localhost:<your_port>
-ROOT_URL=http://localhost:<your_port>
 MANGAPI_URL=<address_of_your_self_hosted_consumet_api>
 ```
-
-> Ensure that VITE_API_URL and ROOT_URL have the same port
 
 Then run:
 
@@ -98,15 +93,15 @@ uvicorn main:app --reload --port <your_port>
 
 ### 🎨 Frontend Setup
 
-Before running the frontend, you also need to create a `.env` file in the `client` directory with the same keys:
+The frontend now uses Vite's built-in proxy to route all API calls through `/api/` instead of calling the backend directly. This eliminates CORS issues and simplifies deployment.
+
+You can optionally create a `.env` file in the `client` directory to specify the backend URL:
 
 ```env
-VITE_API_URL=http://localhost:<your_port>
-ROOT_URL=http://localhost:<your_port>
-MANGAPI_URL=<address_of_your_self_hosted_consumet_api>
+VITE_API_URL=<your_backend_url>
 ```
 
-> Ensure that VITE_API_URL and ROOT_URL have the same port
+If no `.env` file is provided, the proxy will default to `http://localhost:8000`.
 
 Then run:
 
@@ -120,7 +115,7 @@ npm install
 npm run dev
 ```
 
----
+The frontend will now proxy all `/api/*` requests to your backend server automatically.
 
 ---
 
