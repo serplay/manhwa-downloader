@@ -315,10 +315,14 @@ def get_chapters(id: str, source: int):
             base_url = "https://manhuaus.com/manga/"
             try:
                 soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn active"]')
+                if type(soup) is dict:
+                    soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn"]')
+                    chapters = soup.find("ul",{"class":"main version-chap no-volumn"}).find_all("li")
+                else:
+                    chapters = soup.find("ul",{"class":"main version-chap no-volumn active"}).find_all("li")
             except Exception as e:
                 raise Exception(f"Failed to fetch data from Manhuaus: {e}")
             
-            chapters = soup.find("ul",{"class":"main version-chap no-volumn active"}).find_all("li")
             data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
             
             for i, chap in enumerate(chapters):
