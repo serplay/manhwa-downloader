@@ -152,6 +152,11 @@ def get_chapter_images(ids, source):
                         ]
 
                         if not image_links:
+                            # If no data-src, try src
+                            image_links = [
+                                re.sub(r'[\t\r\n]', "", img.get("src", "")) for img in images if img.get("src")
+                            ]
+                        if not image_links:
                             print(f"No images found for chapter {chap_num}. Skipping.")
                             continue
 
