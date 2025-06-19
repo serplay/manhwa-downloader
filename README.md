@@ -11,7 +11,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 > - Mangapill ✅
 > - Mangahere ✅
 > - Weebcentral ✅
-> - Manhuaus ✅ (locally, render web service halts on this source [working on it])
+> - Manhuaus ✅ 
 > - Yakshascans ✅
 > - Asurascan ✅
 > - Kunmanga ❌
