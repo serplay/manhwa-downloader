@@ -24,6 +24,11 @@ async def root():
     return {"message": "It Works!"}
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/download")
 async def download_chapter(
     ids: list = Query(..., description="List of IDs", alias="ids[]"),
