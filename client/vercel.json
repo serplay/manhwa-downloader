@@ -4,7 +4,7 @@
     "rewrites": [
       {
         "source": "/api/(.*)",
-        "destination": "https://mangapdf.losingsanity.com"
+        "destination": "https://mangapdf.losingsanity.com/$1"
       }
     ]
   }
