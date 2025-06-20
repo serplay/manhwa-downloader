@@ -6,6 +6,9 @@ import scraper
 import pdf_gen
 from scraper import search, get_chapters, proxy_image
 from dotenv import load_dotenv
+import requests
+import asyncio
+import aiohttp
 
 load_dotenv()
 
@@ -24,9 +27,40 @@ async def root():
     return {"message": "It Works!"}
 
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+SOURCE_URLS = {
+    "0": "https://api.mangadex.org",
+    "1": "https://manhuaus.com",
+    "2": "https://yakshascans.com",
+    "3": "https://asuracomic.net",
+    "4": None,  # Kunmanga - Not implemented
+    "5": None,  # Toonily - Not implemented
+    "6": None,  # Toongod - Not implemented
+    "7": "https://mangahere.cc",
+    "8": "https://mangapill.com",
+    "9": "https://bato.si",
+    "10": "https://weebcentral.com",
+}
+
+
+async def check_url(session, url):
+    if not url:
+        return "null"
+    try:
+        async with session.get(url, timeout=5) as response:
+            return "ok" if response.status == 200 else "null"
+    except Exception:
+        return "null"
+
+
+@app.get("/status")
+async def get_status():
+    status = {}
+    async with aiohttp.ClientSession() as session:
+        tasks = [check_url(session, url) for url in SOURCE_URLS.values()]
+        results = await asyncio.gather(*tasks)
+        for i, res in enumerate(results):
+            status[str(i)] = res
+    return {"status": status}
 
 
 @app.get("/download")

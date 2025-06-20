@@ -1,4 +1,3 @@
-
 # 📚 Manga & Manhwa Downloader
 
 A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading .
@@ -30,6 +29,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - 📚 Shows available chapters grouped by volume with dynamic dropdowns.
 - ✅ Select individual chapters or select all in preparation for downloads.
 - 📱 Responsive and visually modern UI with Tailwind CSS.
+- ✨ Live source status checking.
 
 ### Backend (FastAPI)
 
@@ -38,6 +38,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
   - `/chapters/` – Retrieve volume and chapter information for a given title.
   - `/download/` - Download specified chapters.
   - `/proxy-image` - Proxy cover art image through backend.
+  - `/status` - Check health status of all sources.
 - 📥 Download-ready architecture.
 - 🧼 Clean HTML scraping with BeautifulSoup.
 
@@ -48,7 +49,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 | Layer     | Tech                                                                 |
 |-----------|----------------------------------------------------------------------|
 | Frontend  | Vite, React, Tailwind CSS, Framer Motion, FontAwesome                |
-| Backend   | FastAPI, Uvicorn, BeautifulSoup, img2pdf, requests                   |
+| Backend   | FastAPI, Uvicorn, BeautifulSoup, img2pdf, requests, aiohttp          |
 
 ---
 
@@ -132,8 +133,10 @@ npm run dev
 - ✅ Chapter selection UI
 - ✅ Implement backend support for chapter image retrieval
 - ✅ Add "Download" functionality (PDF/image bundles)
+- ✅ Add live source status checker
 - ✅ Deploy frontend & backend
 - 🔄 Write tests and error handling
+- 🔄 Check TODO.md to see future features/improvements
 
 ---
 
