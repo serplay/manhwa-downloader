@@ -10,7 +10,7 @@ import {
 import logo from "./assets/logo.png";
 
 function App() {
-  const API_url = import.meta.env.VITE_API_URL
+  const API_url = "/api";
   // Theme state - persists in localStorage
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("theme");
