@@ -141,9 +141,9 @@ def get_chapter_images(ids, source):
                             print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
                             continue
 
-                        read_container = soup.find("div", {"class": "read-container"})
+                        read_container = soup.find("div", {"class": "reading-content"})
                         if not read_container:
-                            print(f"Skipping chapter {chap_num} - read-container not found.")
+                            print(f"Skipping chapter {chap_num} - reading-content not found.")
                             continue
 
                         images = read_container.find_all("img")
@@ -159,7 +159,7 @@ def get_chapter_images(ids, source):
                         if not image_links:
                             print(f"No images found for chapter {chap_num}. Skipping.")
                             continue
-
+                        
                         pdfs.append(gen_pdf(image_links, chap_num, path))
                         shutil.rmtree(f"{path}/{chap_num}")
 
