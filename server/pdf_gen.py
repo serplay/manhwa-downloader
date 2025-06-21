@@ -458,10 +458,16 @@ def gen_pdf(images, chap_num, path, referer=None):
                     jpg_path = f'{img_path}.jpg'
                     im.save(jpg_path, "JPEG")
                     os.remove(img_path)
+                    with Image.open(jpg_path) as img:
+                        if img.size[0] < 72 or img.size[1] < 72:
+                            continue
                     image_paths.append(jpg_path)
                 except Exception as e:
                     raise Exception(f"Failed to convert WEBP to JPEG: {e}")
             else:
+                with Image.open(img_path) as img:
+                    if img.size[0] < 72 or img.size[1] < 72:
+                        continue
                 image_paths.append(img_path)
 
         title = f"Chapter_{chap_num}"

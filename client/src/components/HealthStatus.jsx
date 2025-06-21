@@ -10,7 +10,7 @@ const sourceNames = {
   6: "Toongod",
   7: "Mangahere",
   8: "Mangapill",
-  9: "Bato (Fastest)",
+  9: "Bato <strong>(Fastest)</strong>",
   10: "Weebcentral",
 };
 
@@ -49,7 +49,10 @@ function HealthStatus() {
         <ul className="space-y-2">
           {Object.entries(sourceNames).map(([id, name]) => (
             <li key={id} className="flex items-center justify-between">
-              <span className="text-sm text-gray-800 dark:text-gray-300">{name}</span>
+              <span 
+                className="text-sm text-gray-800 dark:text-gray-300"
+                dangerouslySetInnerHTML={{ __html: name }}
+              ></span>
               <span className={`w-3 h-3 rounded-full ${status[id] === "ok" ? "bg-green-500" : "bg-red-500"}`}></span>
             </li>
           ))}
