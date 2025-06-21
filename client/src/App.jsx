@@ -8,6 +8,7 @@ import {
   faMoon,
 } from "@fortawesome/free-solid-svg-icons";
 import logo from "./assets/logo.png";
+import HealthStatus from "./components/HealthStatus";
 
 function App() {
   const API_url = "/api";
@@ -510,6 +511,7 @@ function App() {
           )}
         </AnimatePresence>
       </div>
+      <HealthStatus />
     </div>
   );
 }
