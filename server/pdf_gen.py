@@ -5,6 +5,7 @@ import requests as req
 import shutil
 import uuid
 from zipfile import ZipFile
+from typing import Callable, Optional
 
 from bs4 import BeautifulSoup as bs
 from dotenv import load_dotenv
@@ -16,11 +17,29 @@ load_dotenv()
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
 
 
-def get_chapter_images(ids, source):
+def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None):
+    """
+    Download chapter images and generate PDF/ZIP files.
+    
+    Args:
+        ids: List of chapter IDs
+        source: Source number
+        progress_callback: Callback function for progress updates (optional)
+    """
     try:
         source = int(source)
     except ValueError:
         raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
+    
+    total_chapters = len(ids)
+    
+    def update_progress(current: int, status: str = "Processing..."):
+        """Update progress if callback is available"""
+        if progress_callback:
+            progress = int((current / total_chapters) * 100)
+            progress_callback(progress, status)
+    
+    update_progress(0, "Starting download...")
     
     match source:
         case 0:  # MangaDex
@@ -30,18 +49,20 @@ def get_chapter_images(ids, source):
             os.makedirs(f"{path}", exist_ok=True)
             
             try:
-                for chap_id in ids:
+                for i, chap_id in enumerate(ids):
+                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                    
                     chap_id, chap_num = chap_id.split("_")
                     ch_path = f"{path}/{chap_num}"
                     os.makedirs(ch_path, exist_ok=True)
 
-                    for i in range(max_retries := 3):
+                    for retry in range(max_retries := 3):
                         try:
                             response = req.get(f"{athome_url}{chap_id}", timeout=10)
                             response.raise_for_status()
                             data = response.json()
                         except req.RequestException as e:
-                            if i == max_retries - 1:
+                            if retry == max_retries - 1:
                                 raise Exception(f"Failed to retrieve chapter data after multiple attempts: {e}")
                             continue
 
@@ -61,11 +82,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
 
             except Exception as e:
@@ -80,7 +104,9 @@ def get_chapter_images(ids, source):
 
             try:
                 with SB(uc=True, xvfb=True) as sb:
-                    for chap_id in ids:
+                    for i, chap_id in enumerate(ids):
+                        update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                        
                         chap_id, chap_num = chap_id.split("_")
                         
                         try:
@@ -111,11 +137,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
 
             except Exception as e:
@@ -130,7 +159,9 @@ def get_chapter_images(ids, source):
 
             try:
                 with SB(uc=True, xvfb=True) as sb:
-                    for chap_id in ids:
+                    for i, chap_id in enumerate(ids):
+                        update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                        
                         chap_id, chap_num = chap_id.split("_")
                         
                         try:
@@ -166,11 +197,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
 
             except Exception as e:
@@ -185,7 +219,9 @@ def get_chapter_images(ids, source):
 
             try:
                 with SB(uc=True, xvfb=True) as sb:
-                    for chap_id in ids:
+                    for i, chap_id in enumerate(ids):
+                        update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                        
                         chap_id, chap_num = chap_id.split("_")
                         
                         try:
@@ -215,11 +251,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
             
             except Exception as e:
@@ -242,7 +281,8 @@ def get_chapter_images(ids, source):
             os.makedirs(f"{path}", exist_ok=True)
             
             try:
-                for chap_id in ids:
+                for i, chap_id in enumerate(ids):
+                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
                     
                     temp = chap_id.split("_")
                     if len(temp) != 2:
@@ -267,11 +307,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
                                 
             except Exception as e:
@@ -285,7 +328,9 @@ def get_chapter_images(ids, source):
             os.makedirs(f"{path}", exist_ok=True)
             
             try:
-                for chap_id in ids:
+                for i, chap_id in enumerate(ids):
+                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                    
                     temp = chap_id.split("_")
                     if len(temp) != 2:
                         chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
@@ -309,11 +354,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
                 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
                     
             except Exception as e:
@@ -339,7 +387,9 @@ def get_chapter_images(ids, source):
             os.makedirs(f"{path}", exist_ok=True)
             
             try:
-                for chap_id in ids:
+                for i, chap_id in enumerate(ids):
+                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                    
                     temp = chap_id.split("_")
 
                     if len(temp) != 2:
@@ -360,11 +410,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
                 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
                         
             except Exception as e:
@@ -379,7 +432,9 @@ def get_chapter_images(ids, source):
 
             try:
                 with SB(uc=True, xvfb=True) as sb:
-                    for chap_id in ids:
+                    for i, chap_id in enumerate(ids):
+                        update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                        
                         chap_id, chap_num = chap_id.split("_")
                         
                         try:
@@ -409,11 +464,14 @@ def get_chapter_images(ids, source):
                 if not pdfs:
                     raise Exception("No PDFs were generated, ZIP will not be created.")
 
+                update_progress(total_chapters, "Creating ZIP archive...")
                 zip_path = f"{path}/Chapters.zip"
                 with ZipFile(zip_path, "w") as chapters_zip:
                     for pdf in pdfs:
                         chapters_zip.write(pdf, os.path.basename(pdf))
                         os.remove(pdf)
+                
+                update_progress(total_chapters, "Finished")
                 return zip_path
             
             except Exception as e:
@@ -470,11 +528,11 @@ def gen_pdf(images, chap_num, path, referer=None):
                         continue
                 image_paths.append(img_path)
 
-        title = f"Chapter_{chap_num}"
+        title = f"Chapter_{chap_num.replace('.', '_')}"
         pdf_path = f"{path}/{title}.pdf"
 
         with open(pdf_path, "wb") as f:
-            f.write(img2pdf.convert(image_paths))
+            f.write(img2pdf.convert(image_paths, rotation=img2pdf.Rotation.ifvalid))
 
         return pdf_path
 

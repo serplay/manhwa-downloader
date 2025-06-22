@@ -11,13 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, name="tasks.download_chapters")
-def download_chapters(self, ids: List[str], source: str) -> Dict[str, Any]:
+def download_chapters(self, ids: List[str], source: str, comic_title: str = "Chapters") -> Dict[str, Any]:
     """
     Celery task to download chapters in the background.
     
     Args:
         ids: List of chapter IDs to download
         source: Source identifier (number)
+        comic_title: Title of the comic
     
     Returns:
         Dict with task status information
@@ -33,7 +34,8 @@ def download_chapters(self, ids: List[str], source: str) -> Dict[str, Any]:
                 "task_id": task_id,
                 "status": status,
                 "progress": progress,
-                "total_chapters": len(ids)
+                "total_chapters": len(ids),
+                "comic_title": comic_title
             }
         )
         logger.info(f"Task {task_id}: {progress}% - {status}")
@@ -48,7 +50,8 @@ def download_chapters(self, ids: List[str], source: str) -> Dict[str, Any]:
                 "task_id": task_id,
                 "status": "Starting download...",
                 "progress": 0,
-                "total_chapters": len(ids)
+                "total_chapters": len(ids),
+                "comic_title": comic_title
             }
         )
         
@@ -82,7 +85,8 @@ def download_chapters(self, ids: List[str], source: str) -> Dict[str, Any]:
                 "progress": 100,
                 "zip_path": zip_path,
                 "file_size": file_size,
-                "total_chapters": len(ids)
+                "total_chapters": len(ids),
+                "comic_title": comic_title
             }
         )
         
@@ -93,7 +97,8 @@ def download_chapters(self, ids: List[str], source: str) -> Dict[str, Any]:
             "status": "SUCCESS",
             "zip_path": zip_path,
             "file_size": file_size,
-            "total_chapters": len(ids)
+            "total_chapters": len(ids),
+            "comic_title": comic_title
         }
         
     except Exception as e:
@@ -106,14 +111,16 @@ def download_chapters(self, ids: List[str], source: str) -> Dict[str, Any]:
             meta={
                 "task_id": task_id,
                 "status": f"Error: {str(e)}",
-                "error": str(e)
+                "error": str(e),
+                "comic_title": comic_title
             }
         )
         
         return {
             "task_id": task_id,
             "status": "FAILURE",
-            "error": str(e)
+            "error": str(e),
+            "comic_title": comic_title
         }
 
 

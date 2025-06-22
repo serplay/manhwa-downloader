@@ -6,6 +6,8 @@ import {
   faCircleXmark,
   faSun,
   faMoon,
+  faDownload,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import logo from "./assets/logo.png";
 import HealthStatus from "./components/HealthStatus";
@@ -35,11 +37,115 @@ function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [loadedImages, setLoadedImages] = useState(new Set());
 
+  // Background task states
+  const [activeTasks, setActiveTasks] = useState({});
+  const [taskStatuses, setTaskStatuses] = useState({});
+  const [downloadingFiles, setDownloadingFiles] = useState(new Set());
+  const [downloadSuccess, setDownloadSuccess] = useState("");
+
   // Apply theme changes to document
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
+
+// Polling for active tasks
+useEffect(() => {
+  const pollActiveTasks = async () => {
+    const activeTaskIds = Object.keys(activeTasks);
+    if (activeTaskIds.length === 0) return;
+
+    for (const taskId of activeTaskIds) {
+      try {
+        const response = await fetch(`${API_url}/download/status/${taskId}`);
+        if (response.ok) {
+          const status = await response.json();
+          setTaskStatuses(prev => ({ ...prev, [taskId]: status }));
+
+          // If task completed successfully, automatically download the file
+          if (status.state === "SUCCESS") {
+            // Check if the file is not already downloading
+            if (!downloadingFiles.has(taskId)) {
+              console.log(`DEBUG: Task ${taskId} completed successfully, downloading file...`);
+              
+              // Mark file as downloading
+              setDownloadingFiles(prev => new Set(prev).add(taskId));
+              
+              try {
+                // Get comic title from activeTasks
+                const taskInfo = activeTasks[taskId];
+                const comicTitle = taskInfo?.comicTitle || "Chapters";
+                
+                await downloadCompletedFile(taskId, comicTitle);
+                console.log(`DEBUG: File for task ${taskId} downloaded successfully`);
+              } catch (error) {
+                console.error(`DEBUG: Error during automatic file download for task ${taskId}:`, error);
+                setDownloadError(`Automatic file download failed: ${error.message}`);
+              } finally {
+                // Remove from downloading files list
+                setDownloadingFiles(prev => {
+                  const newSet = new Set(prev);
+                  newSet.delete(taskId);
+                  return newSet;
+                });
+              }
+            }
+          }
+
+          // If task finished (success or failure), handle removal
+          if (status.state === "SUCCESS") {
+            // Remove successful tasks immediately
+            setActiveTasks(prev => {
+              const newTasks = { ...prev };
+              delete newTasks[taskId];
+              return newTasks;
+            });
+          } else if (status.state === "FAILURE") {
+            // Delay removal for failed tasks to make the error visible
+            setTimeout(() => {
+              setActiveTasks(prev => {
+                const newTasks = { ...prev };
+                delete newTasks[taskId];
+                return newTasks;
+              });
+            }, 1000); // 1-second delay
+          }
+        } else {
+          // If response not OK, set task status as FAILURE and remove it after a delay
+          console.error(`Status check for ${taskId} failed with status: ${response.status}`);
+          setTaskStatuses(prev => ({
+            ...prev,
+            [taskId]: { state: "FAILURE" }
+          }));
+          setTimeout(() => {
+            setActiveTasks(prev => {
+              const newTasks = { ...prev };
+              delete newTasks[taskId];
+              return newTasks;
+            });
+          }, 3000);
+        }
+      } catch (error) {
+        console.error(`Error checking status of task ${taskId}:`, error);
+        // Mark task as failed and remove it after a delay
+        setTaskStatuses(prev => ({
+          ...prev,
+          [taskId]: { state: "FAILURE" }
+        }));
+        setTimeout(() => {
+          setActiveTasks(prev => {
+            const newTasks = { ...prev };
+            delete newTasks[taskId];
+            return newTasks;
+          });
+        }, 1000);
+      }
+    }
+  };
+
+  const interval = setInterval(pollActiveTasks, 2000); // Check every 2 seconds
+  return () => clearInterval(interval);
+}, [activeTasks, downloadingFiles]);
 
   // Search for comics based on title and source
   const handleSearch = async () => {
@@ -160,7 +266,7 @@ function App() {
     }));
   };
 
-  // Handle chapter download
+  // Handle chapter download - now starts background task
   const handleDownload = async (comicId, comicTitle) => {
     const chapterIds = selectedChapters[comicId] || [];
     if (chapterIds.length === 0) return;
@@ -178,36 +284,98 @@ function App() {
         });
       });
       params.append("source", source);
+      params.append("comic_title", comicTitle);
   
-      const response = await fetch(`${API_url}/download/?${params.toString()}`);
+      const response = await fetch(`${API_url}/download?${params.toString()}`, {
+        method: 'POST'
+      });
+      
       if (!response.ok) {
         const errorData = await response.json();
-        const errorMessage = errorData.error || "";
+        const errorMessage = errorData.detail || "Failed to start download";
         throw new Error(errorMessage);
       }
   
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-  
-      // Sanitize title and use it for the file name
-      const safeTitle = comicTitle.replace(/[<>:"/\\|?*]+/g, "");
-      a.download = `${safeTitle}.zip`;
-  
-      document.body.appendChild(a);
-      a.click();
+      const data = await response.json();
+      
+      // Dodaj zadanie do aktywnych
+      setActiveTasks(prev => ({
+        ...prev,
+        [data.task_id]: {
+          comicId,
+          comicTitle,
+          chapterCount: chapterIds.length,
+          startTime: new Date().toISOString()
+        }
+      }));
 
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Wyczyść wybrane rozdziały
+      setSelectedChapters(prev => {
+        const newSelected = { ...prev };
+        delete newSelected[comicId];
+        return newSelected;
+      });
+
     } catch (error) {
       console.error("Download error:", error);
-      setDownloadError("Failed to download chapters. Please try again later.\n" + error.message);
+      setDownloadError("Failed to start download. Please try again later.\n" + error.message);
     } finally {
       setIsDownloading(false);
     }
   };
+
+  // Download completed file
+  const downloadCompletedFile = async (taskId, comicTitle = "Chapters") => {
+    try {
+      console.log(`DEBUG: Attempting to download file for task ${taskId}, title: ${comicTitle}`);
+  
+      // Prepare filename from comic title
+      const safeTitle = comicTitle.replace(/[^a-zA-Z0-9\s-]/g, '').trim().replace(/\s+/g, '_');
+      const fileName = `${safeTitle}.zip`;
+  
+      // Use <a> element with download attribute
+      const downloadUrl = `${API_url}/download/file/${taskId}`;
+      console.log(`DEBUG: Creating download link: ${downloadUrl}`);
+  
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = fileName;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+  
+      console.log(`DEBUG: File ${fileName} sent for download`);
+  
+      // Show success notification
+      setDownloadSuccess(`File ${fileName} has been sent for download!`);
+  
+      // Hide notification after 5 seconds
+      setTimeout(() => setDownloadSuccess(""), 5000);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      setDownloadError("Failed to download completed file: " + error.message);
+    }
+  };
+  
+  // Get task status display
+  const getTaskStatusDisplay = (taskId) => {
+    const status = taskStatuses[taskId];
+    if (!status) return "Waiting...";
+  
+    switch (status.state) {
+      case "PENDING":
+        return "In queue...";
+      case "PROGRESS":
+        return `Processing... ${status.progress || 0}%`;
+      case "SUCCESS":
+        return "Completed";
+      case "FAILURE":
+        return "Downloading failed";
+      default:
+        return "Unknown status";
+    }
+  };  
 
   return (
     // Main container with theme-aware background
@@ -221,7 +389,7 @@ function App() {
             exit={{ opacity: 0, y: -50 }}
             className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
           >
-            <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+            <div className="bg-red-500/75 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
               <FontAwesomeIcon icon={faCircleXmark} className="text-lg" />
               <div className="flex flex-col">
                 <span>Failed to download chapters. Please try again later.</span>
@@ -229,6 +397,29 @@ function App() {
               </div>
               <button
                 onClick={() => setDownloadError("")}
+                className="ml-4 hover:opacity-80 cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Success popup */}
+      <AnimatePresence>
+        {downloadSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+              <FontAwesomeIcon icon={faCircleCheck} className="text-lg" />
+              <span>{downloadSuccess}</span>
+              <button
+                onClick={() => setDownloadSuccess("")}
                 className="ml-4 hover:opacity-80 cursor-pointer"
               >
                 ×
@@ -255,13 +446,78 @@ function App() {
         )}
       </AnimatePresence>
 
+      {/* Active tasks popup */}
+      <AnimatePresence>
+        {Object.keys(activeTasks).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 right-4 z-50 max-w-md"
+          >
+            <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
+              <h3 className="font-semibold mb-2">Active download tasks:</h3>
+              {Object.entries(activeTasks).map(([taskId, taskInfo]) => {
+                const status = taskStatuses[taskId];
+                const isCompleted = status?.state === "SUCCESS";
+                const isFailed = status?.state === "FAILURE";
+                
+                return (
+                  <div key={taskId} className={`mb-2 p-2 rounded transition-colors ${isFailed ? 'bg-red-500/50' : 'bg-green-600/50'}`}>
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{taskInfo.comicTitle}</p>
+                        <p className="text-xs opacity-90">
+                          {taskInfo.chapterCount} {taskInfo.chapterCount === 1 ? 'chapter' : 'chapters'} - {getTaskStatusDisplay(taskId)}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {status?.state === "PROGRESS" && (
+                          <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                        )}
+                        {isCompleted && (
+                          <div className="flex items-center gap-1 text-yellow-200">
+                            {downloadingFiles.has(taskId) ? (
+                              <>
+                                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                                <span className="text-xs">Downloading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FontAwesomeIcon icon={faDownload} />
+                                <span className="text-xs">Downloaded</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        {isFailed && (
+                          <FontAwesomeIcon icon={faCircleXmark} className="text-red-200" />
+                        )}
+                      </div>
+                    </div>
+                    {status?.state === "PROGRESS" && status.progress !== undefined && (
+                      <div className="w-full bg-green-700 rounded-full h-2 mt-1">
+                        <div 
+                          className="bg-yellow-300 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${status.progress}%` }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Theme toggle button */}
       <div className="absolute top-4 right-4">
         <button
           onClick={() => setDarkMode(!darkMode)}
           className="w-14 h-10 rounded-full bg-pink-500 dark:bg-violet-500 text-white font-semibold cursor-pointer transition-colors duration-300 flex items-center justify-center focus:outline-none"
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             <motion.div
               key={darkMode ? "moon" : "sun"}
               initial={{ opacity: 0, rotate: -90 }}
@@ -341,7 +597,7 @@ function App() {
               className="bg-gray-100 dark:bg-[#1a152b] border border-gray-300 dark:border-[#2e2b40] rounded-xl p-4 inset-shadow-xl overflow-hidden"
             >
               <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto">
-                <AnimatePresence mode="wait" key={animationKey}>
+                <AnimatePresence mode="sync" key={animationKey}>
                   {error ? (
                     <motion.div
                       initial={{ opacity: 0, y: -20 }}
@@ -496,7 +752,7 @@ function App() {
                                   } text-white`}
                                 >
                                   {isDownloading
-                                    ? "Downloading..."
+                                    ? "Starting..."
                                     : "Download"}
                                 </button>
                               </div>
