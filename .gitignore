@@ -11,7 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-venv
+server/.venv
 __pycache__
 test.json
 test.py
