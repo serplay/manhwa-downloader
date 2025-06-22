@@ -6,11 +6,15 @@ import shutil
 import uuid
 from zipfile import ZipFile
 from typing import Callable, Optional
-
+from Formats.cleanup import cleanup
 from bs4 import BeautifulSoup as bs
 from dotenv import load_dotenv
 from PIL import Image
 from seleniumbase import SB
+from Formats.pdf import gen_pdf
+from Formats.cbr import gen_cbr
+from Formats.cbz import gen_cbz
+from Formats.epub import gen_epub
 
 load_dotenv()
 
@@ -44,7 +48,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     match source:
         case 0:  # MangaDex
             athome_url = "https://api.mangadex.org/at-home/server/"
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
             
@@ -98,7 +102,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
 
         case 1:  # Manhuaus
             base_url = "https://manhuaus.com/manga/"
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
 
@@ -148,12 +152,12 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 return zip_path
 
             except Exception as e:
-                cleanup(path)
+                cleanup(f'Downloads/{path}')
                 raise e
 
         case 2:  # Yakshascans
             base_url = "https://yakshascans.com/manga/"
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
 
@@ -208,12 +212,12 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 return zip_path
 
             except Exception as e:
-                cleanup(path)
+                cleanup(f'Downloads/{path}')
                 raise e
         
         case 3:  # Asurascan
             base_url = "https://asuracomic.net/series/"
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
 
@@ -262,7 +266,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 return zip_path
             
             except Exception as e:
-                cleanup(path)
+                cleanup(f'Downloads/{path}')
                 raise e
 
         case 4:  # Kunmanga
@@ -276,7 +280,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
 
         case 7:  # Mangahere        
             base_url = f"{MANGAPI_URL}/manga/mangahere/read"
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
             
@@ -318,12 +322,12 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 return zip_path
                                 
             except Exception as e:
-                cleanup(path)
+                cleanup(f'Downloads/{path}')
                 raise e
         
         case 8:  # Mangapill
             base_url = f"{MANGAPI_URL}/manga/mangapill/read"
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
             
@@ -365,7 +369,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 return zip_path
                     
             except Exception as e:
-                cleanup(path)
+                cleanup(f'Downloads/{path}')
                 raise e
         
         case 9:  # Bato
@@ -382,7 +386,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 }
             '''
             
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
             
@@ -421,12 +425,12 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 return zip_path
                         
             except Exception as e:
-                cleanup(path)
+                cleanup(f'Downloads/{path}')
                 raise e
         
         case 10:  # Weebcentral
             base_url = "https://weebcentral.com/chapters/"
-            path = uuid.uuid4().hex
+            path = f'Downloads/{uuid.uuid4().hex}'
             pdfs = []
             os.makedirs(f"{path}", exist_ok=True)
 
@@ -475,76 +479,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 return zip_path
             
             except Exception as e:
-                cleanup(path)
+                cleanup(f'Downloads/{path}')
                 raise e
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
-
-
-# generate PDF
-def gen_pdf(images, chap_num, path, referer=None):
-    image_paths = []
-    ch_path = f"{path}/{chap_num}"
-    os.makedirs(ch_path, exist_ok=True)
-
-    try:
-        for i, img_url in enumerate(images):
-            is_corrupted = False
-            try:
-                if referer:
-                    headers = {'Referer': img_url[1]}
-                    img_url = img_url[0]
-                img_resp = req.get(img_url, timeout=10, headers=headers if referer else None)
-                img_resp.raise_for_status()
-                img_data = img_resp.content
-            except req.RequestException as e:
-                is_corrupted = True
-                
-            if not is_corrupted:
-                extension = img_url.split(".")[-1].split("?")[0]  # handle URLs with query params
-                img_path = f"{ch_path}/{i}.{extension}"
-
-                with open(img_path, "wb") as img_file:
-                    img_file.write(img_data)
-            else:
-                extension = "png"
-                img_path = "corrupt.png"
-            
-            if extension.lower() == "webp":
-                try:
-                    im = Image.open(img_path).convert("RGB")
-                    jpg_path = f'{img_path}.jpg'
-                    im.save(jpg_path, "JPEG")
-                    os.remove(img_path)
-                    with Image.open(jpg_path) as img:
-                        if img.size[0] < 72 or img.size[1] < 72:
-                            continue
-                    image_paths.append(jpg_path)
-                except Exception as e:
-                    raise Exception(f"Failed to convert WEBP to JPEG: {e}")
-            else:
-                with Image.open(img_path) as img:
-                    if img.size[0] < 72 or img.size[1] < 72:
-                        continue
-                image_paths.append(img_path)
-
-        title = f"Chapter_{chap_num.replace('.', '_')}"
-        pdf_path = f"{path}/{title}.pdf"
-
-        with open(pdf_path, "wb") as f:
-            f.write(img2pdf.convert(image_paths, rotation=img2pdf.Rotation.ifvalid))
-
-        return pdf_path
-
-    except Exception as e:
-        # Clean up images if something fails
-        shutil.rmtree(ch_path, ignore_errors=True)
-        raise e
-
-
-def cleanup(path):
-    path = path[:-12] if path.endswith("/Chapters.zip") else path
-    if os.path.exists(path):
-        shutil.rmtree(path)
-    else:
-        print(f"The path {path} does not exist.")
