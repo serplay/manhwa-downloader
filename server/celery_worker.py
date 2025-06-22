@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 load_dotenv()
 
-from celery_app import celery_app
+from Queue.celery_app import celery_app
 
 if __name__ == "__main__":
     # Start the Celery worker
