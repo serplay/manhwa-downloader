@@ -1,6 +1,6 @@
 # 📚 Manga & Manhwa Downloader
 
-A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading .
+A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading with **background task processing**.
 
 > ⚠️ This project is under **active development**. Most functionality is not complete.
 > 
@@ -30,17 +30,24 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - ✅ Select individual chapters or select all in preparation for downloads.
 - 📱 Responsive and visually modern UI with Tailwind CSS.
 - ✨ Live source status checking.
+- 🔄 **Real-time background task monitoring** with progress tracking.
+- 📊 **Task status dashboard** showing active downloads.
 
-### Backend (FastAPI)
+### Backend (FastAPI + Celery)
 
 - 📡 API endpoints:
   - `/search/` – Fetch titles from supported sources.
   - `/chapters/` – Retrieve volume and chapter information for a given title.
-  - `/download/` - Download specified chapters.
+  - `/download` - **Start background download tasks**.
+  - `/download/status/{task_id}` - **Check task progress**.
+  - `/download/file/{task_id}` - **Download completed files**.
   - `/proxy-image` - Proxy cover art image through backend.
   - `/status` - Check health status of all sources.
-- 📥 Download-ready architecture.
+  - `/health` - **System health check**.
+- 🔄 **Background task processing** with Celery and Redis.
+- 📥 **Asynchronous download architecture**.
 - 🧼 Clean HTML scraping with BeautifulSoup.
+- 🗑️ **Automatic cleanup** of temporary files.
 
 ---
 
@@ -49,7 +56,8 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 | Layer     | Tech                                                                 |
 |-----------|----------------------------------------------------------------------|
 | Frontend  | Vite, React, Tailwind CSS, Framer Motion, FontAwesome                |
-| Backend   | FastAPI, Uvicorn, BeautifulSoup, img2pdf, requests, aiohttp          |
+| Backend   | FastAPI, Uvicorn, Celery, Redis, BeautifulSoup, img2pdf, requests, aiohttp |
+| Queue     | Redis (broker), Celery (task queue)                                  |
 
 ---
 
@@ -61,6 +69,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - Python (>=3.10)
 - npm or yarn
 - pip
+- **Redis** (for background task processing)
 - Self-hosted [Consumet API](https://github.com/consumet/api.consumet.org)
 
 ---
@@ -70,14 +79,31 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 Before running the backend, you need to create a `.env` file in the `server` directory with the following keys:
 
 ```env
-VITE_API_URL=http://localhost:<your_port>
-ROOT_URL=http://localhost:<your_port>
 MANGAPI_URL=<address_of_your_self_hosted_consumet_api>
+
+# Redis Configuration (for background tasks)
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ```
 
-> Ensure that VITE_API_URL and ROOT_URL have the same port
+#### Install Redis
 
-Then run:
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install redis-server
+sudo systemctl start redis-server
+```
+
+**macOS:**
+```bash
+brew install redis
+brew services start redis
+```
+
+**Windows:**
+Download from [Redis.io](https://redis.io/download)
+
+#### Setup Backend
 
 ```bash
 # Clone repository
@@ -91,8 +117,13 @@ source venv/bin/activate  # or venv\Scripts\activate on Windows
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Run FastAPI server
+# Terminal 1: Start Celery worker
+python celery_worker.py
+
+# Terminal 2: Start FastAPI server
 uvicorn main:app --reload --port <your_port>
+
+# Terminal 3: Start frontend (see below)
 ```
 
 ---
@@ -103,11 +134,7 @@ Before running the frontend, you also need to create a `.env` file in the `clien
 
 ```env
 VITE_API_URL=http://localhost:<your_port>
-ROOT_URL=http://localhost:<your_port>
-MANGAPI_URL=<address_of_your_self_hosted_consumet_api>
 ```
-
-> Ensure that VITE_API_URL and ROOT_URL have the same port
 
 Then run:
 
@@ -123,6 +150,29 @@ npm run dev
 
 ---
 
+## 🔄 Background Task System
+
+The application now uses **Celery with Redis** for background task processing:
+
+### How it works:
+1. **User selects chapters** and clicks download
+2. **Task is queued** in Redis via Celery
+3. **Background worker** processes the download
+4. **Real-time progress** is shown in the UI
+5. **File is available** for download when complete
+6. **Temporary files** are automatically cleaned up
+
+### Benefits:
+- ⚡ **Non-blocking UI** - users can continue browsing while downloads process
+- 📊 **Progress tracking** - real-time status updates
+- 🔄 **Scalable** - multiple workers can handle concurrent downloads
+- 🛡️ **Reliable** - failed tasks can be retried
+- 🗑️ **Clean** - automatic cleanup prevents disk space issues
+
+### Monitoring:
+- **Health Check**: `http://localhost:8000/health`
+- **Task Status**: Visible in the UI task dashboard
+
 ---
 
 ## 🛠️ To-Do
@@ -135,6 +185,9 @@ npm run dev
 - ✅ Add "Download" functionality (PDF/image bundles)
 - ✅ Add live source status checker
 - ✅ Deploy frontend & backend
+- ✅ **Background task processing with Celery**
+- ✅ **Real-time progress tracking**
+- ✅ **Automatic file cleanup**
 - 🔄 Write tests and error handling
 - 🔄 Check TODO.md to see future features/improvements
 

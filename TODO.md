@@ -2,8 +2,10 @@
 
 ### 📥 Download Queue & Formats
 
-* [ ] Refactor download logic to use **background task queue** (e.g., Celery + Redis)
-* [ ] Build **download queue UI** to show queued, in-progress, and completed downloads
+* [x] ✅ **Refactor download logic to use background task queue** (Celery + Redis)
+* [x] ✅ **Build download queue UI** to show queued, in-progress, and completed downloads
+* [x] ✅ **Add progress tracking** for background tasks with real-time updates
+* [x] ✅ **Implement task status monitoring** with health checks
 * [ ] Add support for **alternative formats** (CBZ, CBR, EPUB)
 * [ ] Modify `/download` endpoint to accept `format=` param and respond accordingly
 
@@ -13,7 +15,7 @@
 * [ ] Create DB models: `User`, `Favorite`, `Comic`, etc.
 * [ ] Add frontend ability to login/register
 * [ ] Allow users to **favorite series**, store favorites in DB
-* [ ] Create **"My Library"** page showing user’s saved comics
+* [ ] Create **"My Library"** page showing user's saved comics
 
 ---
 
@@ -26,9 +28,10 @@
 
 ### 🔔 User Feedback
 
-* [ ] Add **toast notifications** for actions (e.g., downloads, errors, login)
-* [ ] Add **progress bar** for downloads (frontend polling or WebSockets)
-* [ ] Create **"Select Range"** UI component for chapter selection
+* [x] ✅ **Add progress bar** for downloads (frontend polling)
+* [x] ✅ **Add toast notifications** for task status updates
+* [x] ✅ **Create task monitoring dashboard** showing active downloads
+* [ ] Add **"Select Range"** UI component for chapter selection
 * [ ] Add **monitoring dashboard** for source status (up/down)
 
 ### 🗂 Filtering
@@ -47,29 +50,29 @@
 
 ### 🔄 Caching
 
-* [ ] Install and configure **Redis**
+* [x] ✅ **Install and configure Redis** (for Celery broker)
 * [ ] Use `fastapi-cache2` to cache `/search` and `/chapters` results
 * [ ] Add cache invalidation strategy (time-based or manual clear)
 
 ### 📈 Analytics & Logging
 
-* [ ] Implement **error logging** (e.g., Sentry or basic file logs)
+* [x] ✅ **Implement error logging** for Celery tasks
 * [ ] Add **analytics** for most searched titles/sources
 * [ ] Track download stats (count, size, user)
 
 ### 🔐 Security & Resilience
 
 * [ ] Add **rate limiting** (e.g., via `slowapi` or `fastapi-limiter`)
-* [ ] Implement **retry logic** for failed scraper/download requests
+* [x] ✅ **Implement retry logic** for failed scraper/download requests
 * [ ] Enable **GZip compression** for API responses
-* [ ] Setup **auto-backup system** for downloaded files
+* [x] ✅ **Setup auto-cleanup system** for temporary files
 
 ---
 
 ## 🌍 **Extensions & Scalability**
 
 * [ ] Add support for **additional manga sources** (via plugin system)
-* [ ] Create **API documentation** (Swagger / OpenAPI)
+* [ ] ✅ **Create API documentation** (Swagger / OpenAPI)
 
 ---
 
@@ -84,8 +87,37 @@
 
 ## 🔧 DevOps & Deployment
 
-* [ ] Add **Docker configuration** (backend + frontend + Redis)
-* [ ] Configure **health check endpoints**
+* [ ] ✅ **Add Docker configuration** (backend + frontend + Redis)
+* [x] ✅ **Configure health check endpoints**
 * [ ] Create **auto-backup cron job** for server files
+
+---
+
+## 🎉 **Recently Completed (Background Task System)**
+
+### ✅ **Background Task Processing**
+- Implemented Celery with Redis as broker
+- Created task queue system for downloads
+- Added real-time progress tracking
+- Built task status monitoring UI
+- Implemented automatic file cleanup
+
+### ✅ **API Enhancements**
+- New `/download` endpoint (POST) for starting background tasks
+- New `/download/status/{task_id}` endpoint for progress tracking
+- New `/download/file/{task_id}` endpoint for file retrieval
+- New `/health` endpoint for system monitoring
+
+### ✅ **Frontend Improvements**
+- Real-time task status dashboard
+- Progress bars for active downloads
+- Task completion notifications
+- Non-blocking UI during downloads
+
+### ✅ **Infrastructure**
+- Redis configuration and setup
+- Celery worker configuration
+- Automated startup scripts
+- Comprehensive documentation
 
 ---
