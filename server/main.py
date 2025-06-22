@@ -6,8 +6,8 @@ import scraper
 from dotenv import load_dotenv
 import asyncio
 import aiohttp
-from tasks import download_chapters, cleanup_task
-from celery_app import celery_app
+from Queue.tasks import download_chapters, cleanup_task
+from Queue.celery_app import celery_app
 import os
 
 load_dotenv()
@@ -101,7 +101,7 @@ async def get_download_status(task_id: str):
     """
     try:
         # Check task status directly from Celery
-        from celery_app import celery_app
+        from Queue.celery_app import celery_app
         
         # Check task status using AsyncResult
         result = celery_app.AsyncResult(task_id)
@@ -166,7 +166,7 @@ async def download_file(task_id: str):
         print(f"DEBUG: Attempting to download file for task {task_id}")
         
         # Check task status directly from Celery
-        from celery_app import celery_app
+        from Queue.celery_app import celery_app
         
         result = celery_app.AsyncResult(task_id)
         
@@ -286,7 +286,7 @@ async def list_tasks():
     List all tasks in the system.
     """
     try:
-        from celery_app import celery_app
+        from Queue.celery_app import celery_app
         
         # Check active tasks
         inspect = celery_app.control.inspect()
@@ -313,7 +313,7 @@ async def get_task_info(task_id: str):
     Detailed information about a task.
     """
     try:
-        from celery_app import celery_app
+        from Queue.celery_app import celery_app
         
         result = celery_app.AsyncResult(task_id)
         
