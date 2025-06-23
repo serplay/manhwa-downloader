@@ -97,7 +97,7 @@ class Manhuaus:
         for num, chap in enumerate(data):
             chap_data = chap.a
             chap_num =re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap_data.contents[0])
-            chap_id = "/".join(chap_data["href"].split("/")[-3:-1])
+            chap_id = f'{id}/{chap_data["href"].split("/")[-2]}'
             chapters[volume].chapters[str(num)] = ChapterInfo(id=chap_id, chapter=chap_num)
             
         return chapters
