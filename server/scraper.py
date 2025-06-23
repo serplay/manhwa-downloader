@@ -11,7 +11,7 @@ from Manga.MangaDex import MangaDex
 #from Manga.Kunmanga import Kunmanga
 #from Manga.Toonily import Toonily
 #from Manga.Toongod import Toongod
-#from Manga.Mangapill import Mangapill
+from Manga.Mangapill import Mangapill
 from Manga.Mangahere import Mangahere
 
 load_dotenv()
@@ -47,6 +47,7 @@ def search(title, source):
             return Mangahere.search(title)
 
         case 8: #Mangapill
+            return Mangapill.search(title)
             base_url = f"{MANGAPI_URL}/manga/mangapill"
             try:
                 r = req.get(f'{base_url}/{title}')
@@ -110,6 +111,7 @@ def get_chapters(id: str, source: int):
             return Mangahere.get_chapters(id)
 
         case 8:  # Mangapill
+            return Mangapill.get_chapters(id)
             base_url = f"{MANGAPI_URL}/manga/mangapill/info"
             try:
                 r = req.get(base_url, params={"id": id})
