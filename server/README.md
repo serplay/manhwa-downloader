@@ -77,9 +77,11 @@ Set the following to your `.env` file:
 CELERY_BROKER_URL=redis://localhost:6379/0
 CELERY_RESULT_BACKEND=redis://localhost:6379/0
 
-# Other settings
-MANGAPI_URL=your_mangapi_url_here
+# Cons
+MANGAPI_URL=<consumet-api-url>
 ```
+
+> See [example](.env.example) environment file
 
 ### Celery Configuration
 
@@ -183,6 +185,8 @@ Check environment variables in `.env`:
 CELERY_BROKER_URL=redis://localhost:6379/0
 CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ```
+
+> See [example](.env.example) environment file
 
 ### Tasks are not being processed
 
