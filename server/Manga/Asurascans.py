@@ -78,7 +78,7 @@ class Asura:
             Raises an Exception if no chapters are found.
 
         Raises:
-            Exception: If the Bato API request fails or no chapters are found.
+            Exception: If scraping Asurascans website fails.
         """
         
         try:
