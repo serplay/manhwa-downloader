@@ -10,17 +10,17 @@ from seleniumbase import SB
 import re
 
 
-class Asura:
+class Manhuaus:
     
-    BASE_URL = "https://asuracomic.net"
+    BASE_URL = "https://manhuaus.com"
     
-    SEARCH_ELEM = ('div[class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 p-4"]', {"class":"grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 p-4"})
-    CHAPTERS_ELEM = ('div[class="pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"]', {'class': "pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"})
+    SEARCH_ELEM = {"class":"row c-tabs-item__content"}
+    CHAPTERS_ELEM = (('ul[class="main version-chap no-volumn active"]',{"class":"main version-chap no-volumn active"}),('ul[class="main version-chap no-volumn"]',{"class":"main version-chap no-volumn"}))
     
     @staticmethod
     def search(title: str):
         """
-        Search for comics on Asurascans by title.
+        Search for comics on Manhuaus by title.
         
         Args:
             title (str): The title or keyword to search for.
@@ -34,28 +34,28 @@ class Asura:
             If no results are found, returns a dict with a 'message' key.
 
         Raises:
-            Exception: If scraping Asurascans website fails.
+            Exception: If scraping Manhuaus website fails.
         """
         
         try:
-            soup = get_with_captcha(f"{Asura.BASE_URL}/series?page=1&name={title}", Asura.SEARCH_ELEM[0])
+            soup = get_with_captcha(f"{Manhuaus.BASE_URL}/?s={title}&post_type=wp-manga", '')
         except Exception as e:
-            raise Exception(f"Failed to fetch data from Asurascan: {e}")
+            raise Exception(f"Failed to fetch data from Manhuaus: {e}")
         
         if not soup:
                 return {"message": "No results found."}
             
         comics: ComicsDict = {}
-        for num,com in enumerate(soup.find("div",Asura.SEARCH_ELEM[1]).find_all("a")):
-            link = com["href"][6:]
-            title = {"en":com.find("span", {"class":"block text-[13.3px] font-bold"}).contents[0]}
-            cover_art = com.find("img")["src"]
+        for num,com in enumerate(soup.find_all("div",Manhuaus.SEARCH_ELEM)):
+            title_and_link = com.find("h3",{"class":"h4"}).find("a")
+            title = {"en":title_and_link.text}
+            link = title_and_link["href"][27:-1]
+            image_cover = f'/api/proxy-image?url={com.find("img")["data-src"]}&hd={Manhuaus.BASE_URL}'
             trans = ["en"]
-            
             comics[num] = Comic(
                 id=link,
                 title=title,
-                cover_art=cover_art,
+                cover_art=image_cover,
                 availableLanguages=trans
             )
             
@@ -64,7 +64,7 @@ class Asura:
     @staticmethod
     def get_chapters(id):
         """
-        Retrieve the list of chapters for a given comic from Asurascans.
+        Retrieve the list of chapters for a given comic from Manhuaus.
 
         Args:
             id (str): The comic ID to fetch chapters for.
@@ -78,22 +78,26 @@ class Asura:
             Raises an Exception if no chapters are found.
 
         Raises:
-            Exception: If the Bato API request fails or no chapters are found.
+            Exception: If scraping Manhuaus website fails.
         """
         
         try:
-            soup = get_with_captcha(f'{Asura.BASE_URL}/series/{id}',Asura.CHAPTERS_ELEM[0])
+            soup = get_with_captcha(f"{Manhuaus.BASE_URL}/manga/{id}", Manhuaus.CHAPTERS_ELEM[0][0])
+            if type(soup) is dict:
+                soup = get_with_captcha(f"{Manhuaus.BASE_URL}/manga/{id}", Manhuaus.CHAPTERS_ELEM[1][0])
+                data = soup.find("ul",Manhuaus.CHAPTERS_ELEM[1][1] ).find_all("li")
+            else:
+                data = soup.find("ul",Manhuaus.CHAPTERS_ELEM[0][1] ).find_all("li")
         except Exception as e:
-            raise Exception(f"Failed to fetch data from Asurascan: {e}")
-        
-        data = soup.find('div', Asura.CHAPTERS_ELEM[1]).find_all('a')
+            raise Exception(f"Failed to fetch data from Manhuaus: {e}")
         
         chapters: ChaptersDict = {}
         volume = "Vol 1"
         chapters[volume] = VolumeData(volume=volume, chapters={})
         for num, chap in enumerate(data):
-            chap_id = chap['href']
-            chap_num = re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap.find("h3").contents[0])
+            chap_data = chap.a
+            chap_num =re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap_data.contents[0])
+            chap_id = "/".join(chap_data["href"].split("/")[-3:-1])
             chapters[volume].chapters[str(num)] = ChapterInfo(id=chap_id, chapter=chap_num)
             
         return chapters
@@ -101,7 +105,7 @@ class Asura:
     @staticmethod
     def download_chapters(ids, update_progress=None):
         """
-        Download chapters from Asurascans and return the path to the ZIP archive.
+        Download chapters from Manhuaus and return the path to the ZIP archive.
         Args:
             ids: List of chapter IDs
             update_progress: Optional callback for progress updates
@@ -113,7 +117,6 @@ class Asura:
         path = f'Downloads/{uuid.uuid4().hex}'
         pdfs = []
         os.makedirs(f"{path}", exist_ok=True)
-        
         try:
             with SB(uc=True, xvfb=True) as sb:
                 for i, chap_id in enumerate(ids):
@@ -122,29 +125,35 @@ class Asura:
                     chap_id, chap_num = chap_id.split("_")
                     
                     try:
-                        sb.uc_open_with_reconnect(f"{Asura.BASE_URL}/series/{chap_id}/", 4)
+                        print(f"{Manhuaus.BASE_URL}/manga/{chap_id}/")
+                        sb.uc_open_with_reconnect(f"{Manhuaus.BASE_URL}/manga/{chap_id}/", 4)
                         sb.uc_gui_click_captcha()
                         soup = sb.get_beautiful_soup()
                     except Exception as e:
-                        print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
+                        print(f"Skipping chapter {chap_num} due to bot detection: {e}")
                         continue
-
-                    read_container = soup.find_all("div", {"class": "w-full mx-auto center"})
+                    read_container = soup.find("div", {"class": "read-container"})
+                    if not read_container:
+                        read_container = soup.find("div", {"class": "reading-content"})
                     if not read_container:
                         print(f"Skipping chapter {chap_num} - read-container not found.")
                         continue
-
-                    image_links = [
-                        container.img["src"] for container in read_container if container.img and container.img.get("src")
-                    ]
                     
+                    images = read_container.find_all("img")
+                    image_links = [
+                        re.sub(r'[\t\r\n]', "", img.get("data-src", "")) for img in images if img.get("data-src")
+                    ]
+                    if not image_links:
+                            # If no data-src, try src
+                            image_links = [
+                                re.sub(r'[\t\r\n]', "", img.get("src", "")) for img in images if img.get("src")
+                            ]
                     if not image_links:
                         print(f"No images found for chapter {chap_num}. Skipping.")
                         continue
-                    
+
                     pdfs.append(gen_pdf(image_links, chap_num, path))
                     shutil.rmtree(f"{path}/{chap_num}")
-
             if not pdfs:
                 raise Exception("No PDFs were generated, ZIP will not be created.")
             
@@ -154,10 +163,10 @@ class Asura:
                 for pdf in pdfs:
                     chapters_zip.write(pdf, os.path.basename(pdf))
                     os.remove(pdf)
-                
+            
             update_progress(total_chapters, "Finished")
             return zip_path
-            
+        
         except Exception as e:
             cleanup(f'Downloads/{path}')
-            raise e
+            raise e 

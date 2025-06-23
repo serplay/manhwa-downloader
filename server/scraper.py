@@ -1,10 +1,10 @@
-from requests.utils import quote as req_quote
 import requests as req
 import re
 import os
 from dotenv import load_dotenv
 from Manga.Bato import Bato
 from Manga.Asurascans import Asura
+from Manga.Manhuaus import Manhuaus
 from Utils.bot_evasion import get_with_captcha
 
 load_dotenv()
@@ -48,26 +48,8 @@ def search(title, source):
                                    }
                 return comics
         case 1: #Manhuaus
-            base_url = "https://manhuaus.com"
-            try:
-                soup = get_with_captcha(f"{base_url}/?s={title}&post_type=wp-manga", '') # 'div[class="row c-tabs-item__content"]'
-            except Exception as e:
-                raise Exception(f"Failed to fetch data from Manhuaus: {e}")
-            
-            if not soup:
-                return {"message": "No results found."}
-            comics = {}
-            for num,com in enumerate(soup.find_all("div",{"class":"row c-tabs-item__content"})):
-                title_and_link = com.find("h3",{"class":"h4"}).find("a")
-                title = {"en":title_and_link.text}
-                link = title_and_link["href"][27:-1]
-                image_cover = f'/api/proxy-image?url={com.find("img")["data-src"]}&hd={base_url}'
-                comics[num] = {"title":title, 
-                               "id":link, 
-                               "cover_art":image_cover, 
-                               "availableLanguages": ["en"], 
-                               }
-            return comics
+            return Manhuaus.search(title)
+
         case 2: #Yakshascans
             base_url = f"https://yakshascans.com?s={title}&post_type=wp-manga&op=&author=&artist=&release=&adult="
             
@@ -103,7 +85,7 @@ def search(title, source):
             raise NotImplementedError("Toongod is not implemented yet.")
         case 7: #Mangahere
             try:
-                r = req.get(f"{MANGAPI_URL}/manga/mangahere/{req_quote(title)}")
+                r = req.get(f"{MANGAPI_URL}/manga/mangahere/{title}")
             except req.RequestException as e:
                 raise Exception(f"Failed to fetch data from Mangahere API.")
             
@@ -188,20 +170,6 @@ def get_chapters(id: str, source: int):
         raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
         
     match source:
-        
-        # response general structure:
-        # {
-        #     "Vol {volume number}": {
-        #         "volume": "{volume number}",
-        #         "chapters": {
-        #             "{chapter number}": {
-        #                 "id": "{chapter id}",
-        #                 "chapter": "{chapter number}"
-        #             }
-        #         }
-        #     }
-        # }
-        
         case 0: #MangaDex
             base_url = "https://api.mangadex.org"
             try:
@@ -235,25 +203,8 @@ def get_chapters(id: str, source: int):
                 
             return new_data
         case 1: #Manhuaus
-            base_url = "https://manhuaus.com/manga/"
-            try:
-                soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn active"]')
-                if type(soup) is dict:
-                    soup = get_with_captcha(f"{base_url}{id}/", 'ul[class="main version-chap no-volumn"]')
-                    chapters = soup.find("ul",{"class":"main version-chap no-volumn"}).find_all("li")
-                else:
-                    chapters = soup.find("ul",{"class":"main version-chap no-volumn active"}).find_all("li")
-            except Exception as e:
-                raise Exception(f"Failed to fetch data from Manhuaus: {e}")
-            
-            data = {"Vol 1":{"volume": "Vol 1", "chapters":{}}}
-            
-            for i, chap in enumerate(chapters):
-                chap_data = chap.a
-                chap_num =re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap_data.contents[0])
-                chap_id = chap_data["href"].split("/")[-2]
-                data["Vol 1"]["chapters"][str(i)] = {"id": f'{id}/{chap_id}', "chapter": chap_num}
-            return data
+            return Manhuaus.get_chapters(id)
+
         case 2:  # Yakshascans
             base_url = "https://yakshascans.com/manga/"
             try:

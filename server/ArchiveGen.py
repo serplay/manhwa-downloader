@@ -1,4 +1,3 @@
-import img2pdf
 import os
 import re
 import requests as req
@@ -7,9 +6,7 @@ import uuid
 from zipfile import ZipFile
 from typing import Callable, Optional
 from Utils.cleanup import cleanup
-from bs4 import BeautifulSoup as bs
 from dotenv import load_dotenv
-from PIL import Image
 from seleniumbase import SB
 from Formats.pdf import gen_pdf
 from Formats.cbr import gen_cbr
@@ -17,6 +14,7 @@ from Formats.cbz import gen_cbz
 from Formats.epub import gen_epub
 from Manga.Bato import Bato
 from Manga.Asurascans import Asura
+from Manga.Manhuaus import Manhuaus
 
 load_dotenv()
 
@@ -103,60 +101,8 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 raise e
 
         case 1:  # Manhuaus
-            base_url = "https://manhuaus.com/manga/"
-            path = f'Downloads/{uuid.uuid4().hex}'
-            pdfs = []
-            os.makedirs(f"{path}", exist_ok=True)
-
-            try:
-                with SB(uc=True, xvfb=True) as sb:
-                    for i, chap_id in enumerate(ids):
-                        update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
-                        
-                        chap_id, chap_num = chap_id.split("_")
-                        
-                        try:
-                            sb.uc_open_with_reconnect(f"{base_url}{chap_id}/", 4)
-                            sb.uc_gui_click_captcha()
-                            soup = sb.get_beautiful_soup()
-                        except Exception as e:
-                            print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
-                            continue
-
-                        read_container = soup.find("div", {"class": "read-container"})
-                        if not read_container:
-                            print(f"Skipping chapter {chap_num} - read-container not found.")
-                            continue
-
-                        images = read_container.find_all("img")
-                        image_links = [
-                            re.sub(r'[\t\r\n]', "", img.get("data-src", "")) for img in images if img.get("data-src")
-                        ]
-
-                        if not image_links:
-                            print(f"No images found for chapter {chap_num}. Skipping.")
-                            continue
-
-                        pdfs.append(gen_pdf(image_links, chap_num, path))
-                        shutil.rmtree(f"{path}/{chap_num}")
-
-                if not pdfs:
-                    raise Exception("No PDFs were generated, ZIP will not be created.")
-
-                update_progress(total_chapters, "Creating ZIP archive...")
-                zip_path = f"{path}/Chapters.zip"
-                with ZipFile(zip_path, "w") as chapters_zip:
-                    for pdf in pdfs:
-                        chapters_zip.write(pdf, os.path.basename(pdf))
-                        os.remove(pdf)
-                
-                update_progress(total_chapters, "Finished")
-                return zip_path
-
-            except Exception as e:
-                cleanup(f'Downloads/{path}')
-                raise e
-
+            return Manhuaus.download_chapters(ids, update_progress)
+        
         case 2:  # Yakshascans
             base_url = "https://yakshascans.com/manga/"
             path = f'Downloads/{uuid.uuid4().hex}'
