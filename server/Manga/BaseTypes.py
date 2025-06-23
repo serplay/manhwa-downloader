@@ -24,7 +24,7 @@ class Comic(BaseModel):
     )
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": "7384342",
                 "title": {
@@ -66,5 +66,6 @@ class VolumeData(BaseModel):
     )
 
 
-# Final type alias for the overall chapters dictionary
+# Final type alias for the overall chapters and comics dictionaries
+ComicsDict = Dict[str, Comic]
 ChaptersDict = Dict[str, VolumeData]

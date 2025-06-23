@@ -1,14 +1,11 @@
-from bs4 import BeautifulSoup as bs
 from requests.utils import quote as req_quote
 import requests as req
 import re
-from fastapi import FastAPI, Response
-import io
 import os
 from dotenv import load_dotenv
 from Manga.Bato import Bato
+from Manga.Asurascans import Asura
 from Utils.bot_evasion import get_with_captcha
-import Manga
 
 load_dotenv()
 
@@ -96,26 +93,8 @@ def search(title, source):
             return comics
         
         case 3: #Asurascan
-            try:
-                soup = get_with_captcha(f"https://asuracomic.net/series?page=1&name={title}", 'div[class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 p-4"]')
-            except Exception as e:
-                raise Exception(f"Failed to fetch data from Asurascan: {e}")
-            
-            if not soup:
-                return {"message": "No results found."}
-            comics = {}
-            for num,com in enumerate(soup.find("div",{"class":"grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 p-4"}).find_all("a")):
-                link = com["href"][6:]
-                title = {"en":com.find("span", {"class":"block text-[13.3px] font-bold"}).contents[0]}
-                cover_art = com.find("img")["src"]
-                comics[num] = {
-                    "title": title,
-                    "id": link,
-                    "cover_art": cover_art,
-                    "availableLanguages": ["en"]
-                }
-                
-            return comics
+            return Asura.search(title)
+        
         case 4: #Kunmanga
             raise NotImplementedError("Kunmanga is not implemented yet.")
         case 5: #Toonily
@@ -293,24 +272,8 @@ def get_chapters(id: str, source: int):
             return data
             
         case 3:  # Asurascan
-            base_url = f'https://asuracomic.net/series/{id}'
-            try:
-                soup = get_with_captcha(base_url,'div[class="pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"]')
-            except Exception as e:
-                raise Exception(f"Failed to fetch data from Asurascan: {e}")
-            
-            data = soup.find('div', {'class': "pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"}).find_all('a')
-            
-            chapters = {"Vol 1":{"volume": "Vol 1", "chapters": {}}}
-            for num, chap in enumerate(data):
-                chap_id = chap['href']
-                chap_num = re.sub(r'[\t\r\n]|[Cc]hapter ',"",chap.find("h3").contents[0])
-                chapters["Vol 1"]["chapters"][str(num)] = {
-                    "id": chap_id,
-                    "chapter": chap_num
-                }
+            return Asura.get_chapters(id)
 
-            return chapters
         case 4:  # Kunmanga
             raise NotImplementedError("Pulling chapters from Kunmanga is not implemented yet.")
         case 5:  # Toonily

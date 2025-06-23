@@ -5,7 +5,7 @@ import shutil
 from zipfile import ZipFile
 from Formats.pdf import gen_pdf
 from Utils.cleanup import cleanup
-from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict
+from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict, ComicsDict
 
 class Bato:
     BASE_URL = "https://bato.si"
@@ -86,12 +86,13 @@ class Bato:
         if not data:
             return {"message": "No results found."}
         
-        comics = {}
+        comics: ComicsDict = {}
         for num, com in enumerate(data):
             com_id = com['data']['id']
             title = {'en': com['data']['name']}
             cover_art = Bato.BASE_URL + com['data']['urlCover300']
             trans = ['en']
+            
             comics[num] = Comic(
                 id=com_id,
                 title=title,
