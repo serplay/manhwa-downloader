@@ -17,6 +17,7 @@ from Manga.Asurascans import Asura
 from Manga.Manhuaus import Manhuaus
 from Manga.Yakshascans import Yaksha
 from Manga.Weebcentral import Weeb
+from Manga.MangaDex import MangaDex
 
 load_dotenv()
 
@@ -49,58 +50,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     
     match source:
         case 0:  # MangaDex
-            athome_url = "https://api.mangadex.org/at-home/server/"
-            path = f'Downloads/{uuid.uuid4().hex}'
-            pdfs = []
-            os.makedirs(f"{path}", exist_ok=True)
-            
-            try:
-                for i, chap_id in enumerate(ids):
-                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
-                    
-                    chap_id, chap_num = chap_id.split("_")
-                    ch_path = f"{path}/{chap_num}"
-                    os.makedirs(ch_path, exist_ok=True)
-
-                    for retry in range(max_retries := 3):
-                        try:
-                            response = req.get(f"{athome_url}{chap_id}", timeout=10)
-                            response.raise_for_status()
-                            data = response.json()
-                        except req.RequestException as e:
-                            if retry == max_retries - 1:
-                                raise Exception(f"Failed to retrieve chapter data after multiple attempts: {e}")
-                            continue
-
-                        baseUrl = data.get("baseUrl")
-                        hash_url = data["chapter"].get("hash")
-                        images = data["chapter"].get("data")
-
-                        if baseUrl and hash_url and images:
-                            break
-                    else:
-                        raise Exception("Failed to retrieve chapter data after multiple attempts.")
-
-                    image_links = [f"{baseUrl}/data/{hash_url}/{image}" for image in images]
-                    pdfs.append(gen_pdf(image_links, chap_num, path))
-                    shutil.rmtree(ch_path)
-
-                if not pdfs:
-                    raise Exception("No PDFs were generated, ZIP will not be created.")
-
-                update_progress(total_chapters, "Creating ZIP archive...")
-                zip_path = f"{path}/Chapters.zip"
-                with ZipFile(zip_path, "w") as chapters_zip:
-                    for pdf in pdfs:
-                        chapters_zip.write(pdf, os.path.basename(pdf))
-                        os.remove(pdf)
-                
-                update_progress(total_chapters, "Finished")
-                return zip_path
-
-            except Exception as e:
-                shutil.rmtree(path)
-                raise e
+            return MangaDex.download_chapters(ids, update_progress)
 
         case 1:  # Manhuaus
             return Manhuaus.download_chapters(ids, update_progress)

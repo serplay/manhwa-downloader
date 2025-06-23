@@ -7,6 +7,7 @@ from Manga.Asurascans import Asura
 from Manga.Manhuaus import Manhuaus
 from Manga.Yakshascans import Yaksha
 from Manga.Weebcentral import Weeb
+from Manga.MangaDex import MangaDex
 from Utils.bot_evasion import get_with_captcha
 
 load_dotenv()
@@ -21,34 +22,8 @@ def search(title, source):
     
     match source:
         case 0: #MangaDex
-            base_url = "https://api.mangadex.org"
-            try:
-                r = req.get(f"{base_url}/manga",
-                            params={"title": title,
-                                    "includes[]":["cover_art"]}
-                            )
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from MangaDex: {e}")
-            
-            data = r.json()["data"]
-            if data:
-                comics = {}
-                for num,com in enumerate(data):
-                    title = com["attributes"]["title"]
-                    com_id = com["id"]
-                    rel = com["relationships"]
-                    trans = com["attributes"]["availableTranslatedLanguages"]
-                    for i in rel:
-                        if i["type"] == "cover_art":
-                            cover_art = f'/api/proxy-image?url=https://uploads.mangadex.org/covers/{com_id}/{i["attributes"]["fileName"]}.256.jpg&hd='
-                            break
-                    comics[num] = {"id":com_id, 
-                                   "title":title, 
-                                   "cover_art":cover_art, 
-                                   "availableLanguages":trans,
-                                   }
-                return comics
+            return MangaDex.search(title)
+
         case 1: #Manhuaus
             return Manhuaus.search(title)
 
@@ -128,37 +103,8 @@ def get_chapters(id: str, source: int):
         
     match source:
         case 0: #MangaDex
-            base_url = "https://api.mangadex.org"
-            try:
-                r = req.get(f"{base_url}/manga/{id}/aggregate",
-                            params={"translatedLanguage[]": ["en"]
-                                    }
-                            )
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from MangaDex: {e}")
-            
-            r = req.get(f"{base_url}/manga/{id}/aggregate",
-                        params={"translatedLanguage[]": ["en"]
-                                }
-                        )
-            data = r.json()["volumes"]
-            
-            new_data = {}
-            for vol in data:
-                new_vol = f"Vol {vol}"
-                new_data[new_vol] = {
-                    "volume": vol,
-                    "chapters": {
-                        chap: {
-                            k: v for k, v in data[vol]["chapters"][chap].items()
-                            if k not in ("others", "count")
-                        }
-                        for chap in data[vol]["chapters"]
-                    }
-                }
-                
-            return new_data
+            return MangaDex.get_chapters(id)
+
         case 1: #Manhuaus
             return Manhuaus.get_chapters(id)
 
