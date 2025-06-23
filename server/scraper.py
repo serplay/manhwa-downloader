@@ -8,7 +8,11 @@ from Manga.Manhuaus import Manhuaus
 from Manga.Yakshascans import Yaksha
 from Manga.Weebcentral import Weeb
 from Manga.MangaDex import MangaDex
-from Utils.bot_evasion import get_with_captcha
+#from Manga.Kunmanga import Kunmanga
+#from Manga.Toonily import Toonily
+#from Manga.Toongod import Toongod
+#from Manga.Mangapill import Mangapill
+from Manga.Mangahere import Mangahere
 
 load_dotenv()
 
@@ -40,26 +44,8 @@ def search(title, source):
         case 6: #Toongod
             raise NotImplementedError("Toongod is not implemented yet.")
         case 7: #Mangahere
-            try:
-                r = req.get(f"{MANGAPI_URL}/manga/mangahere/{title}")
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangahere API.")
-            
-            data = r.json()["results"]
-            comics = {}
-            
-            for num, com in enumerate(data):
-                com_id = com["id"]
-                title = {'en':com["title"]}
-                cover_art = com["image"]
-                header = com["headerForImage"]
-                trans = ["en"]
-                comics[num] = {"id":com_id, 
-                               "title":title, 
-                               "cover_art":f'/api/proxy-image?url={cover_art}&hd={header}', 
-                               "availableLanguages":trans, 
-                               }
-            return comics
+            return Mangahere.search(title)
+
         case 8: #Mangapill
             base_url = f"{MANGAPI_URL}/manga/mangapill"
             try:
@@ -120,33 +106,9 @@ def get_chapters(id: str, source: int):
             raise NotImplementedError("Pulling chapters from Toonily is not implemented yet.")
         case 6:  # Toongod
             raise NotImplementedError("Pulling chapters from Toongod is not implemented yet.")
-        case 7:  # Mangahere        
-            base_url = f"{MANGAPI_URL}/manga/mangahere/info"
-            try:
-                r = req.get(base_url, params={"id": id})
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangahere API: {e}")
-            
-            data = {}
-            for num, chap in enumerate(r.json()["chapters"]):
-                if "Vol" in chap["title"]:
-                    volume, title = re.search(r'Vol\.(\d+)\s+Ch\.(\d+(?:\.\d+)?)', chap["title"]).groups() #I hate regex, but its so useful 😵‍💫
-                    volume = "Vol " + str(int(volume)) if volume.isdigit() else str(float(volume))
-                    title = str(int(title)) if title.isdigit() else str(float(title))
-                else:
-                    volume = "Vol 1"
-                    title = re.search(r'\d+(?:\.\d+)?', chap["title"])[0]
-                    title = str(int(title)) if title.isdigit() else str(float(title))
+        case 7:  # Mangahere
+            return Mangahere.get_chapters(id)
 
-                chap_id = chap["id"]
-                if volume not in data:
-                    data[volume] = {"volume": volume, "chapters": {}}
-                    data[volume]["chapters"][str(num)] = {"id": chap_id, "chapter": title}
-                else:
-                    data[volume]["chapters"][str(num)] = {"id": chap_id, "chapter": title}
-
-            return data
         case 8:  # Mangapill
             base_url = f"{MANGAPI_URL}/manga/mangapill/info"
             try:

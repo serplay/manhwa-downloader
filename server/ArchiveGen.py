@@ -18,6 +18,7 @@ from Manga.Manhuaus import Manhuaus
 from Manga.Yakshascans import Yaksha
 from Manga.Weebcentral import Weeb
 from Manga.MangaDex import MangaDex
+from Manga.Mangahere import Mangahere
 
 load_dotenv()
 
@@ -70,52 +71,8 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
         case 6:  # Toongod
             raise NotImplementedError("Downloading chapters from Toongod is not implemented yet.")
 
-        case 7:  # Mangahere        
-            base_url = f"{MANGAPI_URL}/manga/mangahere/read"
-            path = f'Downloads/{uuid.uuid4().hex}'
-            pdfs = []
-            os.makedirs(f"{path}", exist_ok=True)
-            
-            try:
-                for i, chap_id in enumerate(ids):
-                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
-                    
-                    temp = chap_id.split("_")
-                    if len(temp) != 2:
-                        chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
-                    else:
-                        chap_id, chap_num = temp
-
-                    ch_path = f"{path}/{chap_num}"
-                    os.makedirs(ch_path, exist_ok=True)
-                    
-                    response = req.get(f"{base_url}", timeout=10, params={"chapterId": chap_id})
-                    response.raise_for_status()
-                    data = response.json()
-                    
-                    image_links = []
-                    for page in data:
-                        image_links.append((page["img"], page["headerForImage"]["Referer"]))
-                    
-                    pdfs.append(gen_pdf(image_links, chap_num, path, referer=True))
-                    shutil.rmtree(ch_path)
-
-                if not pdfs:
-                    raise Exception("No PDFs were generated, ZIP will not be created.")
-
-                update_progress(total_chapters, "Creating ZIP archive...")
-                zip_path = f"{path}/Chapters.zip"
-                with ZipFile(zip_path, "w") as chapters_zip:
-                    for pdf in pdfs:
-                        chapters_zip.write(pdf, os.path.basename(pdf))
-                        os.remove(pdf)
-                
-                update_progress(total_chapters, "Finished")
-                return zip_path
-                                
-            except Exception as e:
-                cleanup(f'Downloads/{path}')
-                raise e
+        case 7:  # Mangahere
+            return Mangahere.download_chapters(ids, update_progress)
         
         case 8:  # Mangapill
             base_url = f"{MANGAPI_URL}/manga/mangapill/read"
