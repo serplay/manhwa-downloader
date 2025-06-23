@@ -1,5 +1,5 @@
 from Queue.celery_app import celery_app
-import pdf_gen
+import ArchiveGen
 import os
 import shutil
 import logging
@@ -72,7 +72,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         progress_callback(10, "Testing callback...")
         
         # Call the download function from pdf_gen with progress callback
-        zip_path = pdf_gen.get_chapter_images(ids, source, progress_callback)
+        zip_path = ArchiveGen.get_chapter_images(ids, source, progress_callback)
         
         print(f"DEBUG: get_chapter_images finished, zip_path: {zip_path}" if debug else "")
         
