@@ -3,30 +3,16 @@ from requests.utils import quote as req_quote
 import requests as req
 import re
 from fastapi import FastAPI, Response
-from fastapi.responses import StreamingResponse
 import io
 import os
 from dotenv import load_dotenv
-from bot_evasion import get_with_captcha
+from Manga.Bato import Bato
+from Utils.bot_evasion import get_with_captcha
+import Manga
 
 load_dotenv()
 
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
-
-def proxy_image(url: str, header: str = None):
-    if header:
-        header = {"Referer": header}
-    try:
-        response = req.get(url,headers=header, stream=True)
-        if response.status_code == 200:
-            return StreamingResponse(
-                io.BytesIO(response.content),
-                media_type=response.headers.get('content-type', 'image/jpeg')
-            )
-        return None
-    except Exception as e:
-        print(f"Error proxying image: {e}")
-        return None
 
 def search(title, source):
     try:
@@ -183,46 +169,7 @@ def search(title, source):
             
             return comics
         case 9: #Bato
-            base_url = "https://bato.si"
-            
-            body = '''
-                query Search($select: Search_Comic_Select) {
-                  get_search_comic(select: $select) {
-                    items {
-                      data {
-                        id
-                        name
-                        urlCover300
-                        urlPath
-                      }
-                    }
-                  }
-                }
-                '''
-            try:
-                r = req.post(f'{base_url}/ap2/', json={"query": body, "variables": {"select": {"word": title}, "operationName": "Search"}})
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Bato API: {e}")
-
-            data = r.json()["data"]["get_search_comic"]["items"]
-            if not data:
-                return {"message": "No results found."}
-            
-            comics = {}
-            for num, com in enumerate(data):
-                com_id = com['data']['id']
-                title = {'en': com['data']['name']}
-                cover_art = base_url + com['data']['urlCover300']
-                trans = ['en']
-                comics[num] = {
-                    "id": com_id,
-                    "title": title,
-                    "cover_art": cover_art,
-                    "availableLanguages":trans,
-                }
-                
-            return comics
+            return Bato.search(title)
                 
         case 10: # Weebcentral
             base_url = f"https://weebcentral.com/search?text={title}&sort=Best+Match&order=Descending&official=Any&anime=Any&adult=Any&display_mode=Full+Display"
@@ -414,46 +361,7 @@ def get_chapters(id: str, source: int):
             
             return data
         case 9:  # Bato
-            base_url = "https://bato.si"
-            body = '''
-                query Chapters($comicId: ID!) {
-                  get_comic_chapterList(comicId: $comicId) {
-                    data {
-                      id
-                      volume
-                      count_images
-                      serial
-                    }
-                  }
-                }
-            '''
-            
-            try:
-                r = req.post(f'{base_url}/ap2/', json={"query": body, "variables": {"comicId": id, "operationName": "Chapters"}})
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Bato API: {e}")
-
-            data = r.json()["data"]["get_comic_chapterList"]
-            if not data:
-                raise Exception("No chapters found for this comic.")
-            
-            chapters = {}
-            for num, chap in enumerate(data):
-                if chap["data"]["volume"] is not None:
-                    volume = f"Vol {chap['volume']}"
-                else:
-                    volume = "Vol 1"
-                chapter_num = chap["data"]["serial"]
-                chapter_id = chap["data"]["id"]
-                if volume not in chapters:
-                    chapters[volume] = {"volume": volume, "chapters": {}}
-                chapters[volume]["chapters"][str(num)] = {
-                    "id": chapter_id,
-                    "chapter": chapter_num
-                }
-            
-            return chapters
+            return Bato.get_chapters(id)
             
         case 10:  # Weebcentral
             base_url = f"https://weebcentral.com/series{id}"

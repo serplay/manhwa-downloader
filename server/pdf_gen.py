@@ -6,7 +6,7 @@ import shutil
 import uuid
 from zipfile import ZipFile
 from typing import Callable, Optional
-from Formats.cleanup import cleanup
+from Utils.cleanup import cleanup
 from bs4 import BeautifulSoup as bs
 from dotenv import load_dotenv
 from PIL import Image
@@ -15,6 +15,7 @@ from Formats.pdf import gen_pdf
 from Formats.cbr import gen_cbr
 from Formats.cbz import gen_cbz
 from Formats.epub import gen_epub
+from Manga.Bato import Bato
 
 load_dotenv()
 
@@ -373,61 +374,8 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 raise e
         
         case 9:  # Bato
-            base_url = "https://bato.si"
-            body = '''
-                query Images($getChapterNodeId: ID!) {
-                  get_chapterNode(id: $getChapterNodeId) {
-                    data {
-                      imageFile {
-                        urlList
-                      }
-                    }
-                  }
-                }
-            '''
+            return Bato.download_chapters(ids, update_progress)
             
-            path = f'Downloads/{uuid.uuid4().hex}'
-            pdfs = []
-            os.makedirs(f"{path}", exist_ok=True)
-            
-            try:
-                for i, chap_id in enumerate(ids):
-                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
-                    
-                    temp = chap_id.split("_")
-
-                    if len(temp) != 2:
-                        chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
-                    else:
-                        chap_id, chap_num = temp
-                        
-                    ch_path = f"{path}/{chap_num}"
-                    os.makedirs(ch_path, exist_ok=True)
-                    
-                    
-                    r = req.post(f'{base_url}/ap2/', json={"query": body, "variables": {"getChapterNodeId": chap_id, "operationName": "Images"}})
-                    r.raise_for_status()
-                    image_links = r.json()["data"]["get_chapterNode"]["data"]["imageFile"]["urlList"]
-                    
-                    pdfs.append(gen_pdf(image_links, chap_num, path))
-                    shutil.rmtree(ch_path)
-                if not pdfs:
-                    raise Exception("No PDFs were generated, ZIP will not be created.")
-                
-                update_progress(total_chapters, "Creating ZIP archive...")
-                zip_path = f"{path}/Chapters.zip"
-                with ZipFile(zip_path, "w") as chapters_zip:
-                    for pdf in pdfs:
-                        chapters_zip.write(pdf, os.path.basename(pdf))
-                        os.remove(pdf)
-                
-                update_progress(total_chapters, "Finished")
-                return zip_path
-                        
-            except Exception as e:
-                cleanup(f'Downloads/{path}')
-                raise e
-        
         case 10:  # Weebcentral
             base_url = "https://weebcentral.com/chapters/"
             path = f'Downloads/{uuid.uuid4().hex}'
