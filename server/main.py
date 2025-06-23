@@ -13,6 +13,8 @@ import os
 
 load_dotenv()
 
+debug = os.getenv("DEBUG", "false").lower() == "true"
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -107,9 +109,10 @@ async def get_download_status(task_id: str):
         # Check task status using AsyncResult
         result = celery_app.AsyncResult(task_id)
         
-        print(f"DEBUG: Checking status of task {task_id}")
-        print(f"DEBUG: Task state: {result.state}")
-        print(f"DEBUG: Task info: {result.info}")
+        if debug:
+            print(f"DEBUG: Checking status of task {task_id}")
+            print(f"DEBUG: Task state: {result.state}")
+            print(f"DEBUG: Task info: {result.info}")
         
         if result.state == "PENDING":
             return {
@@ -164,18 +167,20 @@ async def download_file(task_id: str):
     Download ZIP file after task completion.
     """
     try:
-        print(f"DEBUG: Attempting to download file for task {task_id}")
+        if debug:
+            print(f"DEBUG: Attempting to download file for task {task_id}")
         
         # Check task status directly from Celery
         from Queue.celery_app import celery_app
         
         result = celery_app.AsyncResult(task_id)
         
-        print(f"DEBUG: Task state: {result.state}")
-        print(f"DEBUG: Task info: {result.info}")
+        if debug:
+            print(f"DEBUG: Task state: {result.state}")
+            print(f"DEBUG: Task info: {result.info}")
         
         if result.state != "SUCCESS":
-            print(f"DEBUG: Task not successfully completed - state: {result.state}")
+            print(f"DEBUG: Task not successfully completed - state: {result.state}" if debug else "")
             raise HTTPException(
                 status_code=400, 
                 detail=f"Task was not completed successfully. Status: {result.state}"
@@ -185,17 +190,19 @@ async def download_file(task_id: str):
         zip_path = info.get("zip_path")
         comic_title = info.get("comic_title", "Chapters")
         
-        print(f"DEBUG: ZIP file path: {zip_path}")
+        if debug:
+            print(f"DEBUG: ZIP file path: {zip_path}")
         
         if not zip_path:
-            print(f"DEBUG: No ZIP file path in task info")
+            print(f"DEBUG: No ZIP file path in task info" if debug else "")
             raise HTTPException(status_code=404, detail="File path was not found in task result")
         
         if not os.path.exists(zip_path):
-            print(f"DEBUG: File does not exist: {zip_path}")
+            print(f"DEBUG: File does not exist: {zip_path}" if debug else "")
             raise HTTPException(status_code=404, detail=f"File not found: {zip_path}")
         
-        print(f"DEBUG: File exists, size: {os.path.getsize(zip_path)} bytes")
+        if debug:
+            print(f"DEBUG: File exists, size: {os.path.getsize(zip_path)} bytes")
         
         # Return file for download
         return FileResponse(

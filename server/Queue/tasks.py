@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
 log_level = getattr(logging, log_level_str, logging.INFO)
+debug = os.getenv("DEBUG", "False").lower() == "true"
 
 # Logging configuration
 logging.basicConfig(
@@ -37,7 +38,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
     
     def progress_callback(progress: int, status: str):
         """Callback for updating task progress"""
-        print(f"DEBUG: Progress callback - {progress}% - {status}")
+        print(f"DEBUG: Progress callback - {progress}% - {status}" if debug else "")
         self.update_state(
             state="PROGRESS",
             meta={
@@ -51,7 +52,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         logger.info(f"Task {task_id}: {progress}% - {status}")
     
     try:
-        print(f"DEBUG: Starting task {task_id} for {len(ids)} chapters")
+        print(f"DEBUG: Starting task {task_id} for {len(ids)} chapters" if debug else "")
         
         # Update task status
         self.update_state(
@@ -73,7 +74,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         # Call the download function from pdf_gen with progress callback
         zip_path = pdf_gen.get_chapter_images(ids, source, progress_callback)
         
-        print(f"DEBUG: get_chapter_images finished, zip_path: {zip_path}")
+        print(f"DEBUG: get_chapter_images finished, zip_path: {zip_path}" if debug else "")
         
         if not zip_path:
             raise Exception("Failed to generate ZIP file")
@@ -84,7 +85,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         
         file_size = os.path.getsize(zip_path)
         
-        print(f"DEBUG: File created - {zip_path}, size: {file_size} bytes")
+        print(f"DEBUG: File created - {zip_path}, size: {file_size} bytes" if debug else "")
         
         # Update status to finished successfully
         self.update_state(
@@ -112,7 +113,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         }
         
     except Exception as e:
-        print(f"DEBUG: Error in task {task_id}: {e}")
+        print(f"DEBUG: Error in task {task_id}: {e}" if debug else "")
         logger.error(f"Error during download: {str(e)}")
         
         # Update status to failure
