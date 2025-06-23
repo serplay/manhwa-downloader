@@ -4,7 +4,7 @@ const sourceNames = {
   0: "MangaDex",
   1: "Manhuaus",
   2: "Yakshascans",
-  3: "Asurascan",
+  3: "Asurascans",
   4: "Kunmanga",
   5: "Toonily",
   6: "Toongod",
@@ -53,7 +53,7 @@ function HealthStatus() {
                 className="text-sm text-gray-800 dark:text-gray-300"
                 dangerouslySetInnerHTML={{ __html: name }}
               ></span>
-              <span className={`w-3 h-3 rounded-full ${id === "1" ? "bg-amber-500" : status[id] === "ok" ? "bg-green-500" : "bg-red-500"}`}></span>
+              <span className={`w-3 h-3 rounded-full ${id === "1" ? "bg-amber-500" : id === "2" ? "bg-amber-500" : id === "3" ? "bg-amber-500" : status[id] === "ok" ? "bg-green-500" : "bg-red-500"}`}></span>
             </li>
           ))}
         </ul>

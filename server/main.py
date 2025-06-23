@@ -2,6 +2,7 @@ from fastapi import FastAPI, Query, Response, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
+from Utils.ProxyImage import proxy_image
 import scraper
 from dotenv import load_dotenv
 import asyncio
@@ -254,7 +255,7 @@ async def proxy_image_endpoint(
     Proxy image requests to handle MangaDex cover art.
     """
     try:
-        return scraper.proxy_image(url,hd)
+        return proxy_image(url,hd)
     except Exception as e:
         return {"error": str(e)}
 
