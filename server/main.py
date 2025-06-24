@@ -36,8 +36,8 @@ SOURCE_URLS = {
     "2": "https://yakshascans.com",
     "3": "https://asuracomic.net",
     "4": "https://kunmanga.com",
-    "5": None,  # Toonily - Not implemented
-    "6": None,  # Toongod - Not implemented
+    "5": "https://toonily.com",
+    "6": "https://toongod.org",  
     "7": "https://mangahere.cc",
     "8": "https://mangapill.com",
     "9": "https://bato.si",
@@ -50,7 +50,7 @@ async def check_url(session, url):
         return "null"
     try:
         async with session.get(url, timeout=5) as response:
-            return "ok" if response.status == 200 else "null"
+            return "ok" if response.status in (200,403) else "null" # 403 toongod cheat :p
     except Exception:
         return "null"
 
