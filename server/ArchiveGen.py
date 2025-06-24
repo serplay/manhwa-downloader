@@ -14,6 +14,7 @@ from Manga.MangaDex import MangaDex
 from Manga.Mangahere import Mangahere
 from Manga.Mangapill import Mangapill
 from Manga.Kunmanga import Kunmanga
+from Manga.Toongod import Toongod
 
 load_dotenv()
 
@@ -64,7 +65,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
             raise NotImplementedError("Downloading chapters from Toonily is not implemented yet.")
 
         case 6:  # Toongod
-            raise NotImplementedError("Downloading chapters from Toongod is not implemented yet.")
+            raise NotImplementedError("Downloading chapters from Toonily is not implemented yet.") # return Toongod.download_chapters(ids, update_progress)
 
         case 7:  # Mangahere
             return Mangahere.download_chapters(ids, update_progress)

@@ -36,14 +36,16 @@ def gen_pdf(images, chap_num, path, referer=None):
                 if referer:
                     headers = {'Referer': img_url[1]}
                     img_url = img_url[0]
-                img_resp = req.get(img_url, timeout=10, headers=headers if referer else None)
+                img_resp = req.get(img_url, timeout=10,
+                                   headers=headers if referer else None)
                 img_resp.raise_for_status()
                 img_data = img_resp.content
             except req.RequestException as e:
                 is_corrupted = True
-                
+
             if not is_corrupted:
-                extension = img_url.split(".")[-1].split("?")[0]  # handle URLs with query params
+                # handle URLs with query params
+                extension = img_url.split(".")[-1].split("?")[0]
                 img_path = f"{ch_path}/{i}.{extension}"
 
                 with open(img_path, "wb") as img_file:
@@ -51,7 +53,7 @@ def gen_pdf(images, chap_num, path, referer=None):
             else:
                 extension = "png"
                 img_path = "Formats/corrupt.png"
-            
+
             if extension.lower() == "webp":
                 try:
                     im = Image.open(img_path).convert("RGB")
@@ -74,7 +76,8 @@ def gen_pdf(images, chap_num, path, referer=None):
         pdf_path = f"{path}/{title}.pdf"
 
         with open(pdf_path, "wb") as f:
-            f.write(img2pdf.convert(image_paths, rotation=img2pdf.Rotation.ifvalid))
+            f.write(img2pdf.convert(image_paths,
+                    rotation=img2pdf.Rotation.ifvalid))
 
         return pdf_path
 

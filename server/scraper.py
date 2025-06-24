@@ -10,7 +10,7 @@ from Manga.Weebcentral import Weeb
 from Manga.MangaDex import MangaDex
 from Manga.Kunmanga import Kunmanga
 #from Manga.Toonily import Toonily
-#from Manga.Toongod import Toongod
+from Manga.Toongod import Toongod
 from Manga.Mangapill import Mangapill
 from Manga.Mangahere import Mangahere
 
@@ -40,9 +40,9 @@ def search(title, source):
         case 4: #Kunmanga
             return Kunmanga.search(title)
         case 5: #Toonily
-            raise NotImplementedError("Toonily is not implemented yet.")
+            return # Toongod.search(title)
         case 6: #Toongod
-            raise NotImplementedError("Toongod is not implemented yet.")
+            return Toongod.search(title)
         case 7: #Mangahere
             return Mangahere.search(title)
 
@@ -81,9 +81,9 @@ def get_chapters(id: str, source: int):
         case 4:  # Kunmanga
             return Kunmanga.get_chapters(id)
         case 5:  # Toonily
-            raise NotImplementedError("Pulling chapters from Toonily is not implemented yet.")
+            return # Toongod.get_chapters(id)
         case 6:  # Toongod
-            raise NotImplementedError("Pulling chapters from Toongod is not implemented yet.")
+            return Toongod.get_chapters(id)
         case 7:  # Mangahere
             return Mangahere.get_chapters(id)
 
