@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 
 const sourceNames = {
-  0: ["MangaDex", "fast"],
+  0: ["MangaDex", "fastest"],
   1: ["Manhuaus", "slow"],
   2: ["Yakshascans", "slow"],
   3: ["Asurascans", "slow"],
-  4: ["Kunmanga", "slow"],
+  4: ["Kunmanga", "fast"],
   5: ["Toonily", "slow"],
   6: ["Toongod", "slow"],
   7: ["Mangahere", "fast"],
@@ -47,7 +47,7 @@ function HealthStatus() {
         </div>
         <div className="flex items-center gap-2 mb-1">
           <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
-          <span>Fastest (Bato)</span>
+          <span>Fastest</span>
         </div>
         <div className="flex items-center gap-2 mb-1">
           <span className="w-2 h-2 rounded-full bg-amber-500"></span>
