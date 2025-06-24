@@ -13,6 +13,7 @@ from Manga.Weebcentral import Weeb
 from Manga.MangaDex import MangaDex
 from Manga.Mangahere import Mangahere
 from Manga.Mangapill import Mangapill
+from Manga.Kunmanga import Kunmanga
 
 load_dotenv()
 
@@ -57,7 +58,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
             return Asura.download_chapters(ids, update_progress)
 
         case 4:  # Kunmanga
-            raise NotImplementedError("Downloading chapters from Kunmanga is not implemented yet.")
+            return Kunmanga.download_chapters(ids, update_progress)
 
         case 5:  # Toonily
             raise NotImplementedError("Downloading chapters from Toonily is not implemented yet.")

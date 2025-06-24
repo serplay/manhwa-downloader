@@ -35,7 +35,7 @@ SOURCE_URLS = {
     "1": "https://manhuaus.com",
     "2": "https://yakshascans.com",
     "3": "https://asuracomic.net",
-    "4": None,  # Kunmanga - Not implemented
+    "4": "https://kunmanga.com",
     "5": None,  # Toonily - Not implemented
     "6": None,  # Toongod - Not implemented
     "7": "https://mangahere.cc",

@@ -8,7 +8,7 @@ from Manga.Manhuaus import Manhuaus
 from Manga.Yakshascans import Yaksha
 from Manga.Weebcentral import Weeb
 from Manga.MangaDex import MangaDex
-#from Manga.Kunmanga import Kunmanga
+from Manga.Kunmanga import Kunmanga
 #from Manga.Toonily import Toonily
 #from Manga.Toongod import Toongod
 from Manga.Mangapill import Mangapill
@@ -38,7 +38,7 @@ def search(title, source):
             return Asura.search(title)
         
         case 4: #Kunmanga
-            raise NotImplementedError("Kunmanga is not implemented yet.")
+            return Kunmanga.search(title)
         case 5: #Toonily
             raise NotImplementedError("Toonily is not implemented yet.")
         case 6: #Toongod
@@ -48,30 +48,7 @@ def search(title, source):
 
         case 8: #Mangapill
             return Mangapill.search(title)
-            base_url = f"{MANGAPI_URL}/manga/mangapill"
-            try:
-                r = req.get(f'{base_url}/{title}')
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangapill API: {e}")
-            
-            data = r.json()["results"]
-            comics = {}
-            
-            for num, com in enumerate(data):
-                com_id = com["id"]
-                title = {'en': com["title"]}
-                cover_art = com["image"]
-                header = 'https://mangapill.com' # guessed referer first try 😅
-                trans = ["en"]
-                comics[num] = {
-                    "id": com_id,
-                    "title": title,
-                    "cover_art": f'/api/proxy-image?url={cover_art}&hd={header}',
-                    "availableLanguages": trans,
-                }
-            
-            return comics
+
         case 9: #Bato
             return Bato.search(title)
                 
@@ -102,7 +79,7 @@ def get_chapters(id: str, source: int):
             return Asura.get_chapters(id)
 
         case 4:  # Kunmanga
-            raise NotImplementedError("Pulling chapters from Kunmanga is not implemented yet.")
+            return Kunmanga.get_chapters(id)
         case 5:  # Toonily
             raise NotImplementedError("Pulling chapters from Toonily is not implemented yet.")
         case 6:  # Toongod
@@ -112,21 +89,7 @@ def get_chapters(id: str, source: int):
 
         case 8:  # Mangapill
             return Mangapill.get_chapters(id)
-            base_url = f"{MANGAPI_URL}/manga/mangapill/info"
-            try:
-                r = req.get(base_url, params={"id": id})
-                r.raise_for_status()
-            except req.RequestException as e:
-                raise Exception(f"Failed to fetch data from Mangahere API: {e}")
-            
-            data = {"Vol 1":{ "volume": "Vol 1", "chapters": {}}}
-            for num, chap in enumerate(r.json()["chapters"]):
-                data["Vol 1"]["chapters"][str(num)] = {
-                    "id": chap["id"],
-                    "chapter": chap["chapter"]
-                }
-            
-            return data
+
         case 9:  # Bato
             return Bato.get_chapters(id)
             
