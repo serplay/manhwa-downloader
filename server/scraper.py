@@ -9,7 +9,7 @@ from Manga.Yakshascans import Yaksha
 from Manga.Weebcentral import Weeb
 from Manga.MangaDex import MangaDex
 from Manga.Kunmanga import Kunmanga
-#from Manga.Toonily import Toonily
+from Manga.Toonily import Toonily
 from Manga.Toongod import Toongod
 from Manga.Mangapill import Mangapill
 from Manga.Mangahere import Mangahere
@@ -40,7 +40,7 @@ def search(title, source):
         case 4: #Kunmanga
             return Kunmanga.search(title)
         case 5: #Toonily
-            return # Toongod.search(title)
+            return Toonily.search(title)
         case 6: #Toongod
             return Toongod.search(title)
         case 7: #Mangahere
@@ -81,7 +81,7 @@ def get_chapters(id: str, source: int):
         case 4:  # Kunmanga
             return Kunmanga.get_chapters(id)
         case 5:  # Toonily
-            return # Toongod.get_chapters(id)
+            return Toonily.get_chapters(id)
         case 6:  # Toongod
             return Toongod.get_chapters(id)
         case 7:  # Mangahere

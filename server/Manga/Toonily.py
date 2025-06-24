@@ -10,18 +10,18 @@ from seleniumbase import SB
 import re
 
 
-class Toongod:
+class Toonily:
     
-    BASE_URL = "https://www.toongod.org"
-
-    SEARCH_ELEM = {"class":"row c-tabs-item__content"}
-    CHAPTERS_ELEM = ('li[class="wp-manga-chapter    "]',{"class":"wp-manga-chapter"})
+    BASE_URL = "https://toonily.com"
     
+    SEARCH_ELEM = ['div[class="page-listing-item"]']
+    SEARCH_PARAMS = '?op&author&artist&adult'
+    CHAPTERS_ELEM = ''
     
     @staticmethod
     def search(title: str):
         """
-        Search for comics on Toongod by title.
+        Search for comics on Toonily by title.
         
         Args:
             title (str): The title or keyword to search for.
@@ -35,28 +35,30 @@ class Toongod:
             If no results are found, returns a dict with a 'message' key.
 
         Raises:
-            Exception: If scraping Toongod website fails.
+            Exception: If scraping Toonily website fails.
         """
         
         try:
-            soup = get_with_captcha(f"{Toongod.BASE_URL}/?s={title}&post_type=wp-manga", '')
+            soup = get_with_captcha(f"{Toonily.BASE_URL}/search/{title}{Toonily.SEARCH_PARAMS}", '')
         except Exception as e:
-            raise Exception(f"Failed to fetch data from Toongod: {e}")
+            raise Exception(f"Failed to fetch data from Toonily: {e}")
         
         if not soup:
                 return {"message": "No results found."}
-            
+
+        data = soup.find_all('div', class_="item-thumb c-image-hover")
+        
         comics: ComicsDict = {}
-        for num,com in enumerate(soup.find_all("div",Toongod.SEARCH_ELEM)):
-            title_and_link = com.find("h3",{"class":"h4"}).find("a")
-            title = {"en":title_and_link.text}
-            link = title_and_link["href"].split("/")[-2]
-            image_cover = f'/api/proxy-image?url={com.find("img")["data-src"]}'
+        for num,com in enumerate(data):
+            link = com.a["href"].split("/")[-2]
+            title = {"en":com.a["title"]}
+            cover = com.a.img["src"]
+            header = Toonily.BASE_URL
             trans = ["en"]
             comics[num] = Comic(
                 id=link,
                 title=title,
-                cover_art=image_cover,
+                cover_art=f'/api/proxy-image?url={cover}&hd={header}',
                 availableLanguages=trans
             )
             
@@ -65,7 +67,7 @@ class Toongod:
     @staticmethod
     def get_chapters(id):
         """
-        Retrieve the list of chapters for a given comic from Toongod.
+        Retrieve the list of chapters for a given comic from Toonily.
 
         Args:
             id (str): The comic ID to fetch chapters for.
@@ -79,15 +81,15 @@ class Toongod:
             Raises an Exception if no chapters are found.
 
         Raises:
-            Exception: If scraping Toongod website fails.
+            Exception: If scraping Toonily website fails.
         """
         
         try:
-            soup = get_with_captcha(f"{Toongod.BASE_URL}/webtoon/{id}", Toongod.CHAPTERS_ELEM[0])
-            data = soup.find_all("li",Toongod.CHAPTERS_ELEM[1])
+            soup = get_with_captcha(f"{Toonily.BASE_URL}/serie/{id}", '')
+            data = soup.find_all("li", class_="wp-manga-chapter")
         except Exception as e:
-            raise Exception(f"Failed to fetch data from Toongod: {e}")
-        print(data)
+            raise Exception(f"Failed to fetch data from Toonily: {e}")
+        
         chapters: ChaptersDict = {}
         volume = "Vol 1"
         chapters[volume] = VolumeData(volume=volume, chapters={})
@@ -99,10 +101,12 @@ class Toongod:
             
         return chapters
 
+
+    # Cloudflare block, so ain't bothering with it for now
     @staticmethod
     def download_chapters(ids, update_progress=None):
         """
-        Download chapters from Toongod and return the path to the ZIP archive.
+        Download chapters from Toonily and return the path to the ZIP archive.
         Args:
             ids: List of chapter IDs
             update_progress: Optional callback for progress updates
@@ -122,37 +126,33 @@ class Toongod:
                     chap_id, chap_num = chap_id.split("_")
                     
                     try:
-                        sb.uc_open_with_reconnect(f"{Toongod.BASE_URL}/webtoon/{chap_id}/", 4)
+                        sb.uc_open_with_reconnect(f"{Toonily.BASE_URL}/serie/{chap_id}/", 4)
                         sb.uc_gui_click_captcha()
                         soup = sb.get_beautiful_soup()
                     except Exception as e:
-                        print(f"Skipping chapter {chap_num} due to bot detection: {e}")
+                        print(f"Skipping chapter {chap_num} due to bot evasion: {e}")
                         continue
-                    read_container = soup.find("div", {"class": "read-container"})
+                    read_container = soup.find("div", {"class": "reading-content"})
                     if not read_container:
-                        read_container = soup.find("div", {"class": "reading-content"})
-                    if not read_container:
-                        print(f"Skipping chapter {chap_num} - read-container not found.")
+                        print(f"Skipping chapter {chap_num} - reading-content not found.")
                         continue
-                    
                     images = read_container.find_all("img")
                     image_links = [
                         re.sub(r'[\t\r\n]', "", img.get("data-src", "")) for img in images if img.get("data-src")
                     ]
                     if not image_links:
-                            # If no data-src, try src
-                            image_links = [
-                                re.sub(r'[\t\r\n]', "", img.get("src", "")) for img in images if img.get("src")
-                            ]
+                        # If no data-src, try src
+                        image_links = [
+                            re.sub(r'[\t\r\n]', "", img.get("src", "")) for img in images if img.get("src")
+                        ]
                     if not image_links:
                         print(f"No images found for chapter {chap_num}. Skipping.")
                         continue
-
-                    pdfs.append(gen_pdf(image_links, chap_num, path, True))
+                    
+                    pdfs.append(gen_pdf(image_links, chap_num, path))
                     shutil.rmtree(f"{path}/{chap_num}")
             if not pdfs:
                 raise Exception("No PDFs were generated, ZIP will not be created.")
-            
             update_progress(total_chapters, "Creating ZIP archive...")
             zip_path = f"{path}/Chapters.zip"
             with ZipFile(zip_path, "w") as chapters_zip:
@@ -162,7 +162,6 @@ class Toongod:
             
             update_progress(total_chapters, "Finished")
             return zip_path
-        
         except Exception as e:
             cleanup(f'Downloads/{path}')
-            raise e 
+            raise e
