@@ -145,9 +145,9 @@ class Bato:
             else:
                 volume = "Vol 1"
         
-            chapter_num = chap["data"]["serial"]
-            chapter_id = chap["data"]["id"]
-        
+            chapter_num = str(chap["data"]["serial"])
+            chapter_id = str(chap["data"]["id"])
+            
             if volume not in chapters:
                 chapters[volume] = VolumeData(volume=volume, chapters={})
         
