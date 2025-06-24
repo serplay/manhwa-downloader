@@ -31,6 +31,7 @@
 * [x] ✅ **Add progress bar** for downloads (frontend polling)
 * [x] ✅ **Add toast notifications** for task status updates
 * [x] ✅ **Create task monitoring dashboard** showing active downloads
+* [ ] Fix **Pop-up notifications** overlapping
 * [ ] Add **"Select Range"** UI component for chapter selection
 * [ ] Add **monitoring dashboard** for source status (up/down)
 
