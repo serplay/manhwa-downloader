@@ -189,6 +189,7 @@ async def download_file(task_id: str):
         info = result.info or {}
         zip_path = info.get("zip_path")
         comic_title = info.get("comic_title", "Chapters")
+        extension = zip_path.split(".")[-1] if zip_path else "zip"
         
         if debug:
             print(f"DEBUG: ZIP file path: {zip_path}")
@@ -207,8 +208,9 @@ async def download_file(task_id: str):
         # Return file for download
         return FileResponse(
             path=zip_path,
-            filename=f"{comic_title}.zip",
-            media_type="application/zip",
+            filename=f"{comic_title}.{extension}",
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={comic_title}.{extension}"},
             background=BackgroundTask(
                 cleanup_task, zip_path=zip_path
             )
