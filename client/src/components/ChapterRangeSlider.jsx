@@ -111,11 +111,11 @@ const ChapterRangeSlider = ({
     <div className="w-full">
       <div className="mb-4">
         <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-          <span>Chapter {start}</span>
+          <span>Chapter {start+1}</span>
           <span>Chapter {end}</span>
         </div>
         <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500">
-          <span>Min: {min}</span>
+          <span>Min: {min+1}</span>
           <span>Max: {max}</span>
         </div>
       </div>
