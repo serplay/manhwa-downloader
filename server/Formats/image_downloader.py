@@ -50,8 +50,9 @@ def download_chapter_images(images, chap_num, path, referer=None):
                 with open(img_path, "wb") as img_file:
                     img_file.write(img_data)
             else:
-                extension = "png"
-                img_path = os.path.join(os.path.dirname(__file__), "corrupt.png")
+                extension = "jpg"
+                img_path = os.path.join(os.path.dirname(__file__), "corrupt.jpg")
+                shutil.copy(img_path, f"{ch_path}/{i}.{extension}")
 
             if extension.lower() == "webp":
                 try:
