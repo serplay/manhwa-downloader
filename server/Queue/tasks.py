@@ -73,7 +73,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         progress_callback(10, "Testing callback...")
         
         # Call the download function from pdf_gen with progress callback
-        zip_path = ArchiveGen.get_chapter_images(ids, source, progress_callback, comic_f=format)
+        zip_path = ArchiveGen.get_chapter_images(ids, source, progress_callback,comic_title, comic_f=format)
         
         print(f"DEBUG: get_chapter_images finished, zip_path: {zip_path}" if debug else "")
         
