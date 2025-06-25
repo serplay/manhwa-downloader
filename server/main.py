@@ -71,6 +71,7 @@ async def start_download(
     ids: list = Query(..., description="List of IDs", alias="ids[]"),
     source: str = Query(..., description="Source number"),
     comic_title: str = Query("Chapters", description="Title of the comic"),
+    format: str = Query("pdf", description="Output format (pdf, cbz, cbr, epub)")
 ):
     """
     Start downloading chapters in the background.
@@ -84,8 +85,11 @@ async def start_download(
         if not source:
             raise HTTPException(status_code=400, detail="Source must be specified")
         
+        if format not in ["pdf", "cbz", "cbr", "epub"]:
+            raise HTTPException(status_code=400, detail="Invalid format. Allowed: pdf, cbz, cbr, epub")
+        
         # Start background task
-        task = download_chapters.delay(ids, source, comic_title)
+        task = download_chapters.delay(ids, source, comic_title, format)
         
         return {
             "task_id": task.id,  # Use the actual Celery task ID

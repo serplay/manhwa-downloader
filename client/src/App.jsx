@@ -52,6 +52,9 @@ function App() {
   const [downloadingFiles, setDownloadingFiles] = useState(new Set());
   const [downloadSuccess, setDownloadSuccess] = useState("");
 
+  // Format selection states
+  const [selectedFormat, setSelectedFormat] = useState({});
+
   // Apply theme changes to document
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -276,7 +279,7 @@ useEffect(() => {
   };
 
   // Handle chapter download - now starts background task
-  const handleDownload = async (comicId, comicTitle) => {
+  const handleDownload = async (comicId, comicTitle, format = "pdf") => {
     const chapterIds = selectedChapters[comicId] || [];
     if (chapterIds.length === 0) return;
   
@@ -294,6 +297,7 @@ useEffect(() => {
       });
       params.append("source", source);
       params.append("comic_title", comicTitle);
+      params.append("format", format);
   
       const response = await fetch(`${API_url}/download?${params.toString()}`, {
         method: 'POST'
@@ -896,27 +900,38 @@ useEffect(() => {
                               <div className="flex gap-4 mt-2">
                                 <button
                                   onClick={() => selectAllChapters(comic.id)}
-                                  className="px-3 py-1 rounded-md bg-pink-500 text-white dark:bg-violet-500 hover:opacity-90 cursor-pointer"
+                                  className="px-3 py-1 rounded-md bg-pink-500 rounded-r-none text-white dark:bg-violet-500 hover:opacity-90 cursor-pointer"
                                 >
                                   Select All
                                 </button>
-                                <button
-                                  onClick={() => handleDownload(comic.id, comic.title.en || Object.values(comic.title)[0])}
-                                  disabled={
-                                    isDownloading ||
-                                    !selectedChapters[comic.id]?.length
-                                  }
-                                  className={`px-3 py-1 rounded-md cursor-pointer ${
-                                    isDownloading ||
-                                    !selectedChapters[comic.id]?.length
-                                      ? "bg-gray-400 cursor-not-allowed"
-                                      : "bg-green-500 hover:opacity-90"
-                                  } text-white`}
-                                >
-                                  {isDownloading
-                                    ? "Starting..."
-                                    : "Download"}
-                                </button>
+                                <div className="flex">
+                                  <button
+                                    onClick={() => handleDownload(comic.id, comic.title.en || Object.values(comic.title)[0], selectedFormat[comic.id] || "pdf")}
+                                    disabled={
+                                      isDownloading ||
+                                      !selectedChapters[comic.id]?.length
+                                    }
+                                    className={`px-3 py-1 rounded-l-md border-r-0 cursor-pointer ${
+                                      isDownloading ||
+                                      !selectedChapters[comic.id]?.length
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-green-500 hover:opacity-90"
+                                    } text-white`}
+                                  >
+                                    {isDownloading ? "Starting..." : "Download"}
+                                  </button>
+                                  <select
+                                    value={selectedFormat[comic.id] || "pdf"}
+                                    onChange={e => setSelectedFormat(prev => ({ ...prev, [comic.id]: e.target.value }))}
+                                    className="px-2 py-1 rounded-r-md rounded-l-none border border-l-0 border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2e2b40] text-gray-800 dark:text-gray-200 focus:outline-none"
+                                    style={{ minWidth: 70 }}
+                                  >
+                                    <option value="pdf">PDF</option>
+                                    <option value="cbz">CBZ</option>
+                                    <option value="cbr">CBR</option>
+                                    <option value="epub">ePUB</option>
+                                  </select>
+                                </div>
                               </div>
                             </div>
                           )}

@@ -36,6 +36,9 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     except ValueError:
         raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     
+    if comic_f in ["cbr", "cbz", "epub"]:
+        raise NotImplementedError(f"{comic_f.upper()} format generation is not implemented yet.")
+    
     total_chapters = len(ids)
     
     def update_progress(current: int, status: str = "Processing..."):
@@ -87,10 +90,10 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
         case "pdf":
             return gen_pdf(path)
         case "cbr":
-            gen_cbr(path)
+            return gen_cbr(path)
         case "cbz":
-            gen_cbz(path)
+            return gen_cbz(path)
         case "epub":
-            gen_epub(path)
+            return gen_epub(path)
         case _:
             return gen_pdf(path)

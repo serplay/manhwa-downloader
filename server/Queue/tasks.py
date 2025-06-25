@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, name="Queue.tasks.download_chapters")
-def download_chapters(self, ids: List[str], source: str, comic_title: str = "Chapters") -> Dict[str, Any]:
+def download_chapters(self, ids: List[str], source: str, comic_title: str = "Chapters", format: str = "pdf") -> Dict[str, Any]:
     """
     Celery task to download chapters in the background.
     
@@ -30,6 +30,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         ids: List of chapter IDs to download
         source: Source identifier (number)
         comic_title: Title of the comic
+        format: Format of the comic
     
     Returns:
         Dict with task status information
@@ -72,7 +73,7 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         progress_callback(10, "Testing callback...")
         
         # Call the download function from pdf_gen with progress callback
-        zip_path = ArchiveGen.get_chapter_images(ids, source, progress_callback)
+        zip_path = ArchiveGen.get_chapter_images(ids, source, progress_callback, comic_f=format)
         
         print(f"DEBUG: get_chapter_images finished, zip_path: {zip_path}" if debug else "")
         
