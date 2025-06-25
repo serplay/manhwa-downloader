@@ -12,6 +12,16 @@ from Formats.image_downloader import download_chapter_images
 
 
 class Toonily:
+    """
+    Manga source for https://toonily.com
+
+    Provides methods to:
+    - Search for manga titles.
+    - Retrieve chapter lists for a given manga.
+    - Download chapter images into directories (one directory per chapter).
+
+    All methods handle site-specific scraping and error handling.
+    """
     
     BASE_URL = "https://toonily.com"
     
@@ -107,7 +117,24 @@ class Toonily:
     @staticmethod
     def download_chapters(ids, update_progress=None):
         """
-        Download chapters from Toonily and return the path to the directory with chapter subdirectories containing images.
+        Download selected chapters and save all images for each chapter in a separate directory.
+
+        Args:
+            ids (list of str): List of chapter identifiers. Each identifier should be in the format required by the source.
+            update_progress (callable, optional): Callback function for reporting progress.
+
+        Returns:
+            str: Path to the main directory containing subdirectories for each downloaded chapter. Each subdirectory contains all images for that chapter.
+
+        Behavior:
+            - For each chapter ID, fetches the chapter page and extracts all image URLs.
+            - Downloads all images for the chapter into a dedicated subdirectory.
+            - Skips chapters for which no images are found or if scraping fails.
+            - Handles site-specific anti-bot measures (e.g., Selenium, captchas) as needed.
+            - If an error occurs, cleans up the created directories and raises the exception.
+
+        Raises:
+            Exception: If a critical error occurs during the download process (e.g., network failure, site structure change).
         """
         total_chapters = len(ids)
         path = f'Downloads/{uuid.uuid4().hex}'
