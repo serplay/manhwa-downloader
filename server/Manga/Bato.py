@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from Formats.pdf import gen_pdf
 from Utils.cleanup import cleanup
 from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict, ComicsDict
+from Formats.image_downloader import download_chapter_images
 
 class Bato:
     BASE_URL = "https://bato.si"
@@ -158,52 +159,29 @@ class Bato:
     @staticmethod
     def download_chapters(ids, update_progress=None):
         """
-        Download chapters from Bato and return the path to the ZIP archive.
-        Args:
-            ids: List of chapter IDs
-            update_progress: Optional callback for progress updates
-        Returns:
-            Path to the ZIP archive
+        Download chapters from Bato and return the path to the directory with chapter subdirectories containing images.
         """
-        
         total_chapters = len(ids)
         path = f'Downloads/{uuid.uuid4().hex}'
-        pdfs = []
-        os.makedirs(f"{path}", exist_ok=True)
-        
+        os.makedirs(path, exist_ok=True)
         try:
             for i, chap_id in enumerate(ids):
                 if update_progress:
                     update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
                 temp = chap_id.split("_")
                 if len(temp) != 2:
-                    chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
+                    chap_id_val, chap_num = "_".join(temp[:-1]), temp[-1]
                 else:
-                    chap_id, chap_num = temp
+                    chap_id_val, chap_num = temp
                 ch_path = f"{path}/{chap_num}"
                 os.makedirs(ch_path, exist_ok=True)
-                r = req.post(f'{Bato.BASE_URL}/ap2/', json={"query": Bato.IMAGES_QUERY, "variables": {"getChapterNodeId": chap_id, "operationName": "Images"}})
+                r = req.post(f'{Bato.BASE_URL}/ap2/', json={"query": Bato.IMAGES_QUERY, "variables": {"getChapterNodeId": chap_id_val, "operationName": "Images"}})
                 r.raise_for_status()
                 image_links = r.json()["data"]["get_chapterNode"]["data"]["imageFile"]["urlList"]
-                pdfs.append(gen_pdf(image_links, chap_num, path))
-                shutil.rmtree(ch_path)
-            if not pdfs:
-                raise Exception("No PDFs were generated, ZIP will not be created.")
-            if update_progress:
-                update_progress(total_chapters, "Creating ZIP archive...")
-                
-            zip_path = f"{path}/Chapters.zip"
-            with ZipFile(zip_path, "w") as chapters_zip:
-                for pdf in pdfs:
-                    chapters_zip.write(pdf, os.path.basename(pdf))
-                    os.remove(pdf)
-            
-            if update_progress:
-                update_progress(total_chapters, "Finished")
-            return zip_path
-        
+                download_chapter_images(image_links, chap_num, path)
+            return path
         except Exception as e:
-            cleanup(f'Downloads/{path}')
+            shutil.rmtree(path, ignore_errors=True)
             raise e
 
     

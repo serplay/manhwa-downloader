@@ -8,6 +8,7 @@ from Formats.pdf import gen_pdf
 from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict, ComicsDict
 from dotenv import load_dotenv
 from Utils.cleanup import cleanup
+from Formats.image_downloader import download_chapter_images
 load_dotenv()
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
 
@@ -114,53 +115,28 @@ class Mangahere:
     @staticmethod
     def download_chapters(ids, update_progress=None):
         """
-        Download chapters from Mangahere and return the path to the ZIP archive.
-        Args:
-            ids: List of chapter IDs
-            update_progress: Optional callback for progress updates
-        Returns:
-            Path to the ZIP archive
+        Download chapters from Mangahere and return the path to the directory with chapter subdirectories containing images.
         """
-        
         total_chapters = len(ids)
         path = f'Downloads/{uuid.uuid4().hex}'
-        pdfs = []
-        os.makedirs(f"{path}", exist_ok=True)
-        
+        os.makedirs(path, exist_ok=True)
         try:
             for i, chap_id in enumerate(ids):
-                update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
-                
+                if update_progress:
+                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
                 temp = chap_id.split("_")
                 if len(temp) != 2:
-                    chap_id, chap_num = "_".join(temp[:-1]), temp[-1]
+                    chap_id_val, chap_num = "_".join(temp[:-1]), temp[-1]
                 else:
-                    chap_id, chap_num = temp
+                    chap_id_val, chap_num = temp
                 ch_path = f"{path}/{chap_num}"
                 os.makedirs(ch_path, exist_ok=True)
-                
-                response = req.get(f"{Mangahere.BASE_URL}/read", timeout=10, params={"chapterId": chap_id})
+                response = req.get(f"{Mangahere.BASE_URL}/read", timeout=10, params={"chapterId": chap_id_val})
                 response.raise_for_status()
                 data = response.json()
-                
-                image_links = []
-                for page in data:
-                    image_links.append((page["img"], page["headerForImage"]["Referer"]))
-                
-                pdfs.append(gen_pdf(image_links, chap_num, path, referer=True))
-                shutil.rmtree(ch_path)
-            if not pdfs:
-                raise Exception("No PDFs were generated, ZIP will not be created.")
-            update_progress(total_chapters, "Creating ZIP archive...")
-            zip_path = f"{path}/Chapters.zip"
-            with ZipFile(zip_path, "w") as chapters_zip:
-                for pdf in pdfs:
-                    chapters_zip.write(pdf, os.path.basename(pdf))
-                    os.remove(pdf)
-            
-            update_progress(total_chapters, "Finished")
-            return zip_path
-                            
+                image_links = [(page["img"], page["headerForImage"]["Referer"]) for page in data]
+                download_chapter_images(image_links, chap_num, path, referer=True)
+            return path
         except Exception as e:
-            cleanup(f'Downloads/{path}')
+            shutil.rmtree(path, ignore_errors=True)
             raise e

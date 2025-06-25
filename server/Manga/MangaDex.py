@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from Formats.pdf import gen_pdf
 from Utils.cleanup import cleanup
 from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict, ComicsDict
+from Formats.image_downloader import download_chapter_images
 
 class MangaDex:
     BASE_URL = "https://api.mangadex.org"
@@ -117,33 +118,23 @@ class MangaDex:
     @staticmethod
     def download_chapters(ids, update_progress=None):
         """
-        Download chapters from MangaDex and return the path to the ZIP archive.
-        Args:
-            ids: List of chapter IDs
-            update_progress: Optional callback for progress updates
-        Returns:
-            Path to the ZIP archive
+        Download chapters from MangaDex and return the path to the directory with chapter subdirectories containing images.
         """
-        
         total_chapters = len(ids)
         path = f'Downloads/{uuid.uuid4().hex}'
-        pdfs = []
-        os.makedirs(f"{path}", exist_ok=True)
-        
+        os.makedirs(path, exist_ok=True)
         try:
             for i, chap_id in enumerate(ids):
-                update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
-                
+                if update_progress:
+                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
                 chap_id, chap_num = chap_id.split("_")
-                ch_path = f"{path}/{chap_num}"
-                os.makedirs(ch_path, exist_ok=True)
-                for retry in range(max_retries := 3):
+                for retry in range(3):
                     try:
                         response = req.get(f"{MangaDex.AT_HOME}{chap_id}", timeout=10)
                         response.raise_for_status()
                         data = response.json()
                     except req.RequestException as e:
-                        if retry == max_retries - 1:
+                        if retry == 2:
                             raise Exception(f"Failed to retrieve chapter data after multiple attempts: {e}")
                         continue
                     baseUrl = data.get("baseUrl")
@@ -154,19 +145,8 @@ class MangaDex:
                 else:
                     raise Exception("Failed to retrieve chapter data after multiple attempts.")
                 image_links = [f"{baseUrl}/data/{hash_url}/{image}" for image in images]
-                pdfs.append(gen_pdf(image_links, chap_num, path))
-                shutil.rmtree(ch_path)
-            if not pdfs:
-                raise Exception("No PDFs were generated, ZIP will not be created.")
-            update_progress(total_chapters, "Creating ZIP archive...")
-            zip_path = f"{path}/Chapters.zip"
-            with ZipFile(zip_path, "w") as chapters_zip:
-                for pdf in pdfs:
-                    chapters_zip.write(pdf, os.path.basename(pdf))
-                    os.remove(pdf)
-            
-            update_progress(total_chapters, "Finished")
-            return zip_path
+                download_chapter_images(image_links, chap_num, path)
+            return path
         except Exception as e:
-            shutil.rmtree(path)
+            shutil.rmtree(path, ignore_errors=True)
             raise e

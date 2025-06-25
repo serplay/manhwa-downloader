@@ -8,6 +8,7 @@ from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict, Comics
 from Utils.bot_evasion import get_with_captcha
 from seleniumbase import SB
 import re
+from Formats.image_downloader import download_chapter_images
 
 
 class Kunmanga:
@@ -108,27 +109,19 @@ class Kunmanga:
     @staticmethod
     def download_chapters(ids, update_progress=None):
         """
-        Download chapters from Kunmanga and return the path to the ZIP archive.
-        Args:
-            ids: List of chapter IDs
-            update_progress: Optional callback for progress updates
-        Returns:
-            Path to the ZIP archive
+        Download chapters from Kunmanga and return the path to the directory with chapter subdirectories containing images.
         """
-        
         total_chapters = len(ids)
         path = f'Downloads/{uuid.uuid4().hex}'
-        pdfs = []
-        os.makedirs(f"{path}", exist_ok=True)
+        os.makedirs(path, exist_ok=True)
         try:
             with SB(uc=True, xvfb=True) as sb:
                 for i, chap_id in enumerate(ids):
-                    update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
-                    
-                    chap_id, chap_num = chap_id.split("_")
-                    
+                    if update_progress:
+                        update_progress(i, f"Downloading chapter {i+1}/{total_chapters}")
+                    chap_id_val, chap_num = chap_id.split("_")
                     try:
-                        sb.uc_open_with_reconnect(f"{Kunmanga.BASE_URL}/manga/{chap_id}/", 4)
+                        sb.uc_open_with_reconnect(f"{Kunmanga.BASE_URL}/manga/{chap_id_val}/", 4)
                         sb.uc_gui_click_captcha()
                         soup = sb.get_beautiful_soup()
                     except Exception as e:
@@ -150,20 +143,8 @@ class Kunmanga:
                     if not image_links:
                         print(f"No images found for chapter {chap_num}. Skipping.")
                         continue
-                    
-                    pdfs.append(gen_pdf(image_links, chap_num, path))
-                    shutil.rmtree(f"{path}/{chap_num}")
-            if not pdfs:
-                raise Exception("No PDFs were generated, ZIP will not be created.")
-            update_progress(total_chapters, "Creating ZIP archive...")
-            zip_path = f"{path}/Chapters.zip"
-            with ZipFile(zip_path, "w") as chapters_zip:
-                for pdf in pdfs:
-                    chapters_zip.write(pdf, os.path.basename(pdf))
-                    os.remove(pdf)
-            
-            update_progress(total_chapters, "Finished")
-            return zip_path
+                    download_chapter_images(image_links, chap_num, path)
+            return path
         except Exception as e:
-            cleanup(f'Downloads/{path}')
+            shutil.rmtree(path, ignore_errors=True)
             raise e
