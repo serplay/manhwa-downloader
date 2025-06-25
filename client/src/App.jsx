@@ -8,9 +8,12 @@ import {
   faMoon,
   faDownload,
   faSpinner,
+  faChevronUp,
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 import logo from "./assets/logo.png";
 import HealthStatus from "./components/HealthStatus";
+import ChapterRangeSlider from "./components/ChapterRangeSlider";
 
 function App() {
   const API_url = "/api";
@@ -36,6 +39,12 @@ function App() {
   const [isFetchingChapters, setIsFetchingChapters] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [loadedImages, setLoadedImages] = useState(new Set());
+
+  // Range selection states
+  const [chapterRanges, setChapterRanges] = useState({});
+
+  // Chapter dropdown states
+  const [expandedChapterSections, setExpandedChapterSections] = useState(new Set());
 
   // Background task states
   const [activeTasks, setActiveTasks] = useState({});
@@ -377,6 +386,66 @@ useEffect(() => {
     }
   };  
 
+  // Handle range selection
+  const handleRangeChange = (comicId, { start, end }) => {
+    setChapterRanges(prev => ({ ...prev, [comicId]: { start, end } }));
+    
+    // Don't automatically select chapters - let users choose manually
+    // The range is just for visual reference and quick actions
+  };
+
+  // Select chapters within the current range
+  const selectChaptersInRange = (comicId) => {
+    const range = chapterRanges[comicId];
+    if (!range) return;
+    
+    // Get all chapters for this comic
+    const allChapters = [];
+    Object.values(chaptersByComicId[comicId] || {}).forEach(volume => {
+      allChapters.push(...volume);
+    });
+    
+    // Sort chapters by chapter number
+    allChapters.sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
+    
+    // Select chapters within the range
+    const selectedInRange = allChapters
+      .slice(range.start, range.end + 1)
+      .map(ch => ch.id);
+    
+    setSelectedChapters(prev => ({
+      ...prev,
+      [comicId]: selectedInRange
+    }));
+  };
+
+  // Clear all selections for a comic
+  const clearChapterSelections = (comicId) => {
+    setSelectedChapters(prev => ({
+      ...prev,
+      [comicId]: []
+    }));
+  };
+
+  // Get chapter range info for slider
+  const getChapterRangeInfo = (comicId) => {
+    const allChapters = [];
+    Object.values(chaptersByComicId[comicId] || {}).forEach(volume => {
+      allChapters.push(...volume);
+    });
+    
+    if (allChapters.length === 0) return { min: 0, max: 0 };
+    
+    // Sort chapters by chapter number
+    allChapters.sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
+    
+    return {
+      min: 0,
+      max: allChapters.length - 1,
+      chapters: allChapters
+    };
+  };
+
   return (
     // Main container with theme-aware background
     <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-white via-pink-100 to-purple-100 dark:from-[#0d0c1b] dark:via-[#1a152b] dark:to-[#2d1b4d] text-gray-900 dark:text-[#f4f4ff] relative">
@@ -697,6 +766,97 @@ useEffect(() => {
                         {chaptersByComicId[comic.id] &&
                           expandedComics.has(comic.id) && (
                             <div className="ml-6 mt-2 bg-gray-50 dark:bg-[#201a35] rounded-lg p-4">
+                              {/* Chapter Range Slider */}
+                              <div className="mb-4">
+                                <button
+                                  onClick={() => {
+                                    if (expandedChapterSections.has(comic.id)) {
+                                      setExpandedChapterSections(prev => {
+                                        const next = new Set(prev);
+                                        next.delete(comic.id);
+                                        return next;
+                                      });
+                                    } else {
+                                      setExpandedChapterSections(prev => new Set(prev).add(comic.id));
+                                    }
+                                  }}
+                                  className="flex items-center gap-2 text-pink-600 dark:text-violet-400 font-semibold hover:opacity-80 transition-opacity"
+                                >
+                                  <span>Quick Chapter Selection</span>
+                                  <FontAwesomeIcon
+                                    icon={expandedChapterSections.has(comic.id) ? faChevronUp : faChevronDown}
+                                    className="text-sm transition-transform duration-200"
+                                  />
+                                </button>
+                                
+                                <AnimatePresence initial={false}>
+                                  {expandedChapterSections.has(comic.id) && (
+                                    <motion.div
+                                      key="quick-chapter-dropdown"
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.3, ease: "easeOut" }}
+                                      className="overflow-hidden mt-3"
+                                    >
+                                      {(() => {
+                                        const rangeInfo = getChapterRangeInfo(comic.id);
+                                        if (rangeInfo.max > 0) {
+                                          const currentRange = chapterRanges[comic.id];
+                                          const selectedCount = selectedChapters[comic.id]?.length || 0;
+                                          
+                                          return (
+                                            <div>
+                                              <ChapterRangeSlider
+                                                min={rangeInfo.min}
+                                                max={rangeInfo.max}
+                                                onRangeChange={(range) => handleRangeChange(comic.id, range)}
+                                                initialStart={currentRange?.start || rangeInfo.min}
+                                                initialEnd={currentRange?.end || rangeInfo.max}
+                                              />
+                                              
+                                              {/* Range Info and Action Buttons */}
+                                              {currentRange && (
+                                                <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                                  <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-sm text-blue-700 dark:text-blue-300">
+                                                      Range: Chapter {rangeInfo.chapters[currentRange.start]?.chapter} - Chapter {rangeInfo.chapters[currentRange.end]?.chapter}
+                                                    </span>
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                      {selectedCount} selected
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex gap-2">
+                                                    <button
+                                                      onClick={() => selectChaptersInRange(comic.id)}
+                                                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                                    >
+                                                      Select Range
+                                                    </button>
+                                                    <button
+                                                      onClick={() => clearChapterSelections(comic.id)}
+                                                      className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                                                    >
+                                                      Clear All
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      })()}
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+
+                              {/* Individual Chapter Selection */}
+                              <div className="mb-4">
+                                <h4 className="font-semibold mb-2 text-pink-600 dark:text-violet-400">
+                                  Individual Chapters
+                                </h4>
                               {Object.entries(chaptersByComicId[comic.id]).map(
                                 ([volumeName, chapters]) => (
                                   <div key={volumeName} className="mb-4">
@@ -730,6 +890,8 @@ useEffect(() => {
                                   </div>
                                 )
                               )}
+                              </div>
+
                               {/* Chapter action buttons */}
                               <div className="flex gap-4 mt-2">
                                 <button
