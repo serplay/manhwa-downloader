@@ -22,7 +22,7 @@ load_dotenv()
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
 
 
-def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None):
+def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None, comic_f="pdf"):
     """
     Download chapter images and generate PDF/ZIP files.
     
@@ -48,37 +48,49 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     
     match source:
         case 0:  # MangaDex
-            return MangaDex.download_chapters(ids, update_progress)
+            path =  MangaDex.download_chapters(ids, update_progress)
 
         case 1:  # Manhuaus
-            return Manhuaus.download_chapters(ids, update_progress)
+            path =  Manhuaus.download_chapters(ids, update_progress)
         
         case 2:  # Yakshascans
-            return Yaksha.download_chapters(ids, update_progress)
+            path =  Yaksha.download_chapters(ids, update_progress)
         
         case 3:  # Asurascan
-            return Asura.download_chapters(ids, update_progress)
+            path =  Asura.download_chapters(ids, update_progress)
 
         case 4:  # Kunmanga
-            return Kunmanga.download_chapters(ids, update_progress)
+            path =  Kunmanga.download_chapters(ids, update_progress)
 
         case 5:  # Toonily
-            raise NotImplementedError("Downloading chapters from Toonily is not implemented yet.") #return Toonily.download_chapters(ids, update_progress)
+            raise NotImplementedError("Downloading chapters from Toonily is not implemented yet.") #retur Toonily.download_chapters(ids, update_progress)
 
         case 6:  # Toongod
-            raise NotImplementedError("Downloading chapters from Toongod is not implemented yet.") # return Toongod.download_chapters(ids, update_progress)
+            raise NotImplementedError("Downloading chapters from Toongod is not implemented yet.") #return Toongod.download_chapters(ids, update_progress)
 
         case 7:  # Mangahere
-            return Mangahere.download_chapters(ids, update_progress)
+            path =  Mangahere.download_chapters(ids, update_progress)
         
         case 8:  # Mangapill
-            return Mangapill.download_chapters(ids, update_progress)
+            path =  Mangapill.download_chapters(ids, update_progress)
         
         case 9:  # Bato
-            return Bato.download_chapters(ids, update_progress)
+            path =  Bato.download_chapters(ids, update_progress)
             
         case 10:  # Weebcentral
-            return Weeb.download_chapters(ids, update_progress)
+            path =  Weeb.download_chapters(ids, update_progress)
 
         case _:
             raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
+    
+    match comic_f:
+        case "pdf":
+            return gen_pdf(path)
+        case "cbr":
+            gen_cbr(path)
+        case "cbz":
+            gen_cbz(path)
+        case "epub":
+            gen_epub(path)
+        case _:
+            return gen_pdf(path)

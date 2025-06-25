@@ -1,32 +1,42 @@
 import img2pdf
-from PIL import Image
 import os
 import shutil
-from .image_downloader import download_chapter_images
+import re
+from zipfile import ZipFile
 
-
-def gen_pdf(images, chap_num, path, referer=None):
+def gen_pdf(path, update_progress=None):
     """
-    Generuje PDF dla rozdziału mangi na podstawie pobranych obrazów.
+    Generates a ZIP archive of PDFs for a manga based on the downloaded images.
 
     Args:
-        images (list): Lista URLi obrazów lub krotek (url, referer).
-        chap_num (str): Numer rozdziału.
-        path (str): Ścieżka do katalogu docelowego.
-        referer (str, optional): Referer do pobierania obrazów.
+        path (str): Path to the target directory.
+        update_progress (Optional[Callable]): Callback function to update progress, if available.
 
     Returns:
-        str: Ścieżka do wygenerowanego pliku PDF.
+        str: Path to the generated Zip file.
     """
-    image_paths, ch_path = download_chapter_images(images, chap_num, path, referer)
+    chapter_paths = [f.path for f in os.scandir(path) if f.is_dir()]
+    total_chapters = len(chapter_paths)
+    pdfs = []
+    if update_progress:
+            update_progress(total_chapters, f"Creating PDFs...")
+            
+    for chapter in chapter_paths:
+        chap_num = os.path.basename(chapter)
+        pdf_path = f"{path}/{chap_num}.pdf"
 
-    title = f"Chapter_{chap_num.replace('.', '_')}"
-    pdf_path = f"{path}/{title}.pdf"
+        images = sorted([img.path for img in os.scandir(chapter) if img.is_file()],key=lambda p: int(re.search(r"(\d+)", os.path.basename(p)).group()))
 
-    try:
         with open(pdf_path, "wb") as f:
-            f.write(img2pdf.convert(image_paths, rotation=img2pdf.Rotation.ifvalid))
-        return pdf_path
-    except Exception as e:
-        shutil.rmtree(ch_path, ignore_errors=True)
-        raise e
+            f.write(img2pdf.convert(images, rotation=img2pdf.Rotation.ifvalid))
+        pdfs.append(pdf_path)
+        shutil.rmtree(chapter,ignore_errors=True)
+        
+    if update_progress:
+        update_progress(total_chapters, "Creating ZIP archive...")
+    with ZipFile(f"{path}/Chapters.zip", 'w') as zipf:
+        for pdf in pdfs:
+            zipf.write(pdf, os.path.basename(pdf))
+    return f"{path}/Chapters.zip"
+    
+    
