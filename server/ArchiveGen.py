@@ -16,13 +16,14 @@ from Manga.Mangapill import Mangapill
 from Manga.Kunmanga import Kunmanga
 from Manga.Toongod import Toongod
 from Manga.Toonily import Toonily
+import shutil
 
 load_dotenv()
 
 MANGAPI_URL = os.environ.get("MANGAPI_URL")
 
 
-def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None, comic_f="pdf"):
+def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None,comic_title="Comic", comic_f="pdf"):
     """
     Download chapter images and generate PDF/ZIP files.
     
@@ -36,7 +37,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     except ValueError:
         raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     
-    if comic_f in ["cbr", "cbz", "epub"]:
+    if comic_f in ["cbr", "epub"]:
         raise NotImplementedError(f"{comic_f.upper()} format generation is not implemented yet.")
     
     total_chapters = len(ids)
@@ -88,12 +89,32 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     
     match comic_f:
         case "pdf":
-            return gen_pdf(path)
+            try:
+                return gen_pdf(path, update_progress)
+            except Exception as e:
+                shutil.rmtree(path, ignore_errors=True)
+                raise Exception(f"Failed to generate PDF: {e}")
         case "cbr":
-            return gen_cbr(path)
+            try:
+                return gen_cbr(path)
+            except Exception as e:
+                shutil.rmtree(path, ignore_errors=True)
+                raise Exception(f"Failed to generate CBR: {e}")
         case "cbz":
-            return gen_cbz(path)
+            try:
+                return gen_cbz(path, update_progress, comic_title)
+            except Exception as e:
+                shutil.rmtree(path, ignore_errors=True)
+                raise Exception(f"Failed to generate CBZ: {e}")
         case "epub":
-            return gen_epub(path)
+            try:
+                return gen_epub(path)
+            except Exception as e:
+                shutil.rmtree(path, ignore_errors=True)
+                raise Exception(f"Failed to generate ePUB: {e}")
         case _:
-            return gen_pdf(path)
+            try:
+                return gen_pdf(path)
+            except Exception as e:
+                shutil.rmtree(path, ignore_errors=True)
+                raise Exception(f"Failed to generate PDF: {e}")
