@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
-const ChapterRangeSlider = ({ 
-  min = 0, 
-  max = 100, 
-  onRangeChange, 
-  initialStart = null, 
+const ChapterRangeSlider = ({
+  min = 0,
+  max = 100,
+  onRangeChange,
+  initialStart = null,
   initialEnd = null,
   step = 1,
-  disabled = false 
+  disabled = false,
 }) => {
   const [start, setStart] = useState(initialStart || min);
   const [end, setEnd] = useState(initialEnd || max);
@@ -41,13 +41,16 @@ const ChapterRangeSlider = ({
 
     const rect = sliderRef.current.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    const percentage = Math.max(
+      0,
+      Math.min(100, ((clientX - rect.left) / rect.width) * 100)
+    );
     const value = getValueFromPercentage(percentage);
 
-    if (dragType === 'start') {
+    if (dragType === "start") {
       const newStart = Math.min(value, end - step);
       setStart(newStart);
-    } else if (dragType === 'end') {
+    } else if (dragType === "end") {
       const newEnd = Math.max(value, start + step);
       setEnd(newEnd);
     }
@@ -90,16 +93,18 @@ const ChapterRangeSlider = ({
       };
       const handleGlobalTouchEnd = () => handleMouseUp();
 
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
-      document.addEventListener('touchend', handleGlobalTouchEnd);
+      document.addEventListener("mousemove", handleGlobalMouseMove);
+      document.addEventListener("mouseup", handleGlobalMouseUp);
+      document.addEventListener("touchmove", handleGlobalTouchMove, {
+        passive: false,
+      });
+      document.addEventListener("touchend", handleGlobalTouchEnd);
 
       return () => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove);
-        document.removeEventListener('mouseup', handleGlobalMouseUp);
-        document.removeEventListener('touchmove', handleGlobalTouchMove);
-        document.removeEventListener('touchend', handleGlobalTouchEnd);
+        document.removeEventListener("mousemove", handleGlobalMouseMove);
+        document.removeEventListener("mouseup", handleGlobalMouseUp);
+        document.removeEventListener("touchmove", handleGlobalTouchMove);
+        document.removeEventListener("touchend", handleGlobalTouchEnd);
       };
     }
   }, [isDragging, dragType, start, end, step]);
@@ -111,50 +116,56 @@ const ChapterRangeSlider = ({
     <div className="w-full">
       <div className="mb-4">
         <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-          <span>Chapter {start+1}</span>
+          <span>Chapter {start + 1}</span>
           <span>Chapter {end}</span>
         </div>
         <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500">
-          <span>Min: {min+1}</span>
+          <span>Min: {min + 1}</span>
           <span>Max: {max}</span>
         </div>
       </div>
 
-      <div 
+      <div
         ref={sliderRef}
-        className={`relative h-6 w-full cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`relative h-6 w-full cursor-pointer ${
+          disabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
         onClick={handleClick}
       >
         {/* Track */}
         <div className="absolute top-1/2 transform -translate-y-1/2 w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
           {/* Selected range */}
-          <div 
+          <div
             className="absolute h-full bg-blue-500 dark:bg-blue-400 rounded-full"
             style={{
               left: `${startPercentage}%`,
-              width: `${endPercentage - startPercentage}%`
+              width: `${endPercentage - startPercentage}%`,
             }}
           />
         </div>
 
         {/* Start handle */}
         <div
-          className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-600 dark:bg-blue-500 rounded-full border-2 border-white dark:border-gray-800 shadow-lg cursor-grab active:cursor-grabbing ${disabled ? 'cursor-not-allowed' : ''} ${isDragging && dragType === 'start' ? 'scale-110' : ''}`}
-          style={{ left: `${startPercentage}%`, marginLeft: '-8px' }}
-          onMouseDown={(e) => handleMouseDown(e, 'start')}
-          onTouchStart={(e) => handleMouseDown(e, 'start')}
+          className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-600 dark:bg-blue-500 rounded-full border-2 border-white dark:border-gray-800 shadow-lg cursor-grab active:cursor-grabbing ${
+            disabled ? "cursor-not-allowed" : ""
+          } ${isDragging && dragType === "start" ? "scale-110" : ""}`}
+          style={{ left: `${startPercentage}%`, marginLeft: "-8px" }}
+          onMouseDown={(e) => handleMouseDown(e, "start")}
+          onTouchStart={(e) => handleMouseDown(e, "start")}
         />
 
         {/* End handle */}
         <div
-          className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-600 dark:bg-blue-500 rounded-full border-2 border-white dark:border-gray-800 shadow-lg cursor-grab active:cursor-grabbing ${disabled ? 'cursor-not-allowed' : ''} ${isDragging && dragType === 'end' ? 'scale-110' : ''}`}
-          style={{ left: `${endPercentage}%`, marginLeft: '-8px' }}
-          onMouseDown={(e) => handleMouseDown(e, 'end')}
-          onTouchStart={(e) => handleMouseDown(e, 'end')}
+          className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-600 dark:bg-blue-500 rounded-full border-2 border-white dark:border-gray-800 shadow-lg cursor-grab active:cursor-grabbing ${
+            disabled ? "cursor-not-allowed" : ""
+          } ${isDragging && dragType === "end" ? "scale-110" : ""}`}
+          style={{ left: `${endPercentage}%`, marginLeft: "-8px" }}
+          onMouseDown={(e) => handleMouseDown(e, "end")}
+          onTouchStart={(e) => handleMouseDown(e, "end")}
         />
       </div>
     </div>
   );
 };
 
-export default ChapterRangeSlider; 
+export default ChapterRangeSlider;

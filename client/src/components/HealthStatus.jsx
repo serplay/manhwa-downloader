@@ -11,7 +11,7 @@ const sourceNames = {
   7: ["Mangahere", "fast"],
   8: ["Mangapill", "fast"],
   9: ["Bato", "fastest"],
-  10: ["Weebcentral", "slow"]
+  10: ["Weebcentral", "slow"],
 };
 
 function HealthStatus() {
@@ -33,13 +33,15 @@ function HealthStatus() {
 
     fetchStatus();
     // Refresh status every 5 minutes
-    const interval = setInterval(fetchStatus, 5 * 60 * 1000); 
+    const interval = setInterval(fetchStatus, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="fixed bottom-4 left-4 bg-white/80 dark:bg-[#1c1b29]/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 dark:border-[#2e2b40] z-50">
-      <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-[#f4f4ff]">Source Status</h3>
+      <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-[#f4f4ff]">
+        Source Status
+      </h3>
       <div className="mb-3 text-xs text-gray-600 dark:text-gray-400">
         <div className="flex items-center gap-2 mb-1">
           <span className="w-2 h-2 rounded-full bg-green-500"></span>
@@ -67,12 +69,20 @@ function HealthStatus() {
         <ul className="space-y-2">
           {Object.entries(sourceNames).map(([id, [name, speed]]) => (
             <li key={id} className="flex items-center justify-between">
-              <span 
+              <span
                 className="text-sm text-gray-800 dark:text-gray-300"
                 dangerouslySetInnerHTML={{ __html: name }}
               ></span>
-              <span 
-                className={`w-3 h-3 rounded-full ${ status[id] !== "ok" ? "bg-red-500" : speed === "slow" ? "bg-amber-500" : speed === "fastest" ? "bg-cyan-500" : "bg-green-500"}`}
+              <span
+                className={`w-3 h-3 rounded-full ${
+                  status[id] !== "ok"
+                    ? "bg-red-500"
+                    : speed === "slow"
+                    ? "bg-amber-500"
+                    : speed === "fastest"
+                    ? "bg-cyan-500"
+                    : "bg-green-500"
+                }`}
                 title={`Speed: ${speed}`}
               ></span>
             </li>
@@ -83,4 +93,4 @@ function HealthStatus() {
   );
 }
 
-export default HealthStatus; 
+export default HealthStatus;

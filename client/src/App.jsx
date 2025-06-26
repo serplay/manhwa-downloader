@@ -14,6 +14,13 @@ import {
 import logo from "./assets/logo.png";
 import HealthStatus from "./components/HealthStatus";
 import ChapterRangeSlider from "./components/ChapterRangeSlider";
+import ThemeToggle from "./components/ThemeToggle";
+import ActiveTasksPopup from "./components/Popups/ActiveTasks";
+import LoadingPopup from "./components/Popups/Loading";
+import ErrorPopup from "./components/Popups/Error";
+import SuccessPopup from "./components/Popups/Success";
+import NotificationContainer from "./components/NotificationContainer";
+import SearchForm from "./components/SearchForm";
 
 function App() {
   const API_url = "/api";
@@ -44,7 +51,9 @@ function App() {
   const [chapterRanges, setChapterRanges] = useState({});
 
   // Chapter dropdown states
-  const [expandedChapterSections, setExpandedChapterSections] = useState(new Set());
+  const [expandedChapterSections, setExpandedChapterSections] = useState(
+    new Set()
+  );
 
   // Background task states
   const [activeTasks, setActiveTasks] = useState({});
@@ -61,103 +70,114 @@ function App() {
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
-// Polling for active tasks
-useEffect(() => {
-  const pollActiveTasks = async () => {
-    const activeTaskIds = Object.keys(activeTasks);
-    if (activeTaskIds.length === 0) return;
+  // Polling for active tasks
+  useEffect(() => {
+    const pollActiveTasks = async () => {
+      const activeTaskIds = Object.keys(activeTasks);
+      if (activeTaskIds.length === 0) return;
 
-    for (const taskId of activeTaskIds) {
-      try {
-        const response = await fetch(`${API_url}/download/status/${taskId}`);
-        if (response.ok) {
-          const status = await response.json();
-          setTaskStatuses(prev => ({ ...prev, [taskId]: status }));
+      for (const taskId of activeTaskIds) {
+        try {
+          const response = await fetch(`${API_url}/download/status/${taskId}`);
+          if (response.ok) {
+            const status = await response.json();
+            setTaskStatuses((prev) => ({ ...prev, [taskId]: status }));
 
-          // If task completed successfully, automatically download the file
-          if (status.state === "SUCCESS") {
-            // Check if the file is not already downloading
-            if (!downloadingFiles.has(taskId)) {
-              console.log(`DEBUG: Task ${taskId} completed successfully, downloading file...`);
-              
-              // Mark file as downloading
-              setDownloadingFiles(prev => new Set(prev).add(taskId));
-              
-              try {
-                // Get comic title from activeTasks
-                const taskInfo = activeTasks[taskId];
-                const comicTitle = taskInfo?.comicTitle || "Chapters";
-                
-                await downloadCompletedFile(taskId, comicTitle);
-                console.log(`DEBUG: File for task ${taskId} downloaded successfully`);
-              } catch (error) {
-                console.error(`DEBUG: Error during automatic file download for task ${taskId}:`, error);
-                setDownloadError(`Automatic file download failed: ${error.message}`);
-              } finally {
-                // Remove from downloading files list
-                setDownloadingFiles(prev => {
-                  const newSet = new Set(prev);
-                  newSet.delete(taskId);
-                  return newSet;
-                });
+            // If task completed successfully, automatically download the file
+            if (status.state === "SUCCESS") {
+              // Check if the file is not already downloading
+              if (!downloadingFiles.has(taskId)) {
+                console.log(
+                  `DEBUG: Task ${taskId} completed successfully, downloading file...`
+                );
+
+                // Mark file as downloading
+                setDownloadingFiles((prev) => new Set(prev).add(taskId));
+
+                try {
+                  // Get comic title from activeTasks
+                  const taskInfo = activeTasks[taskId];
+                  const comicTitle = taskInfo?.comicTitle || "Chapters";
+
+                  await downloadCompletedFile(taskId, comicTitle);
+                  console.log(
+                    `DEBUG: File for task ${taskId} downloaded successfully`
+                  );
+                } catch (error) {
+                  console.error(
+                    `DEBUG: Error during automatic file download for task ${taskId}:`,
+                    error
+                  );
+                  setDownloadError(
+                    `Automatic file download failed: ${error.message}`
+                  );
+                } finally {
+                  // Remove from downloading files list
+                  setDownloadingFiles((prev) => {
+                    const newSet = new Set(prev);
+                    newSet.delete(taskId);
+                    return newSet;
+                  });
+                }
               }
             }
-          }
 
-          // If task finished (success or failure), handle removal
-          if (status.state === "SUCCESS") {
-            // Remove successful tasks immediately
-            setActiveTasks(prev => {
-              const newTasks = { ...prev };
-              delete newTasks[taskId];
-              return newTasks;
-            });
-          } else if (status.state === "FAILURE") {
-            // Delay removal for failed tasks to make the error visible
-            setTimeout(() => {
-              setActiveTasks(prev => {
+            // If task finished (success or failure), handle removal
+            if (status.state === "SUCCESS") {
+              // Remove successful tasks immediately
+              setActiveTasks((prev) => {
                 const newTasks = { ...prev };
                 delete newTasks[taskId];
                 return newTasks;
               });
-            }, 1000); // 1-second delay
+            } else if (status.state === "FAILURE") {
+              // Delay removal for failed tasks to make the error visible
+              setTimeout(() => {
+                setActiveTasks((prev) => {
+                  const newTasks = { ...prev };
+                  delete newTasks[taskId];
+                  return newTasks;
+                });
+              }, 1000); // 1-second delay
+            }
+          } else {
+            // If response not OK, set task status as FAILURE and remove it after a delay
+            console.error(
+              `Status check for ${taskId} failed with status: ${response.status}`
+            );
+            setTaskStatuses((prev) => ({
+              ...prev,
+              [taskId]: { state: "FAILURE" },
+            }));
+            setTimeout(() => {
+              setActiveTasks((prev) => {
+                const newTasks = { ...prev };
+                delete newTasks[taskId];
+                return newTasks;
+              });
+            }, 3000);
           }
-        } else {
-          // If response not OK, set task status as FAILURE and remove it after a delay
-          console.error(`Status check for ${taskId} failed with status: ${response.status}`);
-          setTaskStatuses(prev => ({
+        } catch (error) {
+          console.error(`Error checking status of task ${taskId}:`, error);
+          // Mark task as failed and remove it after a delay
+          setTaskStatuses((prev) => ({
             ...prev,
-            [taskId]: { state: "FAILURE" }
+            [taskId]: { state: "FAILURE" },
           }));
           setTimeout(() => {
-            setActiveTasks(prev => {
+            setActiveTasks((prev) => {
               const newTasks = { ...prev };
               delete newTasks[taskId];
               return newTasks;
             });
-          }, 3000);
+          }, 1000);
         }
-      } catch (error) {
-        console.error(`Error checking status of task ${taskId}:`, error);
-        // Mark task as failed and remove it after a delay
-        setTaskStatuses(prev => ({
-          ...prev,
-          [taskId]: { state: "FAILURE" }
-        }));
-        setTimeout(() => {
-          setActiveTasks(prev => {
-            const newTasks = { ...prev };
-            delete newTasks[taskId];
-            return newTasks;
-          });
-        }, 1000);
       }
-    }
-  };
+    };
 
-  const interval = setInterval(pollActiveTasks, 2000); // Check every 2 seconds
-  return () => clearInterval(interval);
-}, [activeTasks, downloadingFiles]);
+    const interval = setInterval(pollActiveTasks, 2000); // Check every 2 seconds
+    return () => clearInterval(interval);
+  }, [activeTasks, downloadingFiles]);
 
   // Search for comics based on title and source
   const handleSearch = async () => {
@@ -165,16 +185,14 @@ useEffect(() => {
     setIsSearching(true);
     try {
       const res = await fetch(
-        `${API_url}/search/?title=${encodeURIComponent(
-          title
-        )}&source=${source}`
+        `${API_url}/search/?title=${encodeURIComponent(title)}&source=${source}`
       );
       if (!res.ok) {
         const errorData = await res.json();
         const errorMessage = errorData.error || "Failed to fetch chapters";
         throw new Error(errorMessage);
       }
-      
+
       const data = await res.json();
 
       if (data.message) {
@@ -226,7 +244,7 @@ useEffect(() => {
         const chaptersArray = Object.entries(volume.chapters)
           .map(([key, value]) => ({
             key,
-            ...value
+            ...value,
           }))
           .sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
         processedData[displayName] = chaptersArray;
@@ -282,56 +300,59 @@ useEffect(() => {
   const handleDownload = async (comicId, comicTitle, format = "pdf") => {
     const chapterIds = selectedChapters[comicId] || [];
     if (chapterIds.length === 0) return;
-  
+
     setIsDownloading(true);
     setDownloadError(""); // Clear any previous errors
     try {
       // Format chapter IDs as array parameters with chapter numbers
       const params = new URLSearchParams();
-      Object.entries(chaptersByComicId[comicId]).forEach(([volumeName, chapters]) => {
-        Object.entries(chapters).forEach(([chNumber, chData]) => {
-          if (chapterIds.includes(chData.id)) {
-            params.append("ids[]", `${chData.id}_${chData.chapter}`);
-          }
-        });
-      });
+      Object.entries(chaptersByComicId[comicId]).forEach(
+        ([volumeName, chapters]) => {
+          Object.entries(chapters).forEach(([chNumber, chData]) => {
+            if (chapterIds.includes(chData.id)) {
+              params.append("ids[]", `${chData.id}_${chData.chapter}`);
+            }
+          });
+        }
+      );
       params.append("source", source);
       params.append("comic_title", comicTitle);
       params.append("format", format);
-  
+
       const response = await fetch(`${API_url}/download?${params.toString()}`, {
-        method: 'POST'
+        method: "POST",
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         const errorMessage = errorData.detail || "Failed to start download";
         throw new Error(errorMessage);
       }
-  
+
       const data = await response.json();
-      
+
       // Dodaj zadanie do aktywnych
-      setActiveTasks(prev => ({
+      setActiveTasks((prev) => ({
         ...prev,
         [data.task_id]: {
           comicId,
           comicTitle,
           chapterCount: chapterIds.length,
-          startTime: new Date().toISOString()
-        }
+          startTime: new Date().toISOString(),
+        },
       }));
 
       // Wyczyść wybrane rozdziały
-      setSelectedChapters(prev => {
+      setSelectedChapters((prev) => {
         const newSelected = { ...prev };
         delete newSelected[comicId];
         return newSelected;
       });
-
     } catch (error) {
       console.error("Download error:", error);
-      setDownloadError("Failed to start download. Please try again later.\n" + error.message);
+      setDownloadError(
+        "Failed to start download. Please try again later.\n" + error.message
+      );
     } finally {
       setIsDownloading(false);
     }
@@ -340,24 +361,26 @@ useEffect(() => {
   // Download completed file
   const downloadCompletedFile = async (taskId, comicTitle = "Chapters") => {
     try {
-      console.log(`DEBUG: Attempting to download file for task ${taskId}, title: ${comicTitle}`);
-  
+      console.log(
+        `DEBUG: Attempting to download file for task ${taskId}, title: ${comicTitle}`
+      );
+
       // Use <a> element with download attribute
       const downloadUrl = `${API_url}/download/file/${taskId}`;
       console.log(`DEBUG: Creating download link: ${downloadUrl}`);
-  
+
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.style.display = 'none';
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-  
+
       console.log(`DEBUG: File ${comicTitle} sent for download`);
-  
+
       // Show success notification
       setDownloadSuccess(`File ${comicTitle} has been sent for download!`);
-  
+
       // Hide notification after 5 seconds
       setTimeout(() => setDownloadSuccess(""), 5000);
     } catch (error) {
@@ -365,12 +388,12 @@ useEffect(() => {
       setDownloadError("Failed to download completed file: " + error.message);
     }
   };
-  
+
   // Get task status display
   const getTaskStatusDisplay = (taskId) => {
     const status = taskStatuses[taskId];
     if (!status) return "Waiting...";
-  
+
     switch (status.state) {
       case "PENDING":
         return "In queue...";
@@ -383,12 +406,12 @@ useEffect(() => {
       default:
         return "Unknown status";
     }
-  };  
+  };
 
   // Handle range selection
   const handleRangeChange = (comicId, { start, end }) => {
-    setChapterRanges(prev => ({ ...prev, [comicId]: { start, end } }));
-    
+    setChapterRanges((prev) => ({ ...prev, [comicId]: { start, end } }));
+
     // Don't automatically select chapters - let users choose manually
     // The range is just for visual reference and quick actions
   };
@@ -397,210 +420,80 @@ useEffect(() => {
   const selectChaptersInRange = (comicId) => {
     const range = chapterRanges[comicId];
     if (!range) return;
-    
+
     // Get all chapters for this comic
     const allChapters = [];
-    Object.values(chaptersByComicId[comicId] || {}).forEach(volume => {
+    Object.values(chaptersByComicId[comicId] || {}).forEach((volume) => {
       allChapters.push(...volume);
     });
-    
+
     // Sort chapters by chapter number
     allChapters.sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
-    
+
     // Select chapters within the range
     const selectedInRange = allChapters
       .slice(range.start, range.end + 1)
-      .map(ch => ch.id);
-    
-    setSelectedChapters(prev => ({
+      .map((ch) => ch.id);
+
+    setSelectedChapters((prev) => ({
       ...prev,
-      [comicId]: selectedInRange
+      [comicId]: selectedInRange,
     }));
   };
 
   // Clear all selections for a comic
   const clearChapterSelections = (comicId) => {
-    setSelectedChapters(prev => ({
+    setSelectedChapters((prev) => ({
       ...prev,
-      [comicId]: []
+      [comicId]: [],
     }));
   };
 
   // Get chapter range info for slider
   const getChapterRangeInfo = (comicId) => {
     const allChapters = [];
-    Object.values(chaptersByComicId[comicId] || {}).forEach(volume => {
+    Object.values(chaptersByComicId[comicId] || {}).forEach((volume) => {
       allChapters.push(...volume);
     });
-    
+
     if (allChapters.length === 0) return { min: 0, max: 0 };
-    
+
     // Sort chapters by chapter number
     allChapters.sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
-    
+
     return {
       min: 0,
       max: allChapters.length - 1,
-      chapters: allChapters
+      chapters: allChapters,
     };
   };
 
   return (
     // Main container with theme-aware background
     <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-white via-pink-100 to-purple-100 dark:from-[#0d0c1b] dark:via-[#1a152b] dark:to-[#2d1b4d] text-gray-900 dark:text-[#f4f4ff] relative">
-      {/* Error popup */}
-      <AnimatePresence>
-        {downloadError && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
-          >
-            <div className="bg-red-500/75 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
-              <FontAwesomeIcon icon={faCircleXmark} className="text-lg" />
-              <div className="flex flex-col">
-                <span>Failed to download chapters. Please try again later.</span>
-                <span className="text-sm opacity-90">{downloadError.split('\n')[1]}</span>
-              </div>
-              <button
-                onClick={() => setDownloadError("")}
-                className="ml-4 hover:opacity-80 cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <NotificationContainer>
+        <ErrorPopup
+          downloadError={downloadError}
+          setDownloadError={setDownloadError}
+        />
+        <SuccessPopup
+          downloadSuccess={downloadSuccess}
+          setDownloadSuccess={setDownloadSuccess}
+        />
+        <LoadingPopup
+          isFetchingChapters={isFetchingChapters}
+          isSearching={isSearching}
+        />
+      </NotificationContainer>
 
-      {/* Success popup */}
-      <AnimatePresence>
-        {downloadSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
-          >
-            <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
-              <FontAwesomeIcon icon={faCircleCheck} className="text-lg" />
-              <span>{downloadSuccess}</span>
-              <button
-                onClick={() => setDownloadSuccess("")}
-                className="ml-4 hover:opacity-80 cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ActiveTasksPopup
+        activeTasks={activeTasks}
+        taskStatuses={taskStatuses}
+        downloadingFiles={downloadingFiles}
+        getTaskStatusDisplay={getTaskStatusDisplay}
+      />
 
-      {/* Loading popup */}
-      <AnimatePresence>
-        {(isFetchingChapters || isSearching) && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
-          >
-            <div className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              <span>{isFetchingChapters ? "Fetching chapters..." : "Searching titles..."}</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Active tasks popup */}
-      <AnimatePresence>
-        {Object.keys(activeTasks).length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-4 right-4 z-50 max-w-md"
-          >
-            <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
-              <h3 className="font-semibold mb-2">Active download tasks:</h3>
-              {Object.entries(activeTasks).map(([taskId, taskInfo]) => {
-                const status = taskStatuses[taskId];
-                const isCompleted = status?.state === "SUCCESS";
-                const isFailed = status?.state === "FAILURE";
-                
-                return (
-                  <div key={taskId} className={`mb-2 p-2 rounded transition-colors ${isFailed ? 'bg-red-500/50' : 'bg-green-600/50'}`}>
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{taskInfo.comicTitle}</p>
-                        <p className="text-xs opacity-90">
-                          {taskInfo.chapterCount} {taskInfo.chapterCount === 1 ? 'chapter' : 'chapters'} - {getTaskStatusDisplay(taskId)}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        {status?.state === "PROGRESS" && (
-                          <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                        )}
-                        {isCompleted && (
-                          <div className="flex items-center gap-1 text-yellow-200">
-                            {downloadingFiles.has(taskId) ? (
-                              <>
-                                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                                <span className="text-xs">Downloading...</span>
-                              </>
-                            ) : (
-                              <>
-                                <FontAwesomeIcon icon={faDownload} />
-                                <span className="text-xs">Downloaded</span>
-                              </>
-                            )}
-                          </div>
-                        )}
-                        {isFailed && (
-                          <FontAwesomeIcon icon={faCircleXmark} className="text-red-200" />
-                        )}
-                      </div>
-                    </div>
-                    {status?.state === "PROGRESS" && status.progress !== undefined && (
-                      <div className="w-full bg-green-700 rounded-full h-2 mt-1">
-                        <div 
-                          className="bg-yellow-300 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${status.progress}%` }}
-                        ></div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Theme toggle button */}
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="w-14 h-10 rounded-full bg-pink-500 dark:bg-violet-500 text-white font-semibold cursor-pointer transition-colors duration-300 flex items-center justify-center focus:outline-none"
-        >
-          <AnimatePresence mode="sync">
-            <motion.div
-              key={darkMode ? "moon" : "sun"}
-              initial={{ opacity: 0, rotate: -90 }}
-              animate={{ opacity: 1, rotate: 0 }}
-              exit={{ opacity: 0, rotate: 90 }}
-              transition={{ duration: 0.2 }}
-            >
-              <FontAwesomeIcon
-                icon={darkMode ? faMoon : faSun}
-                className="text-lg"
-              />
-            </motion.div>
-          </AnimatePresence>
-        </button>
-      </div>
+      <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
 
       {/* Main content container */}
       <div className="max-w-3xl mx-auto p-6">
@@ -616,43 +509,13 @@ useEffect(() => {
         </div>
 
         {/* Search form */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSearch();
-              }
-            }}
-            placeholder="Enter title..."
-            className="flex-1 p-3 rounded-xl border border-gray-200 dark:border-[#2e2b40] bg-white dark:bg-[#1c1b29] text-gray-900 dark:text-[#f4f4ff] focus:outline-none focus:border-pink-500 dark:focus:border-violet-500"
-          />
-          <select
-            value={source}
-            onChange={(e) => setSource(e.target.value)}
-            className="p-3 rounded-xl border border-gray-200 dark:border-[#2e2b40] bg-white dark:bg-[#1c1b29] text-gray-900 dark:text-[#f4f4ff] hover:outline-none focus:outline-none focus:border-pink-500 dark:focus:border-violet-500"
-          >
-            <option value="0">MangaDex</option>
-            <option value="9">Bato</option>
-            <option value="8">Mangapill</option>
-            <option value="7">Mangahere</option>
-            <option value="10">Weebcentral</option>
-            <option value="1">Manhuaus</option>
-            <option value="2">Yakshascans</option>
-            <option value="3">Asurascan</option>
-            <option value="4">Kunmanga</option>
-            <option value="5">Toonily</option>
-            <option value="6">Toongod</option>
-          </select>
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 rounded-xl bg-pink-500 dark:bg-violet-500 cursor-pointer text-white font-semibold focus:outline-none hover:opacity-90 transition-opacity"
-          >
-            Search
-          </button>
-        </div>
+        <SearchForm
+          title={title}
+          setTitle={setTitle}
+          source={source}
+          setSource={setSource}
+          handleSearch={handleSearch}
+        />
 
         {/* Results section with animations */}
         <AnimatePresence>
@@ -715,9 +578,15 @@ useEffect(() => {
                               src={comic.cover_art}
                               alt="cover"
                               className={`w-full h-full object-cover rounded-lg group-hover:opacity-50 transition-opacity ${
-                                !loadedImages.has(comic.cover_art) ? 'opacity-0' : 'opacity-100'
+                                !loadedImages.has(comic.cover_art)
+                                  ? "opacity-0"
+                                  : "opacity-100"
                               }`}
-                              onLoad={() => setLoadedImages(prev => new Set(prev).add(comic.cover_art))}
+                              onLoad={() =>
+                                setLoadedImages((prev) =>
+                                  new Set(prev).add(comic.cover_art)
+                                )
+                              }
                             />
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <span className="text-white text-3xl font-bold">
@@ -770,24 +639,30 @@ useEffect(() => {
                                 <button
                                   onClick={() => {
                                     if (expandedChapterSections.has(comic.id)) {
-                                      setExpandedChapterSections(prev => {
+                                      setExpandedChapterSections((prev) => {
                                         const next = new Set(prev);
                                         next.delete(comic.id);
                                         return next;
                                       });
                                     } else {
-                                      setExpandedChapterSections(prev => new Set(prev).add(comic.id));
+                                      setExpandedChapterSections((prev) =>
+                                        new Set(prev).add(comic.id)
+                                      );
                                     }
                                   }}
                                   className="flex items-center gap-2 text-pink-600 dark:text-violet-400 font-semibold hover:opacity-80 transition-opacity"
                                 >
                                   <span>Quick Chapter Selection</span>
                                   <FontAwesomeIcon
-                                    icon={expandedChapterSections.has(comic.id) ? faChevronUp : faChevronDown}
+                                    icon={
+                                      expandedChapterSections.has(comic.id)
+                                        ? faChevronUp
+                                        : faChevronDown
+                                    }
                                     className="text-sm transition-transform duration-200"
                                   />
                                 </button>
-                                
+
                                 <AnimatePresence initial={false}>
                                   {expandedChapterSections.has(comic.id) && (
                                     <motion.div
@@ -795,31 +670,61 @@ useEffect(() => {
                                       initial={{ height: 0, opacity: 0 }}
                                       animate={{ height: "auto", opacity: 1 }}
                                       exit={{ height: 0, opacity: 0 }}
-                                      transition={{ duration: 0.3, ease: "easeOut" }}
+                                      transition={{
+                                        duration: 0.3,
+                                        ease: "easeOut",
+                                      }}
                                       className="overflow-hidden mt-3"
                                     >
                                       {(() => {
-                                        const rangeInfo = getChapterRangeInfo(comic.id);
+                                        const rangeInfo = getChapterRangeInfo(
+                                          comic.id
+                                        );
                                         if (rangeInfo.max > 0) {
-                                          const currentRange = chapterRanges[comic.id];
-                                          const selectedCount = selectedChapters[comic.id]?.length || 0;
-                                          
+                                          const currentRange =
+                                            chapterRanges[comic.id];
+                                          const selectedCount =
+                                            selectedChapters[comic.id]
+                                              ?.length || 0;
+
                                           return (
                                             <div>
                                               <ChapterRangeSlider
                                                 min={rangeInfo.min}
                                                 max={rangeInfo.max}
-                                                onRangeChange={(range) => handleRangeChange(comic.id, range)}
-                                                initialStart={currentRange?.start || rangeInfo.min}
-                                                initialEnd={currentRange?.end || rangeInfo.max}
+                                                onRangeChange={(range) =>
+                                                  handleRangeChange(
+                                                    comic.id,
+                                                    range
+                                                  )
+                                                }
+                                                initialStart={
+                                                  currentRange?.start ||
+                                                  rangeInfo.min
+                                                }
+                                                initialEnd={
+                                                  currentRange?.end ||
+                                                  rangeInfo.max
+                                                }
                                               />
-                                              
+
                                               {/* Range Info and Action Buttons */}
                                               {currentRange && (
                                                 <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                                                   <div className="flex justify-between items-center mb-2">
                                                     <span className="text-sm text-blue-700 dark:text-blue-300">
-                                                      Range: Chapter {rangeInfo.chapters[currentRange.start]?.chapter} - Chapter {rangeInfo.chapters[currentRange.end]?.chapter}
+                                                      Range: Chapter{" "}
+                                                      {
+                                                        rangeInfo.chapters[
+                                                          currentRange.start
+                                                        ]?.chapter
+                                                      }{" "}
+                                                      - Chapter{" "}
+                                                      {
+                                                        rangeInfo.chapters[
+                                                          currentRange.end
+                                                        ]?.chapter
+                                                      }
                                                     </span>
                                                     <span className="text-sm text-gray-600 dark:text-gray-400">
                                                       {selectedCount} selected
@@ -827,13 +732,21 @@ useEffect(() => {
                                                   </div>
                                                   <div className="flex gap-2">
                                                     <button
-                                                      onClick={() => selectChaptersInRange(comic.id)}
+                                                      onClick={() =>
+                                                        selectChaptersInRange(
+                                                          comic.id
+                                                        )
+                                                      }
                                                       className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                                                     >
                                                       Select Range
                                                     </button>
                                                     <button
-                                                      onClick={() => clearChapterSelections(comic.id)}
+                                                      onClick={() =>
+                                                        clearChapterSelections(
+                                                          comic.id
+                                                        )
+                                                      }
                                                       className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
                                                     >
                                                       Clear All
@@ -856,39 +769,37 @@ useEffect(() => {
                                 <h4 className="font-semibold mb-2 text-pink-600 dark:text-violet-400">
                                   Individual Chapters
                                 </h4>
-                              {Object.entries(chaptersByComicId[comic.id]).map(
-                                ([volumeName, chapters]) => (
+                                {Object.entries(
+                                  chaptersByComicId[comic.id]
+                                ).map(([volumeName, chapters]) => (
                                   <div key={volumeName} className="mb-4">
                                     <h4 className="font-semibold mb-2 text-pink-600 dark:text-violet-400">
                                       {volumeName}
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
-                                      {chapters.map(
-                                        (chData) => (
-                                          <button
-                                            key={chData.id}
-                                            onClick={() =>
-                                              toggleChapterSelection(
-                                                comic.id,
-                                                chData.id
-                                              )
-                                            }
-                                            className={`px-3 py-1 rounded-md text-sm transition-colors focus:outline-none cursor-pointer ${
-                                              selectedChapters[
-                                                comic.id
-                                              ]?.includes(chData.id)
-                                                ? "bg-pink-500 text-white dark:bg-violet-500"
-                                                : "bg-gray-200 dark:bg-[#2e2b40] text-gray-800 dark:text-gray-300 hover:bg-pink-100 dark:hover:bg-violet-600"
-                                            }`}
-                                          >
-                                            {`Ch ${chData.chapter}`}
-                                          </button>
-                                        )
-                                      )}
+                                      {chapters.map((chData) => (
+                                        <button
+                                          key={chData.id}
+                                          onClick={() =>
+                                            toggleChapterSelection(
+                                              comic.id,
+                                              chData.id
+                                            )
+                                          }
+                                          className={`px-3 py-1 rounded-md text-sm transition-colors focus:outline-none cursor-pointer ${
+                                            selectedChapters[
+                                              comic.id
+                                            ]?.includes(chData.id)
+                                              ? "bg-pink-500 text-white dark:bg-violet-500"
+                                              : "bg-gray-200 dark:bg-[#2e2b40] text-gray-800 dark:text-gray-300 hover:bg-pink-100 dark:hover:bg-violet-600"
+                                          }`}
+                                        >
+                                          {`Ch ${chData.chapter}`}
+                                        </button>
+                                      ))}
                                     </div>
                                   </div>
-                                )
-                              )}
+                                ))}
                               </div>
 
                               {/* Chapter action buttons */}
@@ -901,7 +812,14 @@ useEffect(() => {
                                 </button>
                                 <div className="flex">
                                   <button
-                                    onClick={() => handleDownload(comic.id, comic.title.en || Object.values(comic.title)[0], selectedFormat[comic.id] || "pdf")}
+                                    onClick={() =>
+                                      handleDownload(
+                                        comic.id,
+                                        comic.title.en ||
+                                          Object.values(comic.title)[0],
+                                        selectedFormat[comic.id] || "pdf"
+                                      )
+                                    }
                                     disabled={
                                       isDownloading ||
                                       !selectedChapters[comic.id]?.length
@@ -917,7 +835,12 @@ useEffect(() => {
                                   </button>
                                   <select
                                     value={selectedFormat[comic.id] || "pdf"}
-                                    onChange={e => setSelectedFormat(prev => ({ ...prev, [comic.id]: e.target.value }))}
+                                    onChange={(e) =>
+                                      setSelectedFormat((prev) => ({
+                                        ...prev,
+                                        [comic.id]: e.target.value,
+                                      }))
+                                    }
                                     className="px-2 py-1 rounded-r-md rounded-l-none border border-l-0 border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2e2b40] text-gray-800 dark:text-gray-200 focus:outline-none"
                                     style={{ minWidth: 70 }}
                                   >
