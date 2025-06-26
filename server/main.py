@@ -89,8 +89,28 @@ async def start_download(
         if format not in ["pdf", "cbz", "cbr", "epub"]:
             raise HTTPException(status_code=400, detail="Invalid format. Allowed: pdf, cbz, cbr, epub")
         
-        # Start background task
-        task = download_chapters.delay(ids, source, comic_title, format)
+        chapters_count = len(ids)
+        source_multipliers = {
+            "0": 1,  # MangaDex
+            "1": 1.4,  # Manhuaus
+            "2": 1.3,  # Yakshascans
+            "3": 1.3,  # Asurascan
+            "4": 1.2,  # Kunmanga
+            "5": 1.4,  # Toonily
+            "6": 1.4,  # Toongod
+            "7": 1.15,  # Mangahere
+            "8": 1.15,  # Mangapill
+            "9": 1,  # Bato
+            "10": 1.3,  # Weebcentral}
+        }
+        soft_time = int(120 * chapters_count * source_multipliers[source])
+        hard_time = int(150 * chapters_count * source_multipliers[source])
+
+        task = download_chapters.apply_async(
+            args=[ids, source, comic_title, format],
+            soft_time_limit=soft_time,
+            time_limit=hard_time
+        )
         
         return {
             "task_id": task.id,  # Use the actual Celery task ID
