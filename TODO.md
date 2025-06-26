@@ -37,7 +37,7 @@
 * [x] ✅ **Create task monitoring dashboard** showing active downloads
 * [x] ✅ **Add "Select Range" UI component** for chapter selection
 * [ ] Fix **Pop-up notifications** overlapping
-* [x] Add **monitoring dashboard** for source status (up/down)
+* [x] ✅ Add **monitoring dashboard** for source status (up/down)
 
 ### 🗂 Filtering
 
@@ -49,9 +49,9 @@
 
 ### 📦 Scraper Architecture
 
-* [x] Refactor `scraper.py` into modular **plugin system** (1 file per source)
-* [x] Create `BaseTypes` module with types: `Comic`, `ChapterInfo`, `VolumeData`, `ComicDict`, `ChapterDict`
-* [x] Dynamically load source scraper class based on `source` param
+* [x] ✅ Refactor `scraper.py` into modular **plugin system** (1 file per source)
+* [x] ✅ Create `BaseTypes` module with types: `Comic`, `ChapterInfo`, `VolumeData`, `ComicDict`, `ChapterDict`
+* [x] ✅ Dynamically load source scraper class based on `source` param
 
 ### 🔄 Caching
 
@@ -63,7 +63,7 @@
 
 * [x] ✅ **Implement error logging** for Celery tasks
 * [ ] Add **analytics** for most searched titles/sources
-* [x] Track download stats (count, size, user)
+* [x] ✅ Track download stats (count, size, user)
 
 ### 🔐 Security & Resilience
 
@@ -76,7 +76,7 @@
 
 ## 🌍 **Extensions & Scalability**
 
-* [x] Add support for **additional manga sources** (via plugin system)
+* [x] ✅ Add support for **additional manga sources** (via plugin system)
 * [ ] ✅ **Create API documentation** (Swagger / OpenAPI)
 
 ---
