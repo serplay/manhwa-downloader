@@ -112,19 +112,3 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 8000
-
-
-#===============================
-# Setting environment variables
-#===============================
-
-ENV MANGAPI_URL=https://consumet-api-ty8c.onrender.com
-
-# Development settings
-ENV DEBUG=false
-ENV LOG_LEVEL=INFO
-
-# Task settings
-ENV TASK_TIME_LIMIT=1800
-ENV TASK_SOFT_TIME_LIMIT=1500
-ENV WORKER_CONCURRENCY=3

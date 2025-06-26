@@ -4,9 +4,11 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 3
     ports:
       - "${WEB_PORT:-8000}:8000"
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - path: ./.env
+        required: true # default
+      - path: ./.env.production
+        required: false
     volumes:
       - downloads_data:/app/Downloads
     depends_on:
@@ -15,9 +17,11 @@ services:
   worker:
     build: .
     command: python3 celery_worker.py
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - path: ./.env
+        required: true # default
+      - path: ./.env.production
+        required: false
     volumes:
       - downloads_data:/app/Downloads
     depends_on:
