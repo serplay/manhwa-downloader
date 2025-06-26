@@ -6,10 +6,10 @@
 * [x] ✅ **Build download queue UI** to show queued, in-progress, and completed downloads
 * [x] ✅ **Add progress tracking** for background tasks with real-time updates
 * [x] ✅ **Implement task status monitoring** with health checks
-* [ ] **Add support for alternative formats**
+* [x] **Add support for alternative formats**
   * [x] ✅ CBZ
   * [x] ✅ CBR
-  * [ ] ePUB
+  * [x] ePUB
 * [x] ✅ **Modify `/download` endpoint to accept `format=` param and respond accordingly**
 * [x] ✅ **Add format selection dropdown** connected to download button
 
