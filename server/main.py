@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query, Response, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from starlette.background import BackgroundTask
 from Utils.ProxyImage import proxy_image
 import scraper
@@ -243,17 +243,21 @@ async def download_file(task_id: str):
         
         if debug:
             print(f"DEBUG: File exists, size: {os.path.getsize(zip_path)} bytes")
+            
+        def iterfile(path):
+            with open(path, mode="rb") as file_like:
+                while chunk := file_like.read(1024*1024):
+                    yield chunk
         
-        # Return file for download
-        return FileResponse(
-            path=zip_path,
-            filename=f"{sanitized_com_title}.{extension}",
+        return StreamingResponse(
+            iterfile(zip_path),
             media_type="application/octet-stream",
             headers={"Content-Disposition": f"attachment; filename={sanitized_com_title}.{extension}"},
             background=BackgroundTask(
                 cleanup_task, zip_path=zip_path
             )
         )
+
         
     except HTTPException:
         raise
