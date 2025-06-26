@@ -4,7 +4,12 @@ from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 from Utils.ProxyImage import proxy_image
 import scraper
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
+from fastapi_cache import FastAPICache
+from fastapi_cache.coder import JsonCoder
+from fastapi_cache.backends.redis import RedisBackend
+from fastapi_cache.decorator import cache
 import asyncio
 import aiohttp
 from Queue.tasks import download_chapters, cleanup_task
@@ -16,7 +21,16 @@ load_dotenv()
 
 debug = os.getenv("DEBUG", "false").lower() == "true"
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    redis_url = "redis://redis:6379/1"
+    redis_backend = RedisBackend(redis_url)
+    FastAPICache.init(redis_backend, prefix="fastapi-cache", coder=JsonCoder())
+    yield
+    
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,7 +38,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/")
 async def root():
@@ -103,8 +116,8 @@ async def start_download(
             "9": 1,  # Bato
             "10": 1.3,  # Weebcentral}
         }
-        soft_time = int(120 * chapters_count * source_multipliers[source])
-        hard_time = int(150 * chapters_count * source_multipliers[source])
+        soft_time = int(200 * chapters_count * source_multipliers[source])
+        hard_time = int(240 * chapters_count * source_multipliers[source])
 
         task = download_chapters.apply_async(
             args=[ids, source, comic_title, format],
@@ -248,8 +261,8 @@ async def download_file(task_id: str):
         print(f"ERROR: Error while downloading file: {e}")
         raise HTTPException(status_code=500, detail=f"Error while downloading file: {str(e)}")
 
-
 @app.get("/search/")
+@cache(expire=60 * 60 * 12)
 async def search_endpoint(
     title: str = Query(..., description="Title of the comic"),
     source: str = Query(..., description="Source of the book"),
@@ -265,8 +278,8 @@ async def search_endpoint(
     except Exception as e:
         return {"message": str(e)}
 
-
 @app.get("/chapters/")
+@cache(expire=60 * 60 * 12)
 async def chapters_endpoint(
     id: str = Query(..., description="Id of the comic"),
     source: str = Query(..., description="Source of the comic"),

@@ -42,6 +42,9 @@ services:
 
   mangapi:
     image: riimuru/consumet-api
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     restart: unless-stopped
 
 volumes:
