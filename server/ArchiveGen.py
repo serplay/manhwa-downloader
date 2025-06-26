@@ -37,7 +37,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     except ValueError:
         raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     
-    if comic_f in ["cbr", "epub"]:
+    if comic_f in ["epub"]:
         raise NotImplementedError(f"{comic_f.upper()} format generation is not implemented yet.")
     
     total_chapters = len(ids)

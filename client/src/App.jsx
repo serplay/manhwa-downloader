@@ -344,7 +344,7 @@ useEffect(() => {
   
       // Prepare filename from comic title
       const safeTitle = comicTitle.replace(/[^a-zA-Z0-9\s-]/g, '').trim().replace(/\s+/g, '_');
-      const fileName = `${safeTitle}.zip`;
+      const fileName = `${safeTitle} Archive`;
   
       // Use <a> element with download attribute
       const downloadUrl = `${API_url}/download/file/${taskId}`;

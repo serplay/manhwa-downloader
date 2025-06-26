@@ -1,33 +1,65 @@
-import shutil
 import os
+import shutil
+import re
+import subprocess
 
-def gen_cbr(images, chap_num, path, referer=None):
+def gen_cbr(path, update_progress=None, comic_title="Comic"):
     """
-    Downloads images and generates a CBR for a manga chapter.
+    Generates CBR files for each chapter and packs them into a single RAR archive (Chapters.rar).
 
     Args:
-        images (list): List of image URLs or tuples (url, referer) if referer is used.
-        chap_num (str): Chapter number, used for naming the output CBR and directory.
-        path (str): Directory where the chapter folder and CBR will be saved.
-        referer (str, optional): If provided, sets the HTTP Referer header for image requests.
+        path (str): Path to the target directory.
+        update_progress (Optional[Callable]): Progress callback.
 
     Returns:
-        str: Path to the generated CBR file.
-
-    Behavior:
-        - Downloads each image, handling referer headers if needed.
-        - Converts WEBP images to JPEG.
-        - Skips images smaller than 72x72 pixels.
-        - If an image fails to download, uses a placeholder 'corrupt.png'.
-        - Cleans up temporary images if an error occurs.
+        str: Path to the generated Chapters.rar file.
     """
-    
-    image_paths = []
-    ch_path = f"{path}/{chap_num}"
-    os.makedirs(ch_path, exist_ok=True)
-    
     try:
-        return
+        chapter_dirs = [entry.path for entry in os.scandir(path) if entry.is_dir()]
+        total_chapters = len(chapter_dirs)
+        cbr_files = []
+
+        if update_progress:
+            update_progress(total_chapters, "Creating CBR...")
+
+        for i, chapter_path in enumerate(chapter_dirs):
+            chapter_name = os.path.basename(chapter_path)
+            cbr_name = f"Chapter {chapter_name}.cbr"
+            cbr_path = os.path.join(path, cbr_name)
+
+            if update_progress:
+                update_progress(i + 1, f"Processing chapter {chapter_name}...")
+
+            image_files = sorted(
+                [f for f in os.scandir(chapter_path) if f.is_file()],
+                key=lambda f: int(re.search(r"(\d+)", f.name).group())
+            )
+            image_names = [f.name for f in image_files]
+
+            try:
+                subprocess.run(
+                    ["rar", "a", "-ep1", "temp.rar"] + image_names,
+                    cwd=chapter_path,
+                    check=True
+                )
+
+                shutil.move(os.path.join(chapter_path, "temp.rar"), cbr_path)
+                cbr_files.append(cbr_path)
+                shutil.rmtree(chapter_path)
+
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to create CBR for {chapter_name}: {e}")
+
+        subprocess.run(
+            ["rar", "a", "-ep1", "Chapters.rar"] + [os.path.basename(cbr) for cbr in cbr_files],
+            cwd=path,
+            check=True
+        )
+
+        for cbr in cbr_files:
+            os.remove(cbr)
+
+        return f"{path}/Chapters.rar"
+
     except Exception as e:
-        shutil.rmtree(ch_path, ignore_errors=True)
-        raise e
+        raise RuntimeError(f"Error generating CBRs: {e}")
