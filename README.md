@@ -32,6 +32,8 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - ✨ Live source status checking.
 - 🔄 **Real-time background task monitoring** with progress tracking.
 - 📊 **Task status dashboard** showing active downloads.
+- 📏 **Chapter range slider** for quick chapter selection.
+- 📦 **Format selection dropdown** (PDF, CBZ, CBR, EPUB) connected to download button.
 
 ### Backend (FastAPI + Celery)
 
@@ -48,6 +50,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - 📥 **Asynchronous download architecture**.
 - 🧼 Clean HTML scraping with BeautifulSoup.
 - 🗑️ **Automatic cleanup** of temporary files.
+- 📄 **Multiple format support**: PDF, CBZ, CBR, EPUB.
 
 ---
 
@@ -58,6 +61,7 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 | Frontend  | Vite, React, Tailwind CSS, Framer Motion, FontAwesome                |
 | Backend   | FastAPI, Uvicorn, Celery, Redis, BeautifulSoup, img2pdf, requests, aiohttp |
 | Queue     | Redis (broker), Celery (task queue)                                  |
+| Container | Docker, Docker Compose                                               |
 
 ---
 
@@ -71,10 +75,40 @@ A full-stack WIP (work-in-progress) project that allows users to search manga/ma
 - pip
 - **Redis** (for background task processing)
 - Self-hosted [Consumet API](https://github.com/consumet/api.consumet.org)
+- **Docker & Docker Compose** (optional, for containerized setup)
 
 ---
 
-### 📦 Backend Setup
+## 🐳 Quick Start with Docker (Recommended)
+
+The easiest way to get started is using Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/manga-downloader.git
+cd manga-downloader/server
+
+# Start all services (web, worker, redis) with your desired port
+WEB_PORT=8000 docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+```
+
+The application will be available at:
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+For frontend setup, see the manual setup instructions below.
+
+---
+
+## 📦 Manual Setup
+
+### Backend Setup
 
 Before running the backend, you need to create a `.env` file in the `server` directory with the following keys:
 
@@ -155,7 +189,7 @@ npm run dev
 The application now uses **Celery with Redis** for background task processing:
 
 ### How it works:
-1. **User selects chapters** and clicks download
+1. **User selects chapters** and chooses format (PDF, CBZ, CBR, EPUB)
 2. **Task is queued** in Redis via Celery
 3. **Background worker** processes the download
 4. **Real-time progress** is shown in the UI
@@ -168,6 +202,7 @@ The application now uses **Celery with Redis** for background task processing:
 - 🔄 **Scalable** - multiple workers can handle concurrent downloads
 - 🛡️ **Reliable** - failed tasks can be retried
 - 🗑️ **Clean** - automatic cleanup prevents disk space issues
+- 📄 **Flexible** - support for multiple output formats
 
 ### Monitoring:
 - **Health Check**: `http://localhost:8000/health`
@@ -188,6 +223,9 @@ The application now uses **Celery with Redis** for background task processing:
 - ✅ **Background task processing with Celery**
 - ✅ **Real-time progress tracking**
 - ✅ **Automatic file cleanup**
+- ✅ **Chapter range slider** for quick selection
+- ✅ **Format selection dropdown** (PDF, CBZ, CBR, EPUB)
+- ✅ **Docker configuration** for easy deployment
 - 🔄 Write tests and error handling
 - 🔄 Check TODO.md to see future features/improvements
 

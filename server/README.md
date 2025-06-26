@@ -38,11 +38,36 @@ pip install -r requirements.txt
 
 ## Running the Application
 
-### 1. Start Redis
+### Option 1: Docker (Recommended)
+
+The easiest way to run the application is using Docker Compose:
+
+```bash
+# Make sure you're in the server directory
+cd server
+
+# Start all services (web, worker, redis) with your desired port
+WEB_PORT=8000 docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+```
+
+The application will be available at:
+- Frontend: http://localhost:3000 (if running client separately)
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+### Option 2: Manual Setup
+
+#### 1. Start Redis
 
 Make sure Redis is running on the default port `6379`.
 
-### 2. Start the Celery Worker
+#### 2. Start the Celery Worker
 
 In the `server` directory terminal:
 
@@ -50,7 +75,7 @@ In the `server` directory terminal:
 python celery_worker.py
 ```
 
-### 3. Start the FastAPI Server
+#### 3. Start the FastAPI Server
 
 In another terminal in the `server` directory:
 
@@ -58,7 +83,7 @@ In another terminal in the `server` directory:
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 4. Start the Frontend
+#### 4. Start the Frontend
 
 In the `client` directory:
 
@@ -104,6 +129,7 @@ Start downloading chapters in the background.
 
 * `ids[]`: List of chapter IDs
 * `source`: Source number
+* `format`: Output format (pdf, cbz, cbr, epub) - optional, defaults to pdf
 
 **Response:**
 
@@ -196,11 +222,31 @@ CELERY_RESULT_BACKEND=redis://localhost:6379/0
 
 ### Temporary files are not being deleted
 
-Cleanup tasks run automatically after file downloads. If they aren’t working, check:
+Cleanup tasks run automatically after file downloads. If they aren't working, check:
 
 1. Worker logs
 2. File permissions
 3. Cleanup queue configuration
+
+### Docker Issues
+
+If you're having issues with Docker:
+
+```bash
+# Check if containers are running
+docker compose ps
+
+# Restart all services
+docker compose restart
+
+# Rebuild containers
+docker compose up --build
+
+# Check logs for specific service
+docker compose logs web
+docker compose logs worker
+docker compose logs redis
+```
 
 ## Performance
 

@@ -6,8 +6,12 @@
 * [x] ✅ **Build download queue UI** to show queued, in-progress, and completed downloads
 * [x] ✅ **Add progress tracking** for background tasks with real-time updates
 * [x] ✅ **Implement task status monitoring** with health checks
-* [ ] Add support for **alternative formats** (CBZ, CBR, EPUB)
-* [ ] Modify `/download` endpoint to accept `format=` param and respond accordingly
+* [ ] **Add support for alternative formats**
+  * [x] ✅ CBZ
+  * [ ] CBR
+  * [ ] ePUB
+* [x] ✅ **Modify `/download` endpoint to accept `format=` param and respond accordingly**
+* [x] ✅ **Add format selection dropdown** connected to download button
 
 ### 📚 Favorites / Collections System
 
@@ -31,8 +35,8 @@
 * [x] ✅ **Add progress bar** for downloads (frontend polling)
 * [x] ✅ **Add toast notifications** for task status updates
 * [x] ✅ **Create task monitoring dashboard** showing active downloads
+* [x] ✅ **Add "Select Range" UI component** for chapter selection
 * [ ] Fix **Pop-up notifications** overlapping
-* [ ] Add **"Select Range"** UI component for chapter selection
 * [ ] Add **monitoring dashboard** for source status (up/down)
 
 ### 🗂 Filtering
@@ -88,7 +92,7 @@
 
 ## 🔧 DevOps & Deployment
 
-* [ ] ✅ **Add Docker configuration** (backend + frontend + Redis)
+* [x] ✅ **Add Docker configuration for api** (backend + Redis)
 * [x] ✅ **Configure health check endpoints**
 * [ ] Create **auto-backup cron job** for server files
 
@@ -114,6 +118,8 @@
 - Progress bars for active downloads
 - Task completion notifications
 - Non-blocking UI during downloads
+- **Chapter range slider** for quick chapter selection
+- **Format selection dropdown** (PDF, CBZ, CBR, EPUB) connected to download button
 
 ### ✅ **Infrastructure**
 - Redis configuration and setup
