@@ -6,30 +6,43 @@ services:
       - "${WEB_PORT:-8000}:8000"
     env_file:
       - path: ./.env
-        required: true # default
+        required: true
       - path: ./.env.production
         required: false
+    environment:
+      - MANGAPI_URL=http://mangapi:3000
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - downloads_data:/app/Downloads
     depends_on:
       - redis
+      - mangapi
 
   worker:
     build: .
     command: python3 celery_worker.py
     env_file:
       - path: ./.env
-        required: true # default
+        required: true
       - path: ./.env.production
         required: false
+    environment:
+      - MANGAPI_URL=http://mangapi:3000
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - downloads_data:/app/Downloads
     depends_on:
       - redis
+      - mangapi
 
   redis:
     image: redis:alpine
 
+  mangapi:
+    image: riimuru/consumet-api
+    restart: unless-stopped
+
 volumes:
   downloads_data:
-  
