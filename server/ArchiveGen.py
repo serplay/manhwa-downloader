@@ -37,9 +37,6 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     except ValueError:
         raise ValueError(f"Invalid source: {source}. Please choose a valid source.")
     
-    if comic_f in ["epub"]:
-        raise NotImplementedError(f"{comic_f.upper()} format generation is not implemented yet.")
-    
     total_chapters = len(ids)
     
     def update_progress(current: int, status: str = "Processing..."):
@@ -90,7 +87,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
     match comic_f:
         case "pdf":
             try:
-                return gen_pdf(path, update_progress)
+                return gen_pdf(path, update_progress=update_progress)
             except Exception as e:
                 shutil.rmtree(path, ignore_errors=True)
                 raise Exception(f"Failed to generate PDF: {e}")
@@ -102,19 +99,19 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
                 raise Exception(f"Failed to generate CBR: {e}")
         case "cbz":
             try:
-                return gen_cbz(path, update_progress, comic_title)
+                return gen_cbz(path, update_progress=update_progress, comic_title=comic_title)
             except Exception as e:
                 shutil.rmtree(path, ignore_errors=True)
                 raise Exception(f"Failed to generate CBZ: {e}")
         case "epub":
             try:
-                return gen_epub(path)
+                return gen_epub(path,update_progress=update_progress, comic_title=comic_title)
             except Exception as e:
                 shutil.rmtree(path, ignore_errors=True)
                 raise Exception(f"Failed to generate ePUB: {e}")
         case _:
             try:
-                return gen_pdf(path)
+                return gen_pdf(path, update_progress=update_progress)
             except Exception as e:
                 shutil.rmtree(path, ignore_errors=True)
                 raise Exception(f"Failed to generate PDF: {e}")
