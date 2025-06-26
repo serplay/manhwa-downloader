@@ -2,7 +2,7 @@
 
 A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading with **background task processing**.
 
-> ⚠️ This project is under **active development**. Most functionality is not complete.
+> ⚠️ This project is under **active development**.
 > 
 > Currently working sources:
 > - MangaDex ✅
