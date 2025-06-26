@@ -2,7 +2,6 @@ from pathlib import Path
 from zipfile import ZipFile
 import os
 import shutil
-from math import ceil
 import re
 from cbz.comic import ComicInfo
 from cbz.constants import PageType, YesNo, Manga, AgeRating, Format
@@ -17,7 +16,7 @@ def gen_cbz(path, update_progress=None, comic_title="Comic"):
         update_progress (Optional[Callable]): Callback function to update progress, if available.
 
     Returns:
-        str: Path to the generated CBZ file.
+        str: Path to the generated CBZ files.
     """
     try:
         chapter_paths = [f.path for f in os.scandir(path) if f.is_dir()]
