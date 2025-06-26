@@ -8,7 +8,7 @@
 * [x] ✅ **Implement task status monitoring** with health checks
 * [ ] **Add support for alternative formats**
   * [x] ✅ CBZ
-  * [ ] CBR
+  * [x] CBR
   * [ ] ePUB
 * [x] ✅ **Modify `/download` endpoint to accept `format=` param and respond accordingly**
 * [x] ✅ **Add format selection dropdown** connected to download button
