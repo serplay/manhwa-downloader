@@ -2,6 +2,7 @@ import requests as req
 import os
 import shutil
 from PIL import Image
+from Utils.bot_evasion import get_cookies
 
 def download_chapter_images(images, chap_num, path, referer=None):
     """
@@ -27,28 +28,45 @@ def download_chapter_images(images, chap_num, path, referer=None):
         - Skips corrupted images or images smaller than 72x72 pixels.
         - In case of a total failure, the created chapter directory is deleted.
     """
+    
     image_paths = []
-    ch_path = f"{path}/{chap_num}"
+    ch_path = os.path.join(path, str(chap_num))
     os.makedirs(ch_path, exist_ok=True)
 
+    cookies_dict = None
+
+    # Check if source is Toongod
+    first_url = images[0][0] if referer else images[0]
+    if "toongod" in first_url:
+        cookies_dict = get_cookies("www.toongod.org")
+
     try:
-        for i, img_url in enumerate(images):
+        for i, img in enumerate(images):
             is_corrupted = False
             try:
                 if referer:
-                    headers = {'Referer': img_url[1]}
-                    img_url = img_url[0]
-                img_resp = req.get(img_url, timeout=10, headers=headers if referer else None)
-                img_resp.raise_for_status()
-                img_data = img_resp.content
+                    headers = {'Referer': img[1]}
+                    img_url = img[0]
+                else:
+                    img_url = img
+                    headers = {}
+
+                response = req.get(
+                    img_url,
+                    headers=headers if headers else None,
+                    cookies=cookies_dict if cookies_dict else None,
+                    timeout=10
+                )
+                response.raise_for_status()
+                img_data = response.content
             except req.RequestException:
                 is_corrupted = True
 
             if not is_corrupted:
                 extension = img_url.split(".")[-1].split("?")[0]
-                img_path = f"{ch_path}/{i}.{extension}"
-                with open(img_path, "wb") as img_file:
-                    img_file.write(img_data)
+                img_path = os.path.join(ch_path, f"{i}.{extension}")
+                with open(img_path, "wb") as f:
+                    f.write(img_data)
             else:
                 extension = "jpg"
                 img_path = os.path.join(os.path.dirname(__file__), "corrupt.jpg")
@@ -57,7 +75,7 @@ def download_chapter_images(images, chap_num, path, referer=None):
             if extension.lower() == "webp":
                 try:
                     im = Image.open(img_path).convert("RGB")
-                    jpg_path = f'{img_path}.jpg'
+                    jpg_path = f"{img_path}.jpg"
                     im.save(jpg_path, "JPEG")
                     os.remove(img_path)
                     with Image.open(jpg_path) as img:
@@ -71,7 +89,8 @@ def download_chapter_images(images, chap_num, path, referer=None):
                     if img.size[0] < 72 or img.size[1] < 72:
                         continue
                 image_paths.append(img_path)
+
         return image_paths, ch_path
     except Exception as e:
         shutil.rmtree(ch_path, ignore_errors=True)
-        raise e 
+        raise e

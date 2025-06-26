@@ -14,3 +14,13 @@ def get_with_captcha(url, elem, click=False):
             sb.click('button:contains("Show All Chapters")')
         soup = sb.get_beautiful_soup()
     return soup
+
+def get_cookies(url):
+    try:
+        with SB(uc=True, xvfb=True) as sb:
+            sb.open(url)
+            sb.wait_for_element("body", timeout=15)
+            selenium_cookies = sb.driver.get_cookies()
+            return {cookie["name"]: cookie["value"] for cookie in selenium_cookies}
+    except Exception as e:
+        raise Exception(f"Failed to retrieve cookies from Toongod using SeleniumBase: {e}")
