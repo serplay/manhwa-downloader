@@ -16,7 +16,7 @@ def gen_cbz(path, update_progress=None, comic_title="Comic"):
         update_progress (Optional[Callable]): Callback function to update progress, if available.
 
     Returns:
-        str: Path to the generated CBZ files.
+        str: Path to the generated ZIP archive.
     """
     try:
         chapter_paths = [f.path for f in os.scandir(path) if f.is_dir()]
