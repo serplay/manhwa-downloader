@@ -227,7 +227,7 @@ The application now uses **Celery with Redis** for background task processing:
 - ✅ **Format selection dropdown** (PDF, CBZ, CBR, EPUB)
 - ✅ **Docker configuration** for easy deployment
 - 🔄 Write tests and error handling
-- 🔄 Check TODO.md to see future features/improvements
+- 🔄 Check [TODO.md](./TODO.md) to see future features/improvements
 
 ---
 
