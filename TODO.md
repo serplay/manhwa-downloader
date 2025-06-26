@@ -37,7 +37,7 @@
 * [x] ✅ **Create task monitoring dashboard** showing active downloads
 * [x] ✅ **Add "Select Range" UI component** for chapter selection
 * [ ] Fix **Pop-up notifications** overlapping
-* [s] Add **monitoring dashboard** for source status (up/down)
+* [x  s] Add **monitoring dashboard** for source status (up/down)
 
 ### 🗂 Filtering
 
