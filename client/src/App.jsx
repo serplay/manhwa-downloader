@@ -342,26 +342,21 @@ useEffect(() => {
     try {
       console.log(`DEBUG: Attempting to download file for task ${taskId}, title: ${comicTitle}`);
   
-      // Prepare filename from comic title
-      const safeTitle = comicTitle.replace(/[^a-zA-Z0-9\s-]/g, '').trim().replace(/\s+/g, '_');
-      const fileName = `${safeTitle} Archive`;
-  
       // Use <a> element with download attribute
       const downloadUrl = `${API_url}/download/file/${taskId}`;
       console.log(`DEBUG: Creating download link: ${downloadUrl}`);
   
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = fileName;
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
   
-      console.log(`DEBUG: File ${fileName} sent for download`);
+      console.log(`DEBUG: File ${comicTitle} sent for download`);
   
       // Show success notification
-      setDownloadSuccess(`File ${fileName} has been sent for download!`);
+      setDownloadSuccess(`File ${comicTitle} has been sent for download!`);
   
       // Hide notification after 5 seconds
       setTimeout(() => setDownloadSuccess(""), 5000);
