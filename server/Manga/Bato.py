@@ -50,13 +50,14 @@ class Bato:
     '''
     
     CHAPTERS_QUERY = '''
-        query Chapters($comicId: ID!) {
-          get_comic_chapterList(comicId: $comicId) {
+        query Chapters($comicId: ID!, $start: Int) {
+          get_comic_chapterList(comicId: $comicId, start: $start) {
             data {
               id
               volume
               count_images
               serial
+              order
             }
           }
         }
@@ -134,37 +135,41 @@ class Bato:
             Exception: If the Bato API request fails or no chapters are found.
         """
         
-        try:
-            r = req.post(
-                f'{Bato.BASE_URL}/ap2/',
-                json={
-                    "query": Bato.CHAPTERS_QUERY,
-                    "variables": {"comicId": id, "operationName": "Chapters"}
-                }
-            )
-            r.raise_for_status()
-        except req.RequestException as e:
-            raise Exception(f"Failed to fetch data from Bato API: {e}")
-        
-        data = r.json()["data"]["get_comic_chapterList"]
-        if not data:
-            raise Exception("No chapters found for this comic.")
-        
+        start = 1
+        last_serial = 1
         chapters: ChaptersDict = {}
-        for num, chap in enumerate(data):
-            if chap["data"]["volume"] is not None:
-                volume = f"Vol {chap['data']['volume']}"
+
+        while True:
+            try:
+                r = req.post(
+                    f'{Bato.BASE_URL}/ap2/',
+                    json={
+                        "query": Bato.CHAPTERS_QUERY,
+                        "variables": {"comicId": id, "start": start, "operationName": "Chapters"}
+                    }
+                )
+                r.raise_for_status()
+            except req.RequestException as e:
+                raise Exception(f"Failed to fetch data from Bato API: {e}")
+
+            data = r.json()["data"]["get_comic_chapterList"]
+            if last_serial == data[-1]["data"]["order"]:
+                break
             else:
-                volume = "Vol 1"
-        
-            chapter_num = str(chap["data"]["serial"])
-            chapter_id = str(chap["data"]["id"])
+                last_serial = data[-1]["data"]["order"]
             
-            if volume not in chapters:
-                chapters[volume] = VolumeData(volume=volume, chapters={})
-        
-            chapters[volume].chapters[str(num)] = ChapterInfo(id=chapter_id, chapter=chapter_num)
-        
+            for chap in data:
+                volume = f"Vol {chap['data']['volume']}" if chap["data"]["volume"] is not None else "Vol 1"
+                chapter_num = str(chap["data"]["serial"])
+                chapter_id = str(chap["data"]["id"])
+
+                if volume not in chapters:
+                    chapters[volume] = VolumeData(volume=volume, chapters={})
+
+                chapters[volume].chapters[chapter_num] = ChapterInfo(id=chapter_id, chapter=chapter_num)
+
+            start = last_serial + 1
+
         return chapters
 
     @staticmethod
