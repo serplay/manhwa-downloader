@@ -13,6 +13,7 @@ services:
       - MANGAPI_URL=http://mangapi:3000
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_DB1=redis://redis:6379/1
     volumes:
       - downloads_data:/app/Downloads
     depends_on:
@@ -31,6 +32,7 @@ services:
       - MANGAPI_URL=http://mangapi:3000
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_DB1=redis://redis:6379/1
     volumes:
       - downloads_data:/app/Downloads
     depends_on:

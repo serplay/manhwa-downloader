@@ -25,10 +25,10 @@ debug = os.getenv("DEBUG", "false").lower() == "true"
 
 REDIS_URL = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 redis_client = Redis.from_url(REDIS_URL)
+redis_url = os.getenv("REDIS_DB1","redis://redis:6379/1")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    redis_url = "redis://redis:6379/1"
     redis_backend = RedisBackend(redis_url)
     FastAPICache.init(redis_backend, prefix="fastapi-cache", coder=JsonCoder())
     yield
