@@ -9,7 +9,7 @@ export default function ThemeToggle({ darkMode, setDarkMode }) {
         onClick={() => setDarkMode(!darkMode)}
         className="w-14 h-10 rounded-full bg-pink-500 dark:bg-violet-500 text-white font-semibold cursor-pointer transition-colors duration-300 flex items-center justify-center focus:outline-none"
       >
-        <AnimatePresence mode="sync">
+        <AnimatePresence mode="wait">
           <motion.div
             key={darkMode ? "moon" : "sun"}
             initial={{ opacity: 0, rotate: -90 }}
