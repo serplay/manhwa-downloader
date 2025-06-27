@@ -5,6 +5,7 @@ import shutil
 import logging
 from typing import List, Dict, Any
 from dotenv import load_dotenv
+from redis import Redis
 
 load_dotenv()
 log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -19,6 +20,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+REDIS_URL = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+redis_client = Redis.from_url(REDIS_URL)
 
 
 @celery_app.task(bind=True, name="Queue.tasks.download_chapters")
@@ -104,6 +108,9 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
         
         logger.info(f"Download completed successfully. File: {zip_path}, Size: {file_size} bytes")
         
+        tmpdir = os.path.dirname(zip_path)
+        redis_client.set(f"task_tmpdir:{task_id}", tmpdir)
+        
         return {
             "task_id": task_id,
             "status": "SUCCESS",
@@ -127,6 +134,8 @@ def download_chapters(self, ids: List[str], source: str, comic_title: str = "Cha
                 "comic_title": comic_title
             }
         )
+        # Clean up temporary directory in Redis
+        redis_client.delete(f"task_tmpdir:{task_id}")
         
         return {
             "task_id": task_id,

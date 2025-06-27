@@ -16,10 +16,15 @@ from Queue.tasks import download_chapters, cleanup_task
 from Queue.celery_app import celery_app
 import os
 import re
+from redis import Redis
+import json
 
 load_dotenv()
 
 debug = os.getenv("DEBUG", "false").lower() == "true"
+
+REDIS_URL = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+redis_client = Redis.from_url(REDIS_URL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -386,3 +391,22 @@ async def get_task_info(task_id: str):
     except Exception as e:
         print(f"ERROR: Error while fetching task info: {e}")
         raise HTTPException(status_code=500, detail=f"Error while fetching task info: {str(e)}")
+
+@app.post("/download/cancel/{task_id}")
+async def cancel_download(task_id: str):
+    """
+    Cancel a download task by task_id and remove any partially downloaded files.
+    """
+    try:
+        from Queue.celery_app import celery_app
+        celery_app.control.revoke(task_id, terminate=True)
+
+        tmpdir = redis_client.get(f"task_tmpdir:{task_id}")
+        if tmpdir:
+            tmpdir = tmpdir.decode()
+            from Queue.tasks import cleanup_task
+            cleanup_task.delay(tmpdir)
+            redis_client.delete(f"task_tmpdir:{task_id}")
+        return {"status": "cancelled", "task_id": task_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error while cancelling task: {str(e)}")

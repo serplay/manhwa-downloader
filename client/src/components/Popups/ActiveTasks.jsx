@@ -11,6 +11,7 @@ export default function ActiveTasksPopup({
   taskStatuses,
   downloadingFiles,
   getTaskStatusDisplay,
+  onCancelTask,
 }) {
   return (
     <AnimatePresence>
@@ -46,12 +47,21 @@ export default function ActiveTasksPopup({
                         {getTaskStatusDisplay(taskId)}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
                       {status?.state === "PROGRESS" && (
-                        <FontAwesomeIcon
-                          icon={faSpinner}
-                          className="animate-spin"
-                        />
+                        <>
+                          <FontAwesomeIcon
+                            icon={faSpinner}
+                            className="animate-spin"
+                          />
+                          <button
+                            onClick={() => onCancelTask && onCancelTask(taskId)}
+                            className="ml-2 p-1 rounded hover:bg-red-700 text-white cursor-pointer"
+                            title="Cancel download"
+                          >
+                            <FontAwesomeIcon icon={faCircleXmark} />
+                          </button>
+                        </>
                       )}
                       {isCompleted && (
                         <div className="flex items-center gap-1 text-yellow-200">

@@ -4,10 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
   faCircleXmark,
-  faSun,
-  faMoon,
-  faDownload,
-  faSpinner,
   faChevronUp,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
@@ -468,6 +464,32 @@ function App() {
     };
   };
 
+
+  const cancelTask = async (taskId) => {
+    try {
+      const response = await fetch(`${API_url}/download/cancel/${taskId}`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Nie udało się anulować zadania");
+      }
+
+      setActiveTasks((prev) => {
+        const newTasks = { ...prev };
+        delete newTasks[taskId];
+        return newTasks;
+      });
+      setTaskStatuses((prev) => {
+        const newStatuses = { ...prev };
+        delete newStatuses[taskId];
+        return newStatuses;
+      });
+    } catch (error) {
+      setDownloadError(`Nie udało się anulować pobierania: ${error.message}`);
+    }
+  };
+
   return (
     // Main container with theme-aware background
     <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-white via-pink-100 to-purple-100 dark:from-[#0d0c1b] dark:via-[#1a152b] dark:to-[#2d1b4d] text-gray-900 dark:text-[#f4f4ff] relative">
@@ -491,6 +513,7 @@ function App() {
         taskStatuses={taskStatuses}
         downloadingFiles={downloadingFiles}
         getTaskStatusDisplay={getTaskStatusDisplay}
+        onCancelTask={cancelTask}
       />
 
       <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
