@@ -52,11 +52,11 @@ export default function ActiveTasksPopup({
                         <>
                           <FontAwesomeIcon
                             icon={faSpinner}
-                            className="animate-spin"
+                            className="ml-2 animate-spin"
                           />
                           <button
                             onClick={() => onCancelTask && onCancelTask(taskId)}
-                            className="ml-2 p-1 rounded hover:bg-red-700 text-white cursor-pointer"
+                            className="p-1 rounded hover:bg-red-700 text-white cursor-pointer"
                             title="Cancel download"
                           >
                             <FontAwesomeIcon icon={faCircleXmark} />
