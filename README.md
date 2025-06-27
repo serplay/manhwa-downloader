@@ -1,5 +1,7 @@
 # 📚 Manga & Manhwa Downloader
 
+![nhbadge](https://img.shields.io/badge/made%20for%20neighborhood-bf8f73?style=for-the-badge&logo=hackclub&logoColor=ffffff)
+
 A full-stack WIP (work-in-progress) project that allows users to search manga/manhwa titles from multiple sources, view available chapters, and prepare for chapter downloading with **background task processing**.
 
 > ⚠️ This project is under **active development**.
