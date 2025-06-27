@@ -58,6 +58,9 @@ class MangaDex:
         
         comics: ComicsDict = {}
         for num, com in enumerate(data):
+            if "amz" in com["attributes"]["links"]:
+                print(True)
+                continue
             title = com["attributes"]["title"]
             com_id = com["id"]
             rel = com["relationships"]
