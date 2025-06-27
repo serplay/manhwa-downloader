@@ -241,4 +241,6 @@ Pull requests, suggestions, and feedback are welcome! Open an issue or fork the 
 
 Created by [Infinity](https://github.com/serplay) — feel free to reach out or fork this project!
 
+[![Neighborhood Badge](https://images.fillout.com/orgid-81/flowpublicid-2d6RsxRU3ius/widgetid-gHXJ/wLL8YM3u5TEHNwmmey7cHo/summer25.png?a=4hit9PajYRUKJJYwW78gvU)](http://neighborhood.hackclub.com/)
+
 ---
