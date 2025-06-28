@@ -127,6 +127,11 @@ function App() {
                 return newTasks;
               });
             } else if (status.state === "FAILURE") {
+              // Extract error message from failed task
+              const errorMessage = status.error || status.status || "Download failed";
+              const comicTitle = status.comic_title || activeTasks[taskId]?.comicTitle || "Chapters";
+              setDownloadError(`Failed to download ${comicTitle}.\n${errorMessage}`);
+              
               // Delay removal for failed tasks to make the error visible
               setTimeout(() => {
                 setActiveTasks((prev) => {
@@ -141,6 +146,8 @@ function App() {
             console.error(
               `Status check for ${taskId} failed with status: ${response.status}`
             );
+            const comicTitle = activeTasks[taskId]?.comicTitle || "Chapters";
+            setDownloadError(`Failed to check download status for ${comicTitle}.\nNetwork error: ${response.status}`);
             setTaskStatuses((prev) => ({
               ...prev,
               [taskId]: { state: "FAILURE" },
@@ -155,6 +162,8 @@ function App() {
           }
         } catch (error) {
           console.error(`Error checking status of task ${taskId}:`, error);
+          const comicTitle = activeTasks[taskId]?.comicTitle || "Chapters";
+          setDownloadError(`Failed to check download status for ${comicTitle}.\n${error.message}`);
           // Mark task as failed and remove it after a delay
           setTaskStatuses((prev) => ({
             ...prev,

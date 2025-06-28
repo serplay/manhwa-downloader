@@ -15,10 +15,12 @@ export default function ErrorPopup({ downloadError, setDownloadError }) {
           <div className="bg-red-500/75 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
             <FontAwesomeIcon icon={faCircleXmark} className="text-lg" />
             <div className="flex flex-col">
-              <span>Failed to download chapters. Please try again later.</span>
-              <span className="text-sm opacity-90">
-                {downloadError.split("\n")[1]}
-              </span>
+              <span>{downloadError.split("\n")[0]}</span>
+              {downloadError.split("\n").length > 1 && (
+                <span className="text-sm opacity-90">
+                  {downloadError.split("\n").slice(1).join("\n")}
+                </span>
+              )}
             </div>
             <button
               onClick={() => setDownloadError("")}
