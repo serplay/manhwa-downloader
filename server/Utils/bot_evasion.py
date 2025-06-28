@@ -55,7 +55,6 @@ def get_cookies(url: str) -> dict:
             sb.uc_gui_click_captcha()
             sb.wait_for_element("body", timeout=15)
             selenium_cookies = sb.driver.get_cookies()
-            print(selenium_cookies)
             cf_cookies = {cookie["name"]: cookie["value"]
                           for cookie in selenium_cookies if "cf" in cookie["name"]}
             save_cf_cookies(url, cf_cookies)
