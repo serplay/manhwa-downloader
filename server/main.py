@@ -28,10 +28,15 @@ redis_client = Redis.from_url(REDIS_URL)
 redis_url = os.getenv("REDIS_DB1","redis://redis:6379/1")
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):    
     redis_backend = RedisBackend(redis_url)
     FastAPICache.init(redis_backend, prefix="fastapi-cache", coder=JsonCoder())
     yield
+    try:
+        redis_client.flushdb()
+        print("Redis cache cleared on startup")
+    except Exception as e:
+        print(f"Warning: Could not clear Redis on startup: {e}")
     
 
 
