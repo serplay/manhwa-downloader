@@ -64,7 +64,7 @@ def get_chapter_images(ids, source, progress_callback: Optional[Callable] = None
             path =  Kunmanga.download_chapters(ids, update_progress)
 
         case 5:  # Toonily
-            raise NotImplementedError("Downloading chapters from Toonily is not implemented yet.") #return Toonily.download_chapters(ids, update_progress)
+            path =  Toonily.download_chapters(ids, update_progress)
 
         case 6:  # Toongod
             path = Toongod.download_chapters(ids, update_progress)

@@ -1,11 +1,8 @@
 import os
 import uuid
 import shutil
-from zipfile import ZipFile
-from Formats.pdf import gen_pdf
-from Utils.cleanup import cleanup
 from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict, ComicsDict
-from Utils.bot_evasion import get_with_captcha
+from Utils.bot_evasion import get_with_captcha, get_cookies
 from seleniumbase import SB
 import re
 from Formats.image_downloader import download_chapter_images
@@ -49,6 +46,7 @@ class Toonily:
             Exception: If scraping Toonily website fails.
         """
         
+        get_cookies(Toonily.BASE_URL)
         try:
             soup = get_with_captcha(f"{Toonily.BASE_URL}/search/{title}{Toonily.SEARCH_PARAMS}", '')
         except Exception as e:
@@ -156,18 +154,19 @@ class Toonily:
                     if not read_container:
                         print(f"Skipping chapter {chap_num} - reading-content not found.")
                         continue
-                    images = read_container.find_all("img")
+                    images = read_container.find_all("div",{"class":"page-break no-gaps"})
                     image_links = [
-                        re.sub(r'[\t\r\n]', "", img.get("data-src", "")) for img in images if img.get("data-src")
+                        (re.sub(r'[\t\r\n]', "", div.img.get("data-src", "")), f"{Toonily.BASE_URL}/") for div in images if div.img.get("data-src")
                     ]
                     if not image_links:
                         image_links = [
-                            re.sub(r'[\t\r\n]', "", img.get("src", "")) for img in images if img.get("src")
+                            (re.sub(r'[\t\r\n]', "", div.img.get("src", "")), f"{Toonily.BASE_URL}/") for div in images if div.img.get("src")
                         ]
                     if not image_links:
                         print(f"No images found for chapter {chap_num}. Skipping.")
                         continue
-                    download_chapter_images(image_links, chap_num, path)
+                    print(image_links)
+                    download_chapter_images(image_links, chap_num, path, True)
             return path
         except Exception as e:
             shutil.rmtree(path, ignore_errors=True)

@@ -5,7 +5,7 @@ from zipfile import ZipFile
 from Formats.pdf import gen_pdf
 from Utils.cleanup import cleanup
 from Manga.BaseTypes import Comic, ChapterInfo, VolumeData, ChaptersDict, ComicsDict
-from Utils.bot_evasion import get_with_captcha
+from Utils.bot_evasion import get_with_captcha, get_cookies
 from seleniumbase import SB
 import re
 from Formats.image_downloader import download_chapter_images
@@ -49,6 +49,8 @@ class Toongod:
             Exception: If scraping Toongod website fails.
         """
         
+        get_cookies(Toongod.BASE_URL)
+        
         try:
             soup = get_with_captcha(f"{Toongod.BASE_URL}/?s={title}&post_type=wp-manga", '')
         except Exception as e:
@@ -62,7 +64,7 @@ class Toongod:
             title_and_link = com.find("h3",{"class":"h4"}).find("a")
             title = {"en":title_and_link.text}
             link = title_and_link["href"].split("/")[-2]
-            image_cover = f'/api/proxy-image?url={com.find("img")["data-src"]}'
+            image_cover = f'/api/proxy-image?url={com.find("img")["data-src"]}&hd='
             trans = ["en"]
             comics[num] = Comic(
                 id=link,

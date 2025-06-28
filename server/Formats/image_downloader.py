@@ -39,6 +39,8 @@ def download_chapter_images(images, chap_num, path, referer=None):
     first_url = images[0][0] if referer else images[0]
     if "toongod" in first_url:
         cookies_dict = get_cookies("www.toongod.org")
+    elif "toonily" in first_url:
+        cookies_dict = get_cookies("toonily.com")
 
     try:
         for i, img in enumerate(images):
@@ -50,7 +52,6 @@ def download_chapter_images(images, chap_num, path, referer=None):
                 else:
                     img_url = img
                     headers = {}
-
                 response = req.get(
                     img_url,
                     headers=headers if headers else None,
