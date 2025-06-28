@@ -38,7 +38,7 @@ def download_chapter_images(images, chap_num, path, referer=None):
     # Check if source is Toongod
     first_url = images[0][0] if referer else images[0]
     if "toongod" in first_url:
-        cookies_dict = get_cookies("www.toongod.org")
+        cookies_dict = get_cookies("https://www.toongod.org/?s=&post_type=wp-manga")
     elif "toonily" in first_url:
         cookies_dict = get_cookies("toonily.com")
 

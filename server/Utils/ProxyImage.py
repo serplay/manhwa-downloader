@@ -11,7 +11,7 @@ def proxy_image(url: str, header: str = None):
         header = {"Referer": header}
 
     if "toongod" in url:
-        cookies_dict = load_cf_cookies("https://www.toongod.org")
+        cookies_dict = load_cf_cookies("https://www.toongod.org/?s=&post_type=wp-manga")
         header = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
             "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",

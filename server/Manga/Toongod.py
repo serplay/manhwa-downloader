@@ -49,7 +49,7 @@ class Toongod:
             Exception: If scraping Toongod website fails.
         """
         
-        get_cookies(Toongod.BASE_URL)
+        get_cookies("https://www.toongod.org/?s=&post_type=wp-manga")
         
         try:
             soup = get_with_captcha(f"{Toongod.BASE_URL}/?s={title}&post_type=wp-manga", '')
