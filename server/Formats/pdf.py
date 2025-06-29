@@ -2,6 +2,7 @@ import img2pdf
 import os
 import shutil
 import re
+from PIL import Image
 from zipfile import ZipFile
 
 def gen_pdf(path, update_progress=None):
@@ -25,10 +26,24 @@ def gen_pdf(path, update_progress=None):
         chap_num = os.path.basename(chapter)
         pdf_path = f"{path}/{chap_num}.pdf"
 
-        images = sorted([img.path for img in os.scandir(chapter) if img.is_file()],key=lambda p: int(re.search(r"(\d+)", os.path.basename(p)).group()))
+        image_paths = sorted(
+            [img.path for img in os.scandir(chapter) if img.is_file()],
+            key=lambda p: int(re.search(r"(\d+)", os.path.basename(p)).group())
+        )
+
+        # Validate image sizes
+        valid_images = []
+        for img_path in image_paths:
+            try:
+                with Image.open(img_path) as im:
+                    width, height = im.size
+                    if width >= 72 and height >= 72:
+                        valid_images.append(img_path)
+            except Exception as e:
+                print(f"Skipping invalid image {img_path}: {e}")
 
         with open(pdf_path, "wb") as f:
-            f.write(img2pdf.convert(images, rotation=img2pdf.Rotation.ifvalid))
+            f.write(img2pdf.convert(valid_images, rotation=img2pdf.Rotation.ifvalid))
         pdfs.append(pdf_path)
         shutil.rmtree(chapter,ignore_errors=True)
         
