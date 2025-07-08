@@ -38,7 +38,7 @@ function HealthStatus() {
   }, []);
 
   return (
-    <div className="fixed bottom-4 left-4 bg-white/80 dark:bg-[#1c1b29]/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 dark:border-[#2e2b40] z-50">
+    <div className="bg-white/80 dark:bg-[#1c1b29]/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 dark:border-[#2e2b40]">
       <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-[#f4f4ff]">
         Source Status
       </h3>
