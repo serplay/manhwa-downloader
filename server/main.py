@@ -124,7 +124,7 @@ async def start_download(
             "7": 1.15,  # Mangahere
             "8": 1.15,  # Mangapill
             "9": 1,  # Bato
-            "10": 1.3,  # Weebcentral}
+            "10": 1.3,  # Weebcentral
         }
         soft_time = int(200 * chapters_count * source_multipliers[source])
         hard_time = int(240 * chapters_count * source_multipliers[source])
