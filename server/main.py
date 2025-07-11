@@ -18,6 +18,7 @@ import os
 import re
 from redis import Redis
 import json
+from fastapi import BackgroundTasks
 
 load_dotenv()
 
@@ -291,6 +292,28 @@ async def search_endpoint(
         return {"message": "No comics found"}
     except Exception as e:
         return {"message": str(e)}
+
+@app.get("/search/all")
+async def search_all_sources(
+    title: str = Query(..., description="Title of the comic")
+):
+    """
+    Search for a comic in all sources asynchronously.
+    Returns a dict: {source_id: [results], ...}
+    """
+    async def search_one(source_id):
+        try:
+            # scraper.search może być sync lub async, obsłuż oba przypadki
+            result = scraper.search(title, source_id)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return source_id, result
+        except Exception as e:
+            return source_id, {"error": str(e)}
+
+    tasks = [search_one(str(source_id)) for source_id in SOURCE_URLS.keys()]
+    results = await asyncio.gather(*tasks)
+    return {src: res for src, res in results}
 
 @app.get("/chapters/")
 @cache(expire=60 * 60 * 12)
