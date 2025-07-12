@@ -28,6 +28,7 @@ function App() {
 
   // Search and results states
   const [title, setTitle] = useState("");
+  const [source, setSource] = useState("0"); // Add source state
   const [resultsBySource, setResultsBySource] = useState({}); // {source_id: [results], ...}
   const [animationKey, setAnimationKey] = useState(0);
   const [error, setError] = useState("");
@@ -63,9 +64,30 @@ function App() {
   // Show health status
   const [showHealthStatus, setShowHealthStatus] = useState(false);
   const [isHealthPanelOpen, setIsHealthPanelOpen] = useState(() => {
-    // Sprawdź szerokość ekranu przy ładowaniu
-    return window.innerWidth >= 768; // 768px to breakpoint md w Tailwind
+    // Check screen width on load
+    return window.innerWidth >= 768; // 768px is md breakpoint in Tailwind
   });
+
+  // Get source name by ID
+  const getSourceName = (sourceId) => {
+    const sourceNames = {
+      "0": "MangaDex",
+      "1": "Manhuaus", 
+      "2": "Yakshascans",
+      "3": "Asurascan",
+      "4": "Kunmanga",
+      "5": "Toonily",
+      "6": "Toongod",
+      "7": "Mangahere",
+      "8": "Mangapill",
+      "9": "Bato",
+      "10": "Weebcentral"
+    };
+    return sourceNames[sourceId] || `Source ${sourceId}`;
+  };
+
+  // State for collapsed sources
+  const [collapsedSources, setCollapsedSources] = useState(new Set());
 
   // Apply theme changes to document
   useEffect(() => {
@@ -191,7 +213,7 @@ function App() {
     return () => clearInterval(interval);
   }, [activeTasks, downloadingFiles]);
 
-  // Wyszukiwanie we wszystkich źródłach naraz
+  // Search in all sources at once
   const handleSearch = async () => {
     setDownloadError("");
     setIsSearching(true);
@@ -212,14 +234,15 @@ function App() {
       setResultsBySource(data);
       setError("");
     } catch (err) {
-      setError("Wystąpił błąd podczas pobierania danych");
+      console.error("Search error:", err); // Debug log
+      setError("An error occurred while fetching data");
       setResultsBySource({});
     } finally {
       setIsSearching(false);
     }
   };
 
-  // Pobieranie rozdziałów dla danego komiksu i źródła
+  // Fetch chapters for a specific comic and source
   const fetchChapters = async (comicId, sourceId) => {
     setDownloadError("");
     setIsFetchingChapters(true);
@@ -336,7 +359,7 @@ function App() {
 
       const data = await response.json();
 
-      // Dodaj zadanie do aktywnych
+      // Add task to active tasks
       setActiveTasks((prev) => ({
         ...prev,
         [data.task_id]: {
@@ -347,7 +370,7 @@ function App() {
         },
       }));
 
-      // Wyczyść wybrane rozdziały
+      // Clear selected chapters
       setSelectedChapters((prev) => {
         const newSelected = { ...prev };
         delete newSelected[comicKey];
@@ -481,7 +504,7 @@ function App() {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Nie udało się anulować zadania");
+        throw new Error(errorData.detail || "Failed to cancel task");
       }
 
       setActiveTasks((prev) => {
@@ -495,7 +518,7 @@ function App() {
         return newStatuses;
       });
     } catch (error) {
-      setDownloadError(`Nie udało się anulować pobierania: ${error.message}`);
+      setDownloadError(`Failed to cancel download: ${error.message}`);
     }
   };
 
@@ -544,7 +567,7 @@ function App() {
           handleSearch={handleSearch}
         />
 
-        {/* Wyniki z wielu źródeł */}
+        {/* Results from multiple sources */}
         <AnimatePresence>
           {(Object.keys(resultsBySource).length > 0 || error) && (
             <motion.div
@@ -566,280 +589,357 @@ function App() {
                       {error}
                     </motion.div>
                   ) : (
-                    Object.entries(resultsBySource).map(([sourceId, comics], srcIdx) => (
-                      <div key={sourceId} className="mb-4">
-                        <div className="font-bold text-pink-600 dark:text-violet-400 mb-2">Źródło {sourceId}</div>
-                        {Array.isArray(comics) && comics.length === 0 && (
-                          <div className="text-gray-500 text-sm">Brak wyników</div>
-                        )}
-                        {Array.isArray(comics) && comics.map((comic, idx) => {
-                          const comicKey = `${comic.id}_${sourceId}`;
-                          return (
-                            <motion.div
-                              key={comicKey}
-                              initial={{ opacity: 0, y: -20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 20 }}
-                              transition={{ delay: idx * 0.1 }}
-                              className="w-full"
-                            >
-                              {/* Comic card */}
-                              <button
-                                onClick={() => {
-                                  if (expandedComics.has(comicKey)) {
-                                    setExpandedComics((prev) => {
-                                      const next = new Set(prev);
-                                      next.delete(comicKey);
-                                      return next;
-                                    });
-                                  } else {
-                                    fetchChapters(comic.id, sourceId);
-                                    setExpandedComics((prev) => new Set(prev).add(comicKey));
-                                  }
-                                }}
-                                className="w-full flex flex-col sm:flex-row items-center gap-2 sm:gap-4 bg-white dark:bg-[#30274c] rounded-xl p-2 sm:p-4 shadow-md relative group overflow-hidden hover:bg-gray-50 dark:hover:bg-[#3a2f5a] transition-colors focus:outline-none cursor-pointer"
-                                id={comicKey}
-                              >
-                                {/* Cover art */}
-                                <div className="relative w-20 h-28 flex-shrink-0 mb-2 sm:mb-0">
-                                  {!loadedImages.has(comic.cover_art) && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-[#2e2b40] rounded-lg">
-                                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 dark:border-violet-500"></div>
-                                    </div>
-                                  )}
-                                  <img
-                                    src={comic.cover_art}
-                                    alt="cover"
-                                    className={`w-full h-full object-cover rounded-lg group-hover:opacity-50 transition-opacity ${
-                                      !loadedImages.has(comic.cover_art)
-                                        ? "opacity-0"
-                                        : "opacity-100"
-                                    }`}
-                                    onLoad={() =>
-                                      setLoadedImages((prev) =>
-                                        new Set(prev).add(comic.cover_art)
-                                      )
-                                    }
-                                  />
-                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <span className="text-white text-2xl sm:text-3xl font-bold">
-                                      +
-                                    </span>
-                                  </div>
-                                </div>
-                                {/* Comic info */}
-                                <div className="flex-1 relative z-10 w-full">
-                                  <p className="text-base sm:text-lg font-semibold text-left">
-                                    {comic.title?.en || Object.values(comic.title || {})[0]}
-                                  </p>
-                                  <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
-                                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                                      Languages: {" "}
-                                    </span>
-                                    {comic.availableLanguages?.map((lang) => (
-                                      <span
-                                        key={lang}
-                                        className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400"
-                                      >
-                                        {lang}
-                                        <FontAwesomeIcon
-                                          icon={faCircleCheck}
-                                          className="text-green-500"
-                                        />
-                                      </span>
-                                    ))}
-                                    {comic.availableLanguages && !comic.availableLanguages.includes("en") && (
-                                      <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                                        en
-                                        <FontAwesomeIcon
-                                          icon={faCircleXmark}
-                                          className="text-red-500"
-                                        />
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                {/* Hover effect gradient */}
-                                <div className="absolute inset-0 bg-gradient-to-tl from-pink-500/0 via-pink-500/0 to-pink-500/0 group-hover:from-pink-500/20 group-hover:via-pink-500/10 group-hover:to-pink-500/0 dark:from-violet-500/0 dark:via-violet-500/0 dark:to-violet-500/0 dark:group-hover:from-violet-500/20 dark:group-hover:via-violet-500/10 dark:group-hover:to-violet-500/0 transition-all duration-300"></div>
-                              </button>
-
-                              {/* Chapters section */}
-                              {chaptersByComicId[comicKey] && expandedComics.has(comicKey) && (
-                                <div className="ml-0 sm:ml-6 mt-2 bg-gray-50 dark:bg-[#201a35] rounded-lg p-2 sm:p-4">
-                                  {/* Chapter Range Slider */}
-                                  <div className="mb-2 sm:mb-4">
-                                    <button
-                                      onClick={() => {
-                                        if (expandedChapterSections.has(comicKey)) {
-                                          setExpandedChapterSections((prev) => {
-                                            const next = new Set(prev);
-                                            next.delete(comicKey);
-                                            return next;
-                                          });
-                                        } else {
-                                          setExpandedChapterSections((prev) => new Set(prev).add(comicKey));
-                                        }
-                                      }}
-                                      className="flex items-center gap-2 text-pink-600 dark:text-violet-400 font-semibold hover:opacity-80 transition-opacity text-sm sm:text-base"
-                                    >
-                                      <span>Szybki wybór rozdziałów</span>
-                                      <FontAwesomeIcon
-                                        icon={expandedChapterSections.has(comicKey) ? faChevronUp : faChevronDown}
-                                        className="text-xs sm:text-sm transition-transform duration-200"
-                                      />
-                                    </button>
-
-                                    <AnimatePresence initial={false}>
-                                      {expandedChapterSections.has(comicKey) && (
-                                        <motion.div
-                                          key="quick-chapter-dropdown"
-                                          initial={{ height: 0, opacity: 0 }}
-                                          animate={{ height: "auto", opacity: 1 }}
-                                          exit={{ height: 0, opacity: 0 }}
-                                          transition={{ duration: 0.3, ease: "easeOut" }}
-                                          className="overflow-hidden mt-2 sm:mt-3"
-                                        >
-                                          {(() => {
-                                            const rangeInfo = getChapterRangeInfo(comicKey);
-                                            if (rangeInfo.max > 0) {
-                                              const currentRange = chapterRanges[comicKey];
-                                              const selectedCount = selectedChapters[comicKey]?.length || 0;
-
-                                              return (
-                                                <div>
-                                                  <ChapterRangeSlider
-                                                    min={rangeInfo.min}
-                                                    max={rangeInfo.max}
-                                                    onRangeChange={(range) => handleRangeChange(comicKey, range)}
-                                                    initialStart={currentRange?.start || rangeInfo.min}
-                                                    initialEnd={currentRange?.end || rangeInfo.max}
-                                                  />
-
-                                                  {/* Range Info and Action Buttons */}
-                                                  {currentRange && (
-                                                    <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 sm:mb-2 gap-1 sm:gap-0">
-                                                        <span className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
-                                                          Zakres: Rozdział {rangeInfo.chapters[currentRange.start]?.chapter} - Rozdział {rangeInfo.chapters[currentRange.end]?.chapter}
-                                                        </span>
-                                                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                                          {selectedCount} wybranych
-                                                        </span>
-                                                      </div>
-                                                      <div className="flex gap-2 flex-wrap">
-                                                        <button
-                                                          onClick={() => selectChaptersInRange(comicKey)}
-                                                          className="px-2 sm:px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                                                        >
-                                                          Wybierz zakres
-                                                        </button>
-                                                        <button
-                                                          onClick={() => clearChapterSelections(comicKey)}
-                                                          className="px-2 sm:px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                                                        >
-                                                          Wyczyść wszystko
-                                                        </button>
-                                                      </div>
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              );
-                                            }
-                                            return null;
-                                          })()}
-                                        </motion.div>
-                                      )}
-                                    </AnimatePresence>
-                                  </div>
-
-                                  {/* Individual Chapter Selection */}
-                                  <div className="mb-2 sm:mb-4">
-                                    <h4 className="font-semibold mb-1 sm:mb-2 text-pink-600 dark:text-violet-400 text-sm sm:text-base">
-                                      Rozdziały
-                                    </h4>
-                                    {Object.entries(chaptersByComicId[comicKey]).map(([volumeName, chapters]) => (
-                                      <div key={volumeName} className="mb-2 sm:mb-4">
-                                        <h4 className="font-semibold mb-1 sm:mb-2 text-pink-600 dark:text-violet-400 text-xs sm:text-base">
-                                          {volumeName}
-                                        </h4>
-                                        <div className="flex flex-wrap gap-1 sm:gap-2">
-                                          {chapters.map((chData) => (
-                                            <button
-                                              key={chData.id}
-                                              onClick={() => toggleChapterSelection(comicKey, chData.id)}
-                                              className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm transition-colors focus:outline-none cursor-pointer ${
-                                                selectedChapters[comicKey]?.includes(chData.id)
-                                                  ? "bg-pink-500 text-white dark:bg-violet-500"
-                                                  : "bg-gray-200 dark:bg-[#2e2b40] text-gray-800 dark:text-gray-300 hover:bg-pink-100 dark:hover:bg-violet-600"
-                                              }`}
-                                            >
-                                              {`Ch ${chData.chapter}`}
-                                            </button>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-
-                                  {/* Chapter action buttons */}
-                                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2">
-                                    <button
-                                      onClick={() => selectAllChapters(comicKey)}
-                                      className="px-2 sm:px-3 py-1 rounded-md bg-pink-500 rounded-r-none text-white dark:bg-violet-500 hover:opacity-90 cursor-pointer text-xs sm:text-base"
-                                    >
-                                      Zaznacz wszystko
-                                    </button>
-                                    <div className="flex">
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(
-                                            comic.id,
-                                            sourceId,
-                                            comic.title?.en || Object.values(comic.title || {})[0],
-                                            selectedFormat[comicKey] || "pdf"
-                                          )
-                                        }
-                                        disabled={
-                                          isDownloading ||
-                                          !selectedChapters[comicKey]?.length
-                                        }
-                                        className={`px-2 sm:px-3 py-1 rounded-l-md border-r-0 cursor-pointer text-xs sm:text-base ${
-                                          isDownloading ||
-                                          !selectedChapters[comicKey]?.length
-                                            ? "bg-gray-400 cursor-not-allowed"
-                                            : "bg-green-500 hover:opacity-90"
-                                        } text-white`}
-                                      >
-                                        {isDownloading ? "Rozpoczynanie..." : "Pobierz"}
-                                      </button>
-                                      <select
-                                        value={selectedFormat[comicKey] || "pdf"}
-                                        onChange={(e) =>
-                                          setSelectedFormat((prev) => ({
-                                            ...prev,
-                                            [comicKey]: e.target.value,
-                                          }))
-                                        }
-                                        className="px-2 py-1 rounded-r-md rounded-l-none border border-l-0 border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2e2b40] text-gray-800 dark:text-gray-200 focus:outline-none text-xs sm:text-base"
-                                        style={{ minWidth: 70 }}
-                                      >
-                                        <option value="pdf">PDF</option>
-                                        <option value="cbz">CBZ</option>
-                                        <option value="cbr">CBR</option>
-                                        <option value="epub">ePUB</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </motion.div>
+                    Object.entries(resultsBySource).map(([sourceId, comics], srcIdx) => {
+                      console.log(`Source ${sourceId}:`, comics); // Debug log
+                      console.log(`Source ${sourceId} type:`, typeof comics); // Debug log
+                      console.log(`Source ${sourceId} isArray:`, Array.isArray(comics)); // Debug log
+                      
+                      // Handle different data structures
+                      let comicsArray = [];
+                      if (Array.isArray(comics)) {
+                        comicsArray = comics;
+                      } else if (comics && typeof comics === 'object') {
+                        // If it's an object, try to extract the comics array
+                        if (comics.comics && Array.isArray(comics.comics)) {
+                          comicsArray = comics.comics;
+                        } else if (comics.results && Array.isArray(comics.results)) {
+                          comicsArray = comics.results;
+                        } else if (comics.data && Array.isArray(comics.data)) {
+                          comicsArray = comics.data;
+                        } else {
+                          // If it's an object but not the expected structure, try to convert it
+                          comicsArray = Object.values(comics).filter(item => 
+                            item && typeof item === 'object' && item.id
                           );
-                        })}
-                        {comics && comics.error && (
-                          <div className="text-red-500 text-sm">Błąd: {comics.error}</div>
-                        )}
-                      </div>
-                    ))
+                        }
+                      }
+                      
+                      const isCollapsed = collapsedSources.has(sourceId);
+                      
+                      return (
+                        <div key={sourceId} className={`${isCollapsed ? 'mb-1' : 'mb-6'}`}>
+                          {/* Source header with dropdown */}
+                          <button
+                            onClick={() => {
+                              const newCollapsed = new Set(collapsedSources);
+                              if (newCollapsed.has(sourceId)) {
+                                newCollapsed.delete(sourceId);
+                              } else {
+                                newCollapsed.add(sourceId);
+                              }
+                              setCollapsedSources(newCollapsed);
+                            }}
+                            className="w-full flex items-center justify-between p-3 bg-white dark:bg-[#30274c] rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-[#3a2f5a] transition-colors cursor-pointer focus:outline-none"
+                          >
+                            <div className="flex items-center gap-3">
+                              <FontAwesomeIcon
+                                icon={isCollapsed ? faChevronDown : faChevronUp}
+                                className="text-pink-600 dark:text-violet-400 text-sm transition-transform duration-200"
+                              />
+                              <span className="font-bold text-pink-600 dark:text-violet-400 text-lg">
+                                {getSourceName(sourceId)}
+                              </span>
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                ({comicsArray.length} results)
+                              </span>
+                            </div>
+                          </button>
+                          
+                          {/* Comics list */}
+                          <AnimatePresence mode="sync">
+                            {!isCollapsed && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                className="mt-3 space-y-3"
+                              >
+                                {comicsArray.length === 0 && (
+                                  <div className="text-gray-500 text-sm p-4 bg-gray-50 dark:bg-[#201a35] rounded-lg">
+                                    No results
+                                    <details className="mt-2 text-xs">
+                                      <summary className="cursor-pointer">Debug: Raw data</summary>
+                                      <pre className="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs overflow-auto">
+                                        {JSON.stringify(comics, null, 2)}
+                                      </pre>
+                                    </details>
+                                  </div>
+                                )}
+                                {comicsArray.length > 0 && comicsArray.map((comic, idx) => {
+                                  const comicKey = `${comic.id}_${sourceId}`;
+                                  return (
+                                    <motion.div
+                                      key={comicKey}
+                                      initial={{ opacity: 0, y: -20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: 20 }}
+                                      transition={{ delay: idx * 0.1 }}
+                                      className="w-full"
+                                    >
+                                      {/* Comic card */}
+                                      <button
+                                        onClick={() => {
+                                          if (expandedComics.has(comicKey)) {
+                                            setExpandedComics((prev) => {
+                                              const next = new Set(prev);
+                                              next.delete(comicKey);
+                                              return next;
+                                            });
+                                          } else {
+                                            fetchChapters(comic.id, sourceId);
+                                            setExpandedComics((prev) => new Set(prev).add(comicKey));
+                                          }
+                                        }}
+                                        className="w-full flex flex-col sm:flex-row items-center gap-2 sm:gap-4 bg-white dark:bg-[#30274c] rounded-xl p-2 sm:p-4 shadow-md relative group overflow-hidden hover:bg-gray-50 dark:hover:bg-[#3a2f5a] transition-colors focus:outline-none cursor-pointer"
+                                        id={comicKey}
+                                      >
+                                        {/* Cover art */}
+                                        <div className="relative w-20 h-28 flex-shrink-0 mb-2 sm:mb-0">
+                                          {!loadedImages.has(comic.cover_art) && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-[#2e2b40] rounded-lg">
+                                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 dark:border-violet-500"></div>
+                                            </div>
+                                          )}
+                                          <img
+                                            src={comic.cover_art}
+                                            alt="cover"
+                                            className={`w-full h-full object-cover rounded-lg group-hover:opacity-50 transition-opacity ${
+                                              !loadedImages.has(comic.cover_art)
+                                                ? "opacity-0"
+                                                : "opacity-100"
+                                            }`}
+                                            onLoad={() =>
+                                              setLoadedImages((prev) =>
+                                                new Set(prev).add(comic.cover_art)
+                                              )
+                                            }
+                                          />
+                                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="text-white text-2xl sm:text-3xl font-bold">
+                                              +
+                                            </span>
+                                          </div>
+                                        </div>
+                                        {/* Comic info */}
+                                        <div className="flex-1 relative z-10 w-full">
+                                          <p className="text-base sm:text-lg font-semibold text-left">
+                                            {comic.title?.en || Object.values(comic.title || {})[0]}
+                                          </p>
+                                          <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
+                                            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                                              Languages: {" "}
+                                            </span>
+                                            {comic.availableLanguages?.map((lang) => (
+                                              <span
+                                                key={lang}
+                                                className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400"
+                                              >
+                                                {lang}
+                                                <FontAwesomeIcon
+                                                  icon={faCircleCheck}
+                                                  className="text-green-500"
+                                                />
+                                              </span>
+                                            ))}
+                                            {comic.availableLanguages && !comic.availableLanguages.includes("en") && (
+                                              <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                                                en
+                                                <FontAwesomeIcon
+                                                  icon={faCircleXmark}
+                                                  className="text-red-500"
+                                                />
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {/* Hover effect gradient */}
+                                        <div className="absolute inset-0 bg-gradient-to-tl from-pink-500/0 via-pink-500/0 to-pink-500/0 group-hover:from-pink-500/20 group-hover:via-pink-500/10 group-hover:to-pink-500/0 dark:from-violet-500/0 dark:via-violet-500/0 dark:to-violet-500/0 dark:group-hover:from-violet-500/20 dark:group-hover:via-violet-500/10 dark:group-hover:to-violet-500/0 transition-all duration-300"></div>
+                                      </button>
+
+                                      {/* Chapters section */}
+                                      {chaptersByComicId[comicKey] && expandedComics.has(comicKey) && (
+                                        <div className="ml-0 sm:ml-6 mt-2 bg-gray-50 dark:bg-[#201a35] rounded-lg p-2 sm:p-4">
+                                          {/* Chapter Range Slider */}
+                                          <div className="mb-2 sm:mb-4">
+                                            <button
+                                              onClick={() => {
+                                                if (expandedChapterSections.has(comicKey)) {
+                                                  setExpandedChapterSections((prev) => {
+                                                    const next = new Set(prev);
+                                                    next.delete(comicKey);
+                                                    return next;
+                                                  });
+                                                } else {
+                                                  setExpandedChapterSections((prev) => new Set(prev).add(comicKey));
+                                                }
+                                              }}
+                                              className="flex items-center gap-2 text-pink-600 dark:text-violet-400 font-semibold hover:opacity-80 transition-opacity text-sm sm:text-base"
+                                            >
+                                              <span>Quick Chapter Selection</span>
+                                              <FontAwesomeIcon
+                                                icon={expandedChapterSections.has(comicKey) ? faChevronUp : faChevronDown}
+                                                className="text-xs sm:text-sm transition-transform duration-200"
+                                              />
+                                            </button>
+
+                                            <AnimatePresence initial={false}>
+                                              {expandedChapterSections.has(comicKey) && (
+                                                <motion.div
+                                                  key="quick-chapter-dropdown"
+                                                  initial={{ height: 0, opacity: 0 }}
+                                                  animate={{ height: "auto", opacity: 1 }}
+                                                  exit={{ height: 0, opacity: 0 }}
+                                                  transition={{ duration: 0.3, ease: "easeOut" }}
+                                                  className="overflow-hidden mt-2 sm:mt-3"
+                                                >
+                                                  {(() => {
+                                                    const rangeInfo = getChapterRangeInfo(comicKey);
+                                                    if (rangeInfo.max > 0) {
+                                                      const currentRange = chapterRanges[comicKey];
+                                                      const selectedCount = selectedChapters[comicKey]?.length || 0;
+
+                                                      return (
+                                                        <div>
+                                                          <ChapterRangeSlider
+                                                            min={rangeInfo.min}
+                                                            max={rangeInfo.max}
+                                                            onRangeChange={(range) => handleRangeChange(comicKey, range)}
+                                                            initialStart={currentRange?.start || rangeInfo.min}
+                                                            initialEnd={currentRange?.end || rangeInfo.max}
+                                                          />
+
+                                                          {/* Range Info and Action Buttons */}
+                                                          {currentRange && (
+                                                            <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 sm:mb-2 gap-1 sm:gap-0">
+                                                                <span className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                                                                  Range: Chapter {rangeInfo.chapters[currentRange.start]?.chapter} - Chapter {rangeInfo.chapters[currentRange.end]?.chapter}
+                                                                </span>
+                                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                                  {selectedCount} selected
+                                                                </span>
+                                                              </div>
+                                                              <div className="flex gap-2 flex-wrap">
+                                                                <button
+                                                                  onClick={() => selectChaptersInRange(comicKey)}
+                                                                  className="px-2 sm:px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                                                >
+                                                                  Select Range
+                                                                </button>
+                                                                <button
+                                                                  onClick={() => clearChapterSelections(comicKey)}
+                                                                  className="px-2 sm:px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                                                                >
+                                                                  Clear All
+                                                                </button>
+                                                              </div>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    }
+                                                    return null;
+                                                  })()}
+                                                </motion.div>
+                                              )}
+                                            </AnimatePresence>
+                                          </div>
+
+                                          {/* Individual Chapter Selection */}
+                                          <div className="mb-2 sm:mb-4">
+                                            <h4 className="font-semibold mb-1 sm:mb-2 text-pink-600 dark:text-violet-400 text-sm sm:text-base">
+                                              Chapters
+                                            </h4>
+                                            {Object.entries(chaptersByComicId[comicKey]).map(([volumeName, chapters]) => (
+                                              <div key={volumeName} className="mb-2 sm:mb-4">
+                                                <h4 className="font-semibold mb-1 sm:mb-2 text-pink-600 dark:text-violet-400 text-xs sm:text-base">
+                                                  {volumeName}
+                                                </h4>
+                                                <div className="flex flex-wrap gap-1 sm:gap-2">
+                                                  {chapters.map((chData) => (
+                                                    <button
+                                                      key={chData.id}
+                                                      onClick={() => toggleChapterSelection(comicKey, chData.id)}
+                                                      className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm transition-colors focus:outline-none cursor-pointer ${
+                                                        selectedChapters[comicKey]?.includes(chData.id)
+                                                          ? "bg-pink-500 text-white dark:bg-violet-500"
+                                                          : "bg-gray-200 dark:bg-[#2e2b40] text-gray-800 dark:text-gray-300 hover:bg-pink-100 dark:hover:bg-violet-600"
+                                                      }`}
+                                                    >
+                                                      {`Ch ${chData.chapter}`}
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+
+                                          {/* Chapter action buttons */}
+                                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2">
+                                            <button
+                                              onClick={() => selectAllChapters(comicKey)}
+                                              className="px-2 sm:px-3 py-1 rounded-md bg-pink-500 rounded-r-none text-white dark:bg-violet-500 hover:opacity-90 cursor-pointer text-xs sm:text-base"
+                                            >
+                                              Select All
+                                            </button>
+                                            <div className="flex">
+                                              <button
+                                                onClick={() =>
+                                                  handleDownload(
+                                                    comic.id,
+                                                    sourceId,
+                                                    comic.title?.en || Object.values(comic.title || {})[0],
+                                                    selectedFormat[comicKey] || "pdf"
+                                                  )
+                                                }
+                                                disabled={
+                                                  isDownloading ||
+                                                  !selectedChapters[comicKey]?.length
+                                                }
+                                                className={`px-2 sm:px-3 py-1 rounded-l-md border-r-0 cursor-pointer text-xs sm:text-base ${
+                                                  isDownloading ||
+                                                  !selectedChapters[comicKey]?.length
+                                                    ? "bg-gray-400 cursor-not-allowed"
+                                                    : "bg-green-500 hover:opacity-90"
+                                                } text-white`}
+                                              >
+                                                {isDownloading ? "Starting..." : "Download"}
+                                              </button>
+                                              <select
+                                                value={selectedFormat[comicKey] || "pdf"}
+                                                onChange={(e) =>
+                                                  setSelectedFormat((prev) => ({
+                                                    ...prev,
+                                                    [comicKey]: e.target.value,
+                                                  }))
+                                                }
+                                                className="px-2 py-1 rounded-r-md rounded-l-none border border-l-0 border-gray-300 dark:border-gray-600 bg-white dark:bg-[#2e2b40] text-gray-800 dark:text-gray-200 focus:outline-none text-xs sm:text-base"
+                                                style={{ minWidth: 70 }}
+                                              >
+                                                <option value="pdf">PDF</option>
+                                                <option value="cbz">CBZ</option>
+                                                <option value="cbr">CBR</option>
+                                                <option value="epub">ePUB</option>
+                                              </select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </motion.div>
+                                  );
+                                })}
+                                {comics && comics.error && (
+                                  <div className="text-red-500 text-sm p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                    Error: {comics.error}
+                                  </div>
+                                )}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })
                   )}
                 </AnimatePresence>
               </div>
