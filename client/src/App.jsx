@@ -213,7 +213,7 @@ function App() {
     return () => clearInterval(interval);
   }, [activeTasks, downloadingFiles]);
 
-  // Search in all sources at once
+  // Search in selected source
   const handleSearch = async () => {
     setDownloadError("");
     setIsSearching(true);
@@ -223,7 +223,7 @@ function App() {
     setAnimationKey((prev) => prev + 1);
     try {
       const res = await fetch(
-        `${API_url}/search/all?title=${encodeURIComponent(title)}`
+        `${API_url}/search/?title=${encodeURIComponent(title)}&source=${source}`
       );
       if (!res.ok) {
         const errorData = await res.json();
@@ -231,7 +231,12 @@ function App() {
         throw new Error(errorMessage);
       }
       const data = await res.json();
-      setResultsBySource(data);
+      // Wrap single source results in the same format as multi-source
+      if (data.message) {
+        setResultsBySource({});
+      } else {
+        setResultsBySource({ [source]: data });
+      }
       setError("");
     } catch (err) {
       console.error("Search error:", err); // Debug log
@@ -564,6 +569,8 @@ function App() {
         <SearchForm
           title={title}
           setTitle={setTitle}
+          source={source}
+          setSource={setSource}
           handleSearch={handleSearch}
         />
 
