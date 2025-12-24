@@ -28,7 +28,7 @@ function App() {
 
   // Search and results states
   const [title, setTitle] = useState("");
-  const [source, setSource] = useState("0"); // Add source state
+  const [source, setSource] = useState("9"); // Add source state - Bato as default
   const [resultsBySource, setResultsBySource] = useState({}); // {source_id: [results], ...}
   const [animationKey, setAnimationKey] = useState(0);
   const [error, setError] = useState("");
