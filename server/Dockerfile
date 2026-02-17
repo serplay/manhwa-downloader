@@ -1,29 +1,29 @@
 FROM ubuntu:22.04
 
-# Best practice shell setup
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Environment Variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
     TZ=America/New_York \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
-    LC_ALL=en_US.UTF-8
+    LC_ALL=en_US.UTF-8 \
+    DEBIAN_FRONTEND=noninteractive
 
-# Setup Timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 #====================================================
 # Install System Dependencies, Tools, Python & Chrome
 #====================================================
 RUN apt-get update && \
-    # 1. Install software-properties-common to manage repositories
+    # 1. Install software-properties-common
     apt-get install -y --no-install-recommends software-properties-common && \
-    # 2. Enable multiverse repo (required for 'rar')
-    add-apt-repository multiverse && \
+    # 2. Enable BOTH Universe (for fonts/xvfb) and Multiverse (for rar)
+    add-apt-repository -y universe && \
+    add-apt-repository -y multiverse && \
+    # 3. Update index to see the new packages
     apt-get update && \
-    # 3. Install packages
+    # 4. Install packages
     apt-get install -y --no-install-recommends \
     locales \
     tzdata \
@@ -35,7 +35,7 @@ RUN apt-get update && \
     vim \
     rar \
     xvfb \
-    # Fonts
+    # Fonts (Many of these are in Universe)
     fonts-liberation \
     fonts-liberation2 \
     fonts-font-awesome \
@@ -46,24 +46,24 @@ RUN apt-get update && \
     fonts-mononoki \
     fonts-roboto \
     fonts-lato \
-    # Python Setup (Ubuntu 22.04 has Python 3.10 built-in)
+    # Python (Dependencies often in Universe)
     python3 \
     python3-pip \
     python3-setuptools \
     python3-dev \
     python3-tk \
     && \
-    # 4. Generate Locales
+    # 5. Generate Locales
     sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
-    # 5. Install Chrome (Automatically pulls in needed Linux lib dependencies)
+    # 6. Install Chrome
     wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     apt-get install -y ./google-chrome-stable_current_amd64.deb && \
     rm google-chrome-stable_current_amd64.deb && \
-    # 6. Cleanup
-    apt-get clean
+    # 7. Cleanup
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create symlink for python -> python3
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 #================
@@ -76,7 +76,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Exposed on Port 10000
 EXPOSE 10000
 
 # CMD ["python", "main.py"]
