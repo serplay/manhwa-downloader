@@ -61,8 +61,7 @@ RUN apt-get update && \
     apt-get install -y ./google-chrome-stable_current_amd64.deb && \
     rm google-chrome-stable_current_amd64.deb && \
     # 6. Cleanup
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean
 
 # Create symlink for python -> python3
 RUN ln -s /usr/bin/python3 /usr/bin/python
