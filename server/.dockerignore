@@ -1,9 +1,0 @@
-__pycache__/
-*.py[cod]
-*.log
-*.lock
-Downloads/
-downloaded_files/
-.git/
-.gitignore
-*.md
