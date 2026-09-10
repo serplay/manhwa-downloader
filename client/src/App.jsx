@@ -226,8 +226,9 @@ function App() {
         `${API_url}/search/?title=${encodeURIComponent(title)}&source=${source}`
       );
       if (!res.ok) {
-        const errorData = await res.json();
-        const errorMessage = errorData.error || "Failed to fetch data";
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage =
+          errorData?.error?.message || errorData?.error || errorData?.detail || "Failed to fetch data";
         throw new Error(errorMessage);
       }
       const data = await res.json();
@@ -240,7 +241,7 @@ function App() {
       setError("");
     } catch (err) {
       console.error("Search error:", err); // Debug log
-      setError("An error occurred while fetching data");
+      setError(err.message || "An error occurred while fetching data");
       setResultsBySource({});
     } finally {
       setIsSearching(false);
@@ -256,8 +257,9 @@ function App() {
         `${API_url}/chapters/?id=${comicId}&source=${sourceId}`
       );
       if (!res.ok) {
-        const errorData = await res.json();
-        const errorMessage = errorData.error || "Failed to fetch chapters";
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage =
+          errorData?.error?.message || errorData?.error || errorData?.detail || "Failed to fetch chapters";
         throw new Error(errorMessage);
       }
       const data = await res.json();

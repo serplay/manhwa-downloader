@@ -17,7 +17,8 @@ test.json
 source.html
 server-old/
 target/
-cargo.lock
+# Cargo.lock is committed (binary crate)
+server/Downloads/
 
 # Editor directories and files
 .vscode/*

@@ -1,0 +1,78 @@
+---
+source: src/sources/mangadex.rs
+expression: comics
+---
+[
+  {
+    "id": "ade0306c-f4b6-4890-9edb-1ddf04df2039",
+    "title": {
+      "ko-ro": "Na Honjaman Level Up: Ragnarok"
+    },
+    "cover": {
+      "url": "https://uploads.mangadex.org/covers/ade0306c-f4b6-4890-9edb-1ddf04df2039/fe76445d-387f-4ff6-8340-f06403c20dbe.jpg.256.jpg"
+    },
+    "languages": [
+      "pt-br",
+      "it",
+      "pl",
+      "fr"
+    ]
+  },
+  {
+    "id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
+    "title": {
+      "ko-ro": "Na Honjaman Level-Up"
+    },
+    "cover": {
+      "url": "https://uploads.mangadex.org/covers/32d76d19-8a05-4db0-9fc2-e0b0648fe9d0/e90bdc47-c8b9-4df7-b2c0-17641b645ee1.jpg.256.jpg"
+    },
+    "languages": [
+      "ka",
+      "ru",
+      "it",
+      "vi",
+      "en",
+      "hu",
+      "lt",
+      "tr",
+      "es-la",
+      "ms",
+      "id",
+      "pt-br",
+      "hi",
+      "ro",
+      "he",
+      "fr",
+      "fa",
+      "ar",
+      "es",
+      "de",
+      "pl",
+      "nl",
+      "kk",
+      "cs",
+      "sv",
+      "ta",
+      "te",
+      "sr",
+      "tl",
+      "el",
+      "bn",
+      "my"
+    ]
+  },
+  {
+    "id": "83ff1ad8-7ec5-4134-a8a1-40f1b37a4cc7",
+    "title": {
+      "en": "Solo Leveling: Arise"
+    },
+    "cover": {
+      "url": "https://uploads.mangadex.org/covers/83ff1ad8-7ec5-4134-a8a1-40f1b37a4cc7/8adc4d87-41c4-4f8b-a800-d0fccf9b10c5.jpg.256.jpg"
+    },
+    "languages": [
+      "it",
+      "pt-br",
+      "en"
+    ]
+  }
+]
