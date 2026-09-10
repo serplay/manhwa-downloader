@@ -42,8 +42,9 @@ use crate::state::SharedState;
 )]
 struct ApiDoc;
 
-pub fn router(state: SharedState) -> Router {
-    let (modern, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+/// The documented routes and the OpenAPI document that describes them.
+fn documented() -> (Router<SharedState>, utoipa::openapi::OpenApi) {
+    OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(health::health))
         .routes(routes!(sources::list_sources))
         .routes(routes!(search::search))
@@ -55,7 +56,20 @@ pub fn router(state: SharedState) -> Router {
         .routes(routes!(download::file))
         .routes(routes!(download::cancel))
         .routes(routes!(download::list_tasks))
-        .split_for_parts();
+        .split_for_parts()
+}
+
+/// The OpenAPI document as pretty JSON, for `manhwa-server --openapi`. The
+/// client generates its TypeScript types from this without running the server.
+pub fn openapi_json() -> String {
+    documented()
+        .1
+        .to_pretty_json()
+        .expect("OpenAPI document serializes")
+}
+
+pub fn router(state: SharedState) -> Router {
+    let (modern, api) = documented();
 
     let cors = if state.config.cors_origins.iter().any(|o| o == "*") {
         CorsLayer::new().allow_origin(Any)

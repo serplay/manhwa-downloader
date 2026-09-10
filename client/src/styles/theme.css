@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/* Class-based dark mode. `html.dark` is set by the theme script in index.html
+   before first paint and kept in sync by useTheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. One neutral family (zinc), one accent (rose, taken from the
+   logo's arrow), semantic colors only for real state. Radii are locked at
+   16 (panels) / 10 (controls) / 8 (chips); see MODERNIZATION_PLAN.md 4.2. */
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-panel: 1rem;
+  --radius-control: 0.625rem;
+  --radius-chip: 0.5rem;
+
+  --color-accent: oklch(0.60 0.17 356);
+  --color-accent-hover: oklch(0.55 0.17 356);
+  --color-accent-soft: oklch(0.60 0.17 356 / 12%);
+  --color-accent-fg: oklch(0.99 0.005 356);
+
+  --color-ok: oklch(0.62 0.15 160);
+  --color-warn: oklch(0.72 0.15 75);
+  --color-danger: oklch(0.58 0.19 20);
+
+  /* Semantic surfaces; values swap under .dark below. */
+  --color-bg: var(--surface-bg);
+  --color-surface: var(--surface-1);
+  --color-raised: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--text-1);
+  --color-fg-muted: var(--text-2);
+  --color-fg-faint: var(--text-3);
+
+  --shadow-float: 0 1px 2px var(--shadow-ink), 0 12px 32px -12px var(--shadow-ink);
+  --shadow-lift: 0 1px 1px var(--shadow-ink), 0 6px 16px -8px var(--shadow-ink);
+
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  --surface-bg: oklch(0.985 0.002 286);
+  --surface-1: oklch(0.965 0.003 286);
+  --surface-2: oklch(1 0 0);
+  --line: oklch(0.2 0.01 286 / 8%);
+  --line-strong: oklch(0.2 0.01 286 / 16%);
+  --text-1: oklch(0.21 0.01 286);
+  --text-2: oklch(0.45 0.01 286);
+  --text-3: oklch(0.6 0.01 286);
+  --shadow-ink: oklch(0.2 0.02 300 / 10%);
+  color-scheme: light;
+}
+
+.dark {
+  --surface-bg: oklch(0.15 0.008 290);
+  --surface-1: oklch(0.19 0.008 290);
+  --surface-2: oklch(0.23 0.009 290);
+  --line: oklch(0.98 0.01 290 / 8%);
+  --line-strong: oklch(0.98 0.01 290 / 16%);
+  --text-1: oklch(0.95 0.005 290);
+  --text-2: oklch(0.72 0.01 290);
+  --text-3: oklch(0.56 0.01 290);
+  --shadow-ink: oklch(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+  /* Visible focus everywhere; components never remove it without replacing it. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-control);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .hairline {
+    box-shadow: inset 0 0 0 1px var(--color-line);
+  }
+  .shimmer {
+    background: linear-gradient(
+      100deg,
+      var(--color-surface) 40%,
+      var(--color-raised) 50%,
+      var(--color-surface) 60%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+}

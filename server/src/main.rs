@@ -16,6 +16,10 @@ use crate::{config::Config, state::AppState};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    if std::env::args().any(|a| a == "--openapi") {
+        println!("{}", api::openapi_json());
+        return Ok(());
+    }
     let config = Config::from_env()?;
     init_tracing();
 
