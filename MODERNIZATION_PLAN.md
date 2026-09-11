@@ -1,7 +1,7 @@
 # Manhwa Downloader - Modernization Plan
 
-Status: APPROVED (decisions D1-D9 accepted, 2026-09-10). Progress: Phases 0 to 4 done (Phase 4 on 2026-09-11; see the outcome under Phase 4). Next: Phase 5.
-Branch: `rust-dev`. Inputs: `server-old/` (Python/FastAPI/Celery, gitignored), `server/` (Rust stub, two routes), `client/` (Vite + React 19 + Tailwind v4).
+Status: APPROVED (decisions D1-D9 accepted, 2026-09-10). Progress: all phases done (Phase 5 on 2026-09-11). Remaining work is tracked in `TODO.md`.
+Branch: `rust-dev`. Inputs at the start: `server-old/` (Python/FastAPI/Celery, since deleted; last in history before `2ab5063`), `server/` (Rust stub, two routes), `client/` (Vite + React 19 + Tailwind v4).
 
 This plan has three parts: what exists today (audit), what we build (backend, API, frontend, deployment), and how we get there (phases, parity checklist, decisions you need to confirm).
 
@@ -436,6 +436,8 @@ Implementation notes: `sources/http.rs` now holds a `Fetcher` that owns both cli
 
 ### Phase 5. Cutover (small)
 - Dockerfile, compose, README, deploy the Rust server to the existing API host, remove legacy route aliases after one release, delete `server-old/`.
+
+**Outcome (2026-09-11).** Multi-stage `server/Dockerfile` (Rust builder with cmake and clang for BoringSSL, Debian slim runtime, non-root, tini, health check), `docker-compose.yml`, `.dockerignore`, and a `render.yaml` Docker blueprint replacing the old Python one. CI builds the image on every push. Legacy routes (`/search/`, `/search/all`, `/chapters/`, `/status`, `/tasks/*`), the query-string form of `POST /download`, the `hd` proxy alias and `PUBLIC_BASE_PATH` are removed; the new client never used them. `server-old/` is deleted (its `.gitignore` entry too). README and TODO rewritten for the Rust stack. Deploying to the existing API host is the owner's step: the old service was a Render Python runtime, and the blueprint targets the same platform. Bato remains unreachable without a browser from the networks tested: `bato.si` now serves a placeholder page and the other mirrors answer with a JavaScript interstitial or redirect to port 444.
 
 ---
 

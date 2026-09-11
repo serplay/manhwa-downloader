@@ -15,7 +15,6 @@ test.json
 .env
 .env.production
 source.html
-server-old/
 target/
 # Cargo.lock is committed (binary crate)
 server/Downloads/

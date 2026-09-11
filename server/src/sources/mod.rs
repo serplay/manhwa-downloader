@@ -145,7 +145,6 @@ mod tests {
             status_ttl: std::time::Duration::from_secs(1),
             request_timeout: std::time::Duration::from_secs(1),
             cors_origins: vec![],
-            public_base_path: String::new(),
             proxy_extra_hosts: vec![],
             browser_enabled: false,
             impersonation_enabled: false,

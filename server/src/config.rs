@@ -13,9 +13,6 @@ pub struct Config {
     pub status_ttl: Duration,
     pub request_timeout: Duration,
     pub cors_origins: Vec<String>,
-    /// Prefix the client uses to reach this API (e.g. `/api` behind the Vercel rewrite).
-    /// Used only to build legacy `cover_art` proxy URLs.
-    pub public_base_path: String,
     /// Extra hostname suffixes the image proxy may fetch from.
     pub proxy_extra_hosts: Vec<String>,
     pub browser_enabled: bool,
@@ -37,9 +34,6 @@ impl Config {
             status_ttl: Duration::from_secs(var_or("STATUS_TTL_SECS", "60").parse()?),
             request_timeout: Duration::from_secs(var_or("REQUEST_TIMEOUT_SECS", "30").parse()?),
             cors_origins: split_list(&var_or("CORS_ORIGINS", "*")),
-            public_base_path: var_or("PUBLIC_BASE_PATH", "/api")
-                .trim_end_matches('/')
-                .to_string(),
             proxy_extra_hosts: split_list(&var_or("PROXY_EXTRA_HOSTS", "")),
             browser_enabled: var_or("BROWSER_ENABLED", "false").eq_ignore_ascii_case("true"),
             impersonation_enabled: !var_or("IMPERSONATION_ENABLED", "true")

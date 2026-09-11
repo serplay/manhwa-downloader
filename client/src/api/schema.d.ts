@@ -638,8 +638,6 @@ export interface operations {
                 url: string;
                 /** @description Referer the host expects. */
                 referer?: string | null;
-                /** @description Legacy alias for `referer`. */
-                hd?: string | null;
             };
             header?: never;
             path?: never;

@@ -5,7 +5,7 @@ use std::convert::Infallible;
 use axum::{
     Json,
     body::{Body, Bytes},
-    extract::{Path, RawQuery, State},
+    extract::{Path, State},
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{
         IntoResponse, Response,
@@ -21,10 +21,9 @@ use uuid::Uuid;
 
 use crate::{
     error::{AppError, AppResult},
-    model::Format,
     pipeline::ascii_filename,
     state::SharedState,
-    tasks::{ChapterRef, DownloadRequest, TaskStatus},
+    tasks::{DownloadRequest, TaskStatus},
 };
 
 #[derive(Serialize, ToSchema)]
@@ -39,46 +38,6 @@ pub struct DownloadAccepted {
     pub file_url: String,
 }
 
-/// Parse the old query form: `ids[]=<chapter_id>_<number>&source=&comic_title=&format=`.
-/// Chapter ids may contain underscores, so we split at the last one.
-pub fn parse_legacy_query(raw: &str) -> AppResult<DownloadRequest> {
-    let mut chapters = Vec::new();
-    let mut source = None;
-    let mut comic_title = None;
-    let mut format = None;
-    for (k, v) in url::form_urlencoded::parse(raw.as_bytes()) {
-        match &*k {
-            "ids[]" | "ids" => {
-                let (id, number) = match v.rsplit_once('_') {
-                    Some((id, n)) if !id.is_empty() => (id.to_string(), n.to_string()),
-                    _ => (v.to_string(), "0".to_string()),
-                };
-                chapters.push(ChapterRef { id, number });
-            }
-            "source" => source = Some(v.to_string()),
-            "comic_title" => comic_title = Some(v.to_string()),
-            "format" => {
-                format = Some(
-                    serde_json::from_value::<Format>(serde_json::Value::String(v.to_lowercase()))
-                        .map_err(|_| {
-                        AppError::Validation("invalid format; allowed: pdf, cbz, cbr, epub".into())
-                    })?,
-                )
-            }
-            _ => {}
-        }
-    }
-    Ok(DownloadRequest {
-        source: source.ok_or_else(|| AppError::Validation("source must be specified".into()))?,
-        comic_title: comic_title
-            .filter(|t| !t.trim().is_empty())
-            .unwrap_or_else(|| "Chapters".into()),
-        format: format.unwrap_or(Format::Pdf),
-        chapters,
-        lang: None,
-    })
-}
-
 #[utoipa::path(post, path = "/download", tag = "downloads",
     request_body = DownloadRequest,
     responses(
@@ -88,21 +47,15 @@ pub fn parse_legacy_query(raw: &str) -> AppResult<DownloadRequest> {
         (status = 501, description = "Source cannot download yet", body = crate::error::ErrorBody)))]
 pub async fn start_download(
     State(state): State<SharedState>,
-    RawQuery(query): RawQuery,
     body: Bytes,
 ) -> AppResult<(StatusCode, Json<DownloadAccepted>)> {
-    let req = match query.as_deref() {
-        Some(q) if q.contains("ids") => parse_legacy_query(q)?,
-        _ => {
-            if body.is_empty() {
-                return Err(AppError::Validation(
-                    "send a JSON body with source, comic_title, format and chapters".into(),
-                ));
-            }
-            serde_json::from_slice::<DownloadRequest>(&body)
-                .map_err(|e| AppError::Validation(format!("invalid request body: {e}")))?
-        }
-    };
+    if body.is_empty() {
+        return Err(AppError::Validation(
+            "send a JSON body with source, comic_title, format and chapters".into(),
+        ));
+    }
+    let req = serde_json::from_slice::<DownloadRequest>(&body)
+        .map_err(|e| AppError::Validation(format!("invalid request body: {e}")))?;
     let count = req.chapters.len();
     let status = state.engine.spawn(state.clone(), req)?;
     let id = status.task_id;
@@ -247,26 +200,6 @@ pub async fn list_tasks(State(state): State<SharedState>) -> Json<Vec<TaskStatus
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn legacy_query_splits_at_last_underscore() {
-        let req = parse_legacy_query(
-            "ids%5B%5D=abc_def_12.5&ids%5B%5D=xyz_3&source=0&comic_title=Solo&format=CBZ",
-        )
-        .unwrap();
-        assert_eq!(req.chapters.len(), 2);
-        assert_eq!(req.chapters[0].id, "abc_def");
-        assert_eq!(req.chapters[0].number, "12.5");
-        assert_eq!(req.chapters[1].id, "xyz");
-        assert_eq!(req.source, "0");
-        assert_eq!(req.comic_title, "Solo");
-        assert_eq!(req.format, Format::Cbz);
-    }
-
-    #[test]
-    fn legacy_query_rejects_bad_format() {
-        assert!(parse_legacy_query("ids%5B%5D=a_1&source=0&format=docx").is_err());
-    }
 
     #[test]
     fn disposition_has_ascii_and_utf8_names() {

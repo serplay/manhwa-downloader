@@ -1,0 +1,21 @@
+# Render blueprint: one Docker web service, no Redis, no worker.
+services:
+  - type: web
+    name: manhwa-downloader
+    runtime: docker
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /health
+    disk:
+      name: downloads
+      mountPath: /data/downloads
+      sizeGB: 5
+    envVars:
+      - key: RUST_LOG
+        value: info
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: MAX_CONCURRENT_DOWNLOADS
+        value: "2"

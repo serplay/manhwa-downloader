@@ -364,18 +364,6 @@
                 "null"
               ]
             }
-          },
-          {
-            "name": "hd",
-            "in": "query",
-            "description": "Legacy alias for `referer`.",
-            "required": false,
-            "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
-            }
           }
         ],
         "responses": {

@@ -1,10 +1,8 @@
-//! HTTP surface. `modern` routes are documented in OpenAPI; `legacy` routes
-//! keep the exact paths and shapes the current React client expects.
+//! HTTP surface. Every route is documented in OpenAPI at `/docs`.
 
 pub mod chapters;
 pub mod download;
 pub mod health;
-pub mod legacy;
 pub mod proxy;
 pub mod search;
 pub mod sources;
@@ -87,7 +85,6 @@ pub fn router(state: SharedState) -> Router {
 
     Router::new()
         .merge(modern)
-        .merge(legacy::router())
         .merge(SwaggerUi::new("/docs").url("/openapi.json", api))
         .layer(CompressionLayer::new())
         .layer(TimeoutLayer::with_status_code(

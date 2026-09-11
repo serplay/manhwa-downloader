@@ -7,14 +7,13 @@ use axum::{
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Response},
 };
-use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use serde::Deserialize;
 use url::Url;
 use utoipa::IntoParams;
 
 use crate::{
     error::{AppError, AppResult},
-    model::{Cover, FetchTier},
+    model::FetchTier,
     state::SharedState,
 };
 
@@ -53,21 +52,6 @@ pub struct ProxyParams {
     pub url: String,
     /// Referer the host expects.
     pub referer: Option<String>,
-    /// Legacy alias for `referer`.
-    pub hd: Option<String>,
-}
-
-/// Build the proxied URL the client should put in an `<img src>`.
-pub fn proxy_url(base_path: &str, cover: &Cover) -> String {
-    let mut out = format!(
-        "{base_path}/proxy-image?url={}",
-        utf8_percent_encode(&cover.url, NON_ALPHANUMERIC)
-    );
-    if let Some(r) = &cover.referer {
-        out.push_str("&referer=");
-        out.push_str(&utf8_percent_encode(r, NON_ALPHANUMERIC).to_string());
-    }
-    out
 }
 
 pub fn host_allowed(host: &str, extra: &[String], source_hosts: &[String]) -> bool {
@@ -157,7 +141,7 @@ pub async fn proxy_image(
     Query(params): Query<ProxyParams>,
 ) -> AppResult<Response> {
     let target = validate_target(&state, &params.url)?;
-    let referer = params.referer.or(params.hd).filter(|r| !r.is_empty());
+    let referer = params.referer.filter(|r| !r.is_empty());
 
     let tier = tier_for(&state, &target, referer.as_deref());
     let mut req = state
@@ -213,20 +197,5 @@ mod tests {
         assert!(host_allowed("mangapill.com", &extra, &sources));
         assert!(!host_allowed("evilmangadex.org", &extra, &sources));
         assert!(!host_allowed("localhost", &extra, &sources));
-    }
-
-    #[test]
-    fn proxy_url_encodes_parts() {
-        let cover = Cover {
-            url: "https://a.b/c d.jpg?x=1&y=2".into(),
-            referer: Some("https://a.b/".into()),
-        };
-        let url = proxy_url("/api", &cover);
-        assert!(
-            url.starts_with(
-                "/api/proxy-image?url=https%3A%2F%2Fa%2Eb%2Fc%20d%2Ejpg%3Fx%3D1%26y%3D2"
-            )
-        );
-        assert!(url.ends_with("&referer=https%3A%2F%2Fa%2Eb%2F"));
     }
 }
