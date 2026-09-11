@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { api, ApiError } from "@/api/client";
+import { ApiError } from "@/api/client";
 import { ChapterPicker, type DownloadIntent } from "@/components/chapters/ChapterPicker";
+import { DownloadsTray } from "@/components/downloads/DownloadsTray";
 import { Header } from "@/components/layout/Header";
 import { SearchBar } from "@/components/search/SearchBar";
 import { Results, ResultsSkeleton } from "@/components/results/Results";
 import { useSearch } from "@/hooks/useSearch";
 import { ALL_SOURCES, useSources } from "@/hooks/useSources";
 import { useUrlState } from "@/hooks/useUrlState";
+import { useDownloads } from "@/store/downloads";
 import type { Comic } from "@/api/types";
 
 export default function App() {
@@ -21,17 +23,10 @@ export default function App() {
     setSelected({ comic, source: s });
     setPickerOpen(true);
   };
+  const start = useDownloads((s) => s.start);
   const startDownload = async (intent: DownloadIntent) => {
     try {
-      await api.POST("/download", {
-        body: {
-          source: intent.source,
-          comic_title: intent.comicTitle,
-          chapters: intent.chapters,
-          format: intent.format,
-          lang: intent.lang ?? null,
-        },
-      });
+      await start(intent);
       toast.success("Download started");
       setPickerOpen(false);
     } catch (e) {
@@ -72,6 +67,7 @@ export default function App() {
           <p className="text-sm text-fg-muted">Search a title to get started. Results show covers first; open one to pick chapters.</p>
         )}
       </main>
+      <DownloadsTray />
       <ChapterPicker
         comic={selected?.comic ?? null}
         source={selected?.source ?? ""}

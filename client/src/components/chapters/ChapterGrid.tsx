@@ -4,7 +4,9 @@ import type { Volume } from "@/api/types";
 import { ToggleChip } from "@/components/ui/Chip";
 import { plural } from "@/lib/format";
 
-type Row = { kind: "header"; name: string; count: number } | { kind: "chips"; start: number; ids: string[]; labels: string[] };
+type Row =
+  | { kind: "header"; name: string; count: number }
+  | { kind: "chips"; start: number; ids: string[]; labels: string[]; titles: (string | null | undefined)[] };
 
 const CHIP_MIN_PX = 76;
 const GAP_PX = 8;
@@ -48,7 +50,13 @@ export function ChapterGrid({
       if (many) out.push({ kind: "header", name: v.name, count: v.chapters.length });
       for (let i = 0; i < v.chapters.length; i += columns) {
         const slice = v.chapters.slice(i, i + columns);
-        out.push({ kind: "chips", start: index, ids: slice.map((c) => c.id), labels: slice.map((c) => c.number) });
+        out.push({
+          kind: "chips",
+          start: index,
+          ids: slice.map((c) => c.id),
+          labels: slice.map((c) => c.number),
+          titles: slice.map((c) => c.title),
+        });
         index += slice.length;
       }
     }
@@ -98,7 +106,7 @@ export function ChapterGrid({
                     key={id}
                     pressed={selected.has(id)}
                     onClick={click(row.start + i, id)}
-                    title={`Chapter ${row.labels[i]}`}
+                    title={row.titles[i] ?? `Chapter ${row.labels[i]}`}
                     className="tabular w-full justify-center px-1 font-mono"
                   >
                     {row.labels[i]}
