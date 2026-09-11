@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { plural } from "@/lib/format";
 import { isTerminal, useDownloads } from "@/store/downloads";
 import { ProgressRing } from "./ProgressRing";
+import { TaskFollower } from "./TaskFollower";
 import { TaskRow } from "./TaskRow";
 
 const spring = { type: "spring", stiffness: 260, damping: 26 } as const;
@@ -24,10 +25,12 @@ export function DownloadsTray() {
 
   if (list.length === 0) return null;
 
+  const followers = list.map((t) => <TaskFollower key={t.id} task={t} />);
   const label = active.length ? `${plural(active.length, "download")} running` : `${plural(list.length, "download")}`;
 
   return (
     <aside aria-label="Downloads" className="fixed right-4 bottom-4 z-30 flex flex-col items-end gap-2 sm:right-6 sm:bottom-6">
+      {followers}
       <AnimatePresence>
         {open && (
           <motion.section

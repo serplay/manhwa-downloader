@@ -1,52 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ArrowsClockwise, DownloadSimple, X } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { fileUrl } from "@/api/client";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
-import { useTaskStream } from "@/hooks/useTaskStream";
 import { formatBytes, plural } from "@/lib/format";
+import { fileNameFor, saveFile } from "@/lib/save-file";
 import { isTerminal, useDownloads, type TrackedTask } from "@/store/downloads";
 import { cn } from "@/lib/cn";
-
-/**
- * Fetch the finished archive and hand it to the browser. Fetching (rather than
- * an anchor click) tells us whether the save happened, which matters because
- * the server deletes the file after the first successful transfer.
- */
-async function saveFile(id: string, fileName: string): Promise<"saved" | "gone" | "error"> {
-  try {
-    const res = await fetch(fileUrl(id));
-    if (res.status === 404 || res.status === 410) return "gone";
-    if (!res.ok) return "error";
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    return "saved";
-  } catch {
-    return "error";
-  }
-}
 
 export function TaskRow({ task }: { task: TrackedTask }) {
   const { cancel, remove, retry, markSaved, markGone } = useDownloads();
   const [saving, setSaving] = useState(false);
   const terminal = isTerminal(task);
-  useTaskStream(task.id, !terminal);
 
   const state = task.gone ? "GONE" : (task.status?.state ?? "PENDING");
   const progress = task.status?.progress ?? 0;
 
-  const fileName = task.status?.file_name ?? `${task.comicTitle}.${task.format === "pdf" || task.format === "cbz" || task.format === "cbr" ? "zip" : task.format}`;
   const save = async () => {
     setSaving(true);
-    const result = await saveFile(task.id, fileName);
+    const result = await saveFile(task.id, fileNameFor(task));
     setSaving(false);
     if (result === "saved") markSaved(task.id);
     else if (result === "gone") {
@@ -54,16 +26,6 @@ export function TaskRow({ task }: { task: TrackedTask }) {
       toast.error("That file has expired on the server. Retry to build it again.");
     } else toast.error("Could not save the file. Try again.");
   };
-
-  // Save exactly once per task when it succeeds, including across a reload.
-  const attempted = useRef(task.saved);
-  useEffect(() => {
-    if (state === "SUCCESS" && !attempted.current) {
-      attempted.current = true;
-      void save();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, task.id]);
 
   const line =
     state === "GONE"

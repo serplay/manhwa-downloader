@@ -2,6 +2,7 @@ import { Popover } from "radix-ui";
 import { GearSix, Monitor, Moon, Sun } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { Segmented } from "@/components/ui/Segmented";
+import { SourceStatusPopover } from "@/components/sources/SourceStatusPopover";
 import { useTheme } from "@/hooks/useTheme";
 import type { ThemeMode } from "@/lib/theme";
 import type { ReactNode } from "react";
@@ -29,6 +30,7 @@ export function Header({ actions }: { actions?: ReactNode }) {
       </a>
       <div className="flex items-center gap-1">
         {actions}
+        <SourceStatusPopover />
         <Popover.Root>
           <Popover.Trigger asChild>
             <IconButton label="Settings">
