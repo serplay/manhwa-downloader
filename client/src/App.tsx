@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { toast } from "sonner";
+import { api, ApiError } from "@/api/client";
+import { ChapterPicker, type DownloadIntent } from "@/components/chapters/ChapterPicker";
 import { Header } from "@/components/layout/Header";
 import { SearchBar } from "@/components/search/SearchBar";
 import { Results, ResultsSkeleton } from "@/components/results/Results";
@@ -11,7 +14,30 @@ export default function App() {
   const [{ q, source }, setUrl] = useUrlState();
   const sources = useSources();
   const search = useSearch(q, source);
-  const [, setSelected] = useState<{ comic: Comic; source: string } | null>(null);
+  const [selected, setSelected] = useState<{ comic: Comic; source: string } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const openPicker = (comic: Comic, s: string) => {
+    setSelected({ comic, source: s });
+    setPickerOpen(true);
+  };
+  const startDownload = async (intent: DownloadIntent) => {
+    try {
+      await api.POST("/download", {
+        body: {
+          source: intent.source,
+          comic_title: intent.comicTitle,
+          chapters: intent.chapters,
+          format: intent.format,
+          lang: intent.lang ?? null,
+        },
+      });
+      toast.success("Download started");
+      setPickerOpen(false);
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.friendly : "Could not start the download");
+    }
+  };
 
   const onSearch = (nextQ: string, nextSource: string) =>
     setUrl({ q: nextQ, source: nextSource === ALL_SOURCES ? "" : nextSource });
@@ -37,7 +63,7 @@ export default function App() {
               sources={sources.data}
               data={search.data}
               error={search.error}
-              onOpen={(comic, s) => setSelected({ comic, source: s })}
+              onOpen={openPicker}
               onSearchAll={() => setUrl({ source: "" })}
               onRetry={() => void search.refetch()}
             />
@@ -46,6 +72,14 @@ export default function App() {
           <p className="text-sm text-fg-muted">Search a title to get started. Results show covers first; open one to pick chapters.</p>
         )}
       </main>
+      <ChapterPicker
+        comic={selected?.comic ?? null}
+        source={selected?.source ?? ""}
+        sourceName={sources.data?.find((s) => s.slug === selected?.source)?.name ?? selected?.source ?? ""}
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onDownload={(intent) => void startDownload(intent)}
+      />
     </div>
   );
 }

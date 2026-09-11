@@ -120,3 +120,21 @@
     to { background-position: -200% 0; }
   }
 }
+
+/* Sheet motion: transform and opacity only. */
+@layer utilities {
+  .sheet-overlay[data-state="open"] { animation: fade-in 180ms ease-out; }
+  .sheet-overlay[data-state="closed"] { animation: fade-out 150ms ease-in; }
+  .sheet-panel[data-state="open"] { animation: sheet-up 320ms var(--ease-spring); }
+  .sheet-panel[data-state="closed"] { animation: sheet-down 200ms ease-in; }
+  @media (min-width: 768px) {
+    .sheet-panel[data-state="open"] { animation-name: sheet-in; }
+    .sheet-panel[data-state="closed"] { animation-name: sheet-out; }
+  }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes sheet-down { from { transform: none; opacity: 1; } to { transform: translateY(24px); opacity: 0; } }
+  @keyframes sheet-in { from { transform: translateX(32px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes sheet-out { from { transform: none; opacity: 1; } to { transform: translateX(32px); opacity: 0; } }
+}
