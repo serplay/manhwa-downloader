@@ -4,7 +4,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use super::{Ctx, Source, http};
+use super::{Ctx, SearchOptions, Source, http};
 use crate::model::FetchTier;
 
 fn ctx() -> Ctx {
@@ -24,7 +24,7 @@ async fn roundtrip(source: &dyn Source, query: &str) {
     let ctx = ctx();
     let slug = source.meta().slug;
     let comics = source
-        .search(&ctx, query, None)
+        .search(&ctx, query, None, &SearchOptions::default())
         .await
         .unwrap_or_else(|e| panic!("[{slug}] search failed: {e}"));
     assert!(!comics.is_empty(), "[{slug}] search returned nothing");
@@ -128,7 +128,10 @@ async fn live_browser_only_madara_sites() {
     ] {
         let source = super::madara::Madara::new(site.clone(), true);
         assert_eq!(source.meta().tier, FetchTier::Browser);
-        match source.search(&ctx(), "solo", None).await {
+        match source
+            .search(&ctx(), "solo", None, &SearchOptions::default())
+            .await
+        {
             Ok(comics) => eprintln!(
                 "[{}] PASSES without a browser now ({} results); consider needs_browser=false",
                 site.slug,

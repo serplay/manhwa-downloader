@@ -5,7 +5,7 @@
 use async_trait::async_trait;
 use scraper::Html;
 
-use super::{Ctx, PageUrl, Source, html::*, http};
+use super::{Ctx, PageUrl, SearchOptions, Source, html::*, http};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -53,6 +53,7 @@ impl MangaReader {
                     download: true,
                     needs_browser: false,
                 },
+                adult: false,
             },
             site,
         }
@@ -92,6 +93,7 @@ pub fn parse_search(base_url: &str, body: &str) -> Vec<Comic> {
                 title: [("en".to_string(), title)].into_iter().collect(),
                 cover,
                 languages: vec!["en".into()],
+                adult: false,
             })
         })
         .collect()
@@ -186,7 +188,13 @@ impl Source for MangaReader {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        _opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let url = http::with_query(&format!("{}/", self.site.base_url), &[("s", query)]);
         let body = ctx
             .fetcher

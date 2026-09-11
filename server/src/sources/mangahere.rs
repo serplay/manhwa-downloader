@@ -7,7 +7,7 @@ use regex::Regex;
 use scraper::Html;
 use std::sync::LazyLock;
 
-use super::{Ctx, PageUrl, Source, html::*, http};
+use super::{Ctx, PageUrl, SearchOptions, Source, html::*, http};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -48,6 +48,7 @@ impl Mangahere {
                     download: true,
                     needs_browser: false,
                 },
+                adult: false,
             },
         }
     }
@@ -147,6 +148,7 @@ pub fn parse_search(body: &str) -> Vec<Comic> {
                 title: [("en".to_string(), title)].into_iter().collect(),
                 cover,
                 languages: vec!["en".into()],
+                adult: false,
             })
         })
         .collect()
@@ -281,7 +283,13 @@ impl Source for Mangahere {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        _opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let url = http::with_query(&format!("{BASE}/search"), &[("title", query)]);
         let body = ctx.fetcher.get(url).source(SLUG).text().await?;
         Ok(parse_search(&body))

@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::json;
 
-use super::{Ctx, PageUrl, Source, http};
+use super::{Ctx, PageUrl, SearchOptions, Source, http};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -64,6 +64,7 @@ impl Bato {
                     download: true,
                     needs_browser: false,
                 },
+                adult: false,
             },
         }
     }
@@ -219,6 +220,7 @@ pub fn parse_search(base_url: &str, body: &str) -> AppResult<Vec<Comic>> {
                 title: [("en".to_string(), c.name)].into_iter().collect(),
                 cover,
                 languages: vec!["en".into()],
+                adult: false,
             }
         })
         .collect())
@@ -292,7 +294,13 @@ impl Source for Bato {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        _opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let body = self
             .graphql(ctx, SEARCH_QUERY, json!({ "select": { "word": query } }))
             .await?;

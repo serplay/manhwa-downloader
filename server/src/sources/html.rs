@@ -8,6 +8,25 @@ use scraper::{ElementRef, Selector};
 
 use crate::model::parse_leading_number;
 
+/// Genre labels that mark a title as adult across the scraped sites.
+const ADULT_GENRES: &[&str] = &[
+    "adult",
+    "mature",
+    "hentai",
+    "smut",
+    "erotica",
+    "ecchi",
+    "pornographic",
+    "18+",
+    "adult content",
+];
+
+/// True when a genre or tag label means the title is adult.
+pub fn is_adult_genre(label: &str) -> bool {
+    let l = label.trim().to_ascii_lowercase();
+    ADULT_GENRES.iter().any(|g| l == *g)
+}
+
 /// Parse a selector known at compile time. Panics on a typo, which the fixture
 /// tests catch.
 pub fn sel(css: &str) -> Selector {

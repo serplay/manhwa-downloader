@@ -37,6 +37,13 @@ pub struct PageUrl {
     pub referer: Option<String>,
 }
 
+/// Per-request search switches.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct SearchOptions {
+    /// Include titles the source flags as adult. Off by default.
+    pub include_adult: bool,
+}
+
 /// Everything a source needs at call time.
 pub struct Ctx {
     /// Plain client, for sources that need `reqwest` specifics (JSON APIs).
@@ -49,7 +56,13 @@ pub struct Ctx {
 pub trait Source: Send + Sync {
     fn meta(&self) -> &SourceMeta;
 
-    async fn search(&self, ctx: &Ctx, query: &str, lang: Option<&str>) -> AppResult<Vec<Comic>>;
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        lang: Option<&str>,
+        opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>>;
 
     async fn chapters(
         &self,
@@ -168,5 +181,17 @@ mod tests {
             assert!(!implemented.contains(&blocked));
             assert!(r.get(blocked).unwrap().meta().capabilities.needs_browser);
         }
+    }
+
+    #[test]
+    fn adult_sources_are_marked() {
+        let r = registry();
+        let adult: Vec<&str> = r
+            .all()
+            .iter()
+            .filter(|s| s.meta().adult)
+            .map(|s| s.meta().slug)
+            .collect();
+        assert_eq!(adult, ["toonily", "toongod"]);
     }
 }

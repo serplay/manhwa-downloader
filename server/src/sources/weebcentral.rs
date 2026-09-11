@@ -5,7 +5,7 @@
 use async_trait::async_trait;
 use scraper::Html;
 
-use super::{Ctx, PageUrl, Source, html::*, http};
+use super::{Ctx, PageUrl, SearchOptions, Source, html::*, http};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -44,6 +44,7 @@ impl Weebcentral {
                     download: true,
                     needs_browser: false,
                 },
+                adult: false,
             },
         }
     }
@@ -88,6 +89,7 @@ pub fn parse_search(body: &str) -> Vec<Comic> {
                 title: [("en".to_string(), title)].into_iter().collect(),
                 cover,
                 languages: vec!["en".into()],
+                adult: false,
             })
         })
         .collect()
@@ -158,7 +160,13 @@ impl Source for Weebcentral {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let url = http::with_query(
             &format!("{BASE}/search/data"),
             &[
@@ -168,7 +176,7 @@ impl Source for Weebcentral {
                 ("order", "Descending"),
                 ("official", "Any"),
                 ("anime", "Any"),
-                ("adult", "Any"),
+                ("adult", if opts.include_adult { "Any" } else { "False" }),
                 ("display_mode", "Full Display"),
             ],
         );

@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use async_trait::async_trait;
 use serde::Deserialize;
 
-use super::{Ctx, PageUrl, Source, http};
+use super::{Ctx, PageUrl, SearchOptions, Source, http};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -45,6 +45,7 @@ impl MangaDex {
                     download: true,
                     needs_browser: false,
                 },
+                adult: false,
             },
         }
     }
@@ -75,6 +76,8 @@ struct MangaAttributes {
     /// Null, an object, or (rarely) an empty array.
     #[serde(default)]
     links: serde_json::Value,
+    #[serde(default, rename = "contentRating")]
+    content_rating: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -179,6 +182,10 @@ pub fn parse_search(body: &str) -> AppResult<Vec<Comic>> {
                     referer: None,
                 });
             Comic {
+                adult: matches!(
+                    m.attributes.content_rating.as_deref(),
+                    Some("erotica" | "pornographic")
+                ),
                 id: m.id,
                 title: m.attributes.title,
                 cover,
@@ -260,19 +267,28 @@ impl Source for MangaDex {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let resp = http::send_with_retry(
             "mangadex",
             || {
-                ctx.client.get(format!("{API}/manga")).query(&[
-                    ("title", query),
-                    ("includes[]", "cover_art"),
-                    ("limit", &SEARCH_LIMIT.to_string()),
-                    ("contentRating[]", "safe"),
-                    ("contentRating[]", "suggestive"),
-                    ("contentRating[]", "erotica"),
-                    ("contentRating[]", "pornographic"),
-                ])
+                let mut params = vec![
+                    ("title", query.to_string()),
+                    ("includes[]", "cover_art".to_string()),
+                    ("limit", SEARCH_LIMIT.to_string()),
+                    ("contentRating[]", "safe".to_string()),
+                    ("contentRating[]", "suggestive".to_string()),
+                ];
+                if opts.include_adult {
+                    params.push(("contentRating[]", "erotica".to_string()));
+                    params.push(("contentRating[]", "pornographic".to_string()));
+                }
+                ctx.client.get(format!("{API}/manga")).query(&params)
             },
             3,
         )
@@ -377,5 +393,20 @@ mod tests {
         let pages = parse_at_home(body).unwrap();
         assert_eq!(pages[0].url, "https://cdn.example/data/abc/1.png");
         assert_eq!(pages.len(), 2);
+    }
+
+    #[test]
+    fn flags_adult_content_ratings() {
+        let body = r#"{"data":[
+          {"id":"1","attributes":{"title":{"en":"A"},"contentRating":"pornographic","links":{}},"relationships":[]},
+          {"id":"2","attributes":{"title":{"en":"B"},"contentRating":"erotica","links":{}},"relationships":[]},
+          {"id":"3","attributes":{"title":{"en":"C"},"contentRating":"suggestive","links":{}},"relationships":[]},
+          {"id":"4","attributes":{"title":{"en":"D"},"links":{}},"relationships":[]}
+        ]}"#;
+        let comics = parse_search(body).unwrap();
+        assert_eq!(
+            comics.iter().map(|c| c.adult).collect::<Vec<_>>(),
+            [true, true, false, false]
+        );
     }
 }

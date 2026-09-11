@@ -16,7 +16,8 @@ expression: comics
       "it",
       "pl",
       "fr"
-    ]
+    ],
+    "adult": false
   },
   {
     "id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
@@ -59,7 +60,8 @@ expression: comics
       "el",
       "bn",
       "my"
-    ]
+    ],
+    "adult": false
   },
   {
     "id": "83ff1ad8-7ec5-4134-a8a1-40f1b37a4cc7",
@@ -73,6 +75,7 @@ expression: comics
       "it",
       "pt-br",
       "en"
-    ]
+    ],
+    "adult": false
   }
 ]

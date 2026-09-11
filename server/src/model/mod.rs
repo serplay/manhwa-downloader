@@ -47,6 +47,9 @@ pub struct SourceMeta {
     pub languages: Vec<&'static str>,
     pub tier: FetchTier,
     pub capabilities: SourceCapabilities,
+    /// The site itself is adult-oriented; it is skipped entirely unless the
+    /// client asks for adult content.
+    pub adult: bool,
 }
 
 impl SourceMeta {
@@ -73,6 +76,10 @@ pub struct Comic {
     pub cover: Option<Cover>,
     /// Languages chapters are available in.
     pub languages: Vec<String>,
+    /// Flagged adult by the source (content rating or genre). Hidden unless the
+    /// client asks for adult content.
+    #[serde(default)]
+    pub adult: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ToSchema)]

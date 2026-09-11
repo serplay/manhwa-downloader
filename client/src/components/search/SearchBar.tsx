@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/Input";
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { StatusDot } from "@/components/sources/StatusDot";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
-import { ALL_SOURCES, isUsable, speedLabel, useSources } from "@/hooks/useSources";
+import { ALL_SOURCES, isUsable, speedLabel, useVisibleSources } from "@/hooks/useSources";
+import { Switch } from "@/components/ui/Switch";
+import { usePrefs } from "@/store/prefs";
 import { RecentSearches } from "./RecentSearches";
 
 export function SearchBar({
@@ -21,7 +23,8 @@ export function SearchBar({
 }) {
   const [text, setText] = useState(query);
   const [picked, setPicked] = useState(source || ALL_SOURCES);
-  const sources = useSources();
+  const sources = useVisibleSources();
+  const { showAdult, setShowAdult } = usePrefs();
   const recent = useRecentSearches();
   const [focused, setFocused] = useState(false);
 
@@ -39,6 +42,7 @@ export function SearchBar({
         <span className="flex items-center gap-2">
           <StatusDot status={s.status} />
           {s.name}
+          {s.adult && <span className="rounded-chip bg-warn/15 px-1 text-[10px] font-semibold text-warn">18+</span>}
         </span>
       ),
       description: isUsable(s) ? speedLabel(s.speed) : "Needs a browser, not available yet",
@@ -80,7 +84,15 @@ export function SearchBar({
         Search
       </Button>
     </form>
-      {showRecent && <RecentSearches onPick={(q) => run(q, picked)} />}
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        {showRecent ? <RecentSearches onPick={(q) => run(q, picked)} /> : <span />}
+        <Switch
+          checked={showAdult}
+          onCheckedChange={setShowAdult}
+          label={<span className="text-xs font-medium text-fg-muted">Show adult content</span>}
+          className="items-center gap-2"
+        />
+      </div>
     </div>
   );
 }

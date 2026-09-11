@@ -6,7 +6,11 @@
 use async_trait::async_trait;
 use serde::Deserialize;
 
-use super::{Ctx, PageUrl, Source, html::fmt_number, http};
+use super::{
+    Ctx, PageUrl, SearchOptions, Source,
+    html::{fmt_number, is_adult_genre},
+    http,
+};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -46,6 +50,7 @@ impl Asura {
                     download: true,
                     needs_browser: false,
                 },
+                adult: false,
             },
         }
     }
@@ -58,8 +63,19 @@ fn referer() -> Option<String> {
 // ---- wire types -------------------------------------------------------------
 
 #[derive(Deserialize)]
+#[serde(bound(deserialize = "T: Deserialize<'de>"))]
 struct Listing<T> {
+    /// `null` when nothing matches, so a plain `Vec` would fail to parse.
+    #[serde(default = "Vec::new", deserialize_with = "null_to_empty")]
     data: Vec<T>,
+}
+
+fn null_to_empty<'de, D, T>(d: D) -> Result<Vec<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Ok(Option::<Vec<T>>::deserialize(d)?.unwrap_or_default())
 }
 
 #[derive(Deserialize)]
@@ -67,6 +83,13 @@ struct SeriesRow {
     slug: String,
     title: String,
     cover: Option<String>,
+    #[serde(default)]
+    genres: Vec<Genre>,
+}
+
+#[derive(Deserialize)]
+struct Genre {
+    name: String,
 }
 
 #[derive(Deserialize)]
@@ -125,6 +148,7 @@ pub fn parse_search(body: &str) -> AppResult<Vec<Comic>> {
         .data
         .into_iter()
         .map(|s| Comic {
+            adult: s.genres.iter().any(|g| is_adult_genre(&g.name)),
             id: s.slug,
             title: [("en".to_string(), s.title)].into_iter().collect(),
             cover: s.cover.filter(|c| !c.is_empty()).map(|url| Cover {
@@ -199,7 +223,13 @@ impl Source for Asura {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let url = http::with_query(&format!("{API}/series"), &[("search", query)]);
         let body = ctx
             .fetcher
@@ -210,7 +240,10 @@ impl Source for Asura {
             .referer(&format!("{SITE}/"))
             .text()
             .await?;
-        parse_search(&body)
+        Ok(parse_search(&body)?
+            .into_iter()
+            .filter(|c| opts.include_adult || !c.adult)
+            .collect())
     }
 
     async fn chapters(&self, ctx: &Ctx, comic_id: &str, _: Option<&str>) -> AppResult<Vec<Volume>> {
@@ -317,8 +350,31 @@ mod tests {
     }
 
     #[test]
+    fn empty_search_is_null_data() {
+        assert!(
+            parse_search(r#"{"data":null,"meta":{"total":0}}"#)
+                .unwrap()
+                .is_empty()
+        );
+    }
+
+    #[test]
     fn gated_chapters_are_errors() {
         let body = r#"{"data":{"access_gate":"premium","chapter":{"id":1,"pages":[]}}}"#;
         assert!(matches!(parse_pages(body), Err(AppError::Upstream { .. })));
+    }
+
+    #[test]
+    fn flags_adult_genres() {
+        let body = r#"{"data":[
+          {"slug":"a","title":"A","cover":null,"genres":[{"id":1,"name":"Action"},{"id":2,"name":"Mature"}]},
+          {"slug":"b","title":"B","cover":null,"genres":[{"id":1,"name":"Action"}]},
+          {"slug":"c","title":"C","cover":null}
+        ]}"#;
+        let comics = parse_search(body).unwrap();
+        assert_eq!(
+            comics.iter().map(|c| c.adult).collect::<Vec<_>>(),
+            [true, false, false]
+        );
     }
 }

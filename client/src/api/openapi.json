@@ -444,6 +444,15 @@
                 "null"
               ]
             }
+          },
+          {
+            "name": "adult",
+            "in": "query",
+            "description": "Include adult titles and adult-oriented sources. Off by default.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -662,6 +671,10 @@
           "languages"
         ],
         "properties": {
+          "adult": {
+            "type": "boolean",
+            "description": "Flagged adult by the source (content rating or genre). Hidden unless the\nclient asks for adult content."
+          },
           "cover": {
             "oneOf": [
               {
@@ -972,9 +985,14 @@
           "speed",
           "languages",
           "tier",
-          "capabilities"
+          "capabilities",
+          "adult"
         ],
         "properties": {
+          "adult": {
+            "type": "boolean",
+            "description": "The site itself is adult-oriented; it is skipped entirely unless the\nclient asks for adult content."
+          },
           "base_url": {
             "type": "string"
           },

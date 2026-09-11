@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/api/client";
 import { ChapterPicker, type DownloadIntent } from "@/components/chapters/ChapterPicker";
@@ -10,12 +10,19 @@ import { useSearch } from "@/hooks/useSearch";
 import { ALL_SOURCES, useSources } from "@/hooks/useSources";
 import { useUrlState } from "@/hooks/useUrlState";
 import { useDownloads } from "@/store/downloads";
+import { usePrefs } from "@/store/prefs";
 import type { Comic } from "@/api/types";
 
 export default function App() {
   const [{ q, source }, setUrl] = useUrlState();
   const sources = useSources();
   const search = useSearch(q, source);
+  const showAdult = usePrefs((s) => s.showAdult);
+
+  // Turning adult content off while an adult source is selected falls back to all sources.
+  useEffect(() => {
+    if (!showAdult && sources.data?.some((s) => s.slug === source && s.adult)) setUrl({ source: "" }, { replace: true });
+  }, [showAdult, source, sources.data, setUrl]);
   const [selected, setSelected] = useState<{ comic: Comic; source: string } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 

@@ -11,7 +11,7 @@ use async_trait::async_trait;
 use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 use scraper::Html;
 
-use super::{Ctx, PageUrl, Source, html::*, http};
+use super::{Ctx, PageUrl, SearchOptions, Source, html::*, http};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -48,6 +48,9 @@ pub struct MadaraSite {
     pub speed: Speed,
     /// Serves a managed challenge the impersonating client cannot pass.
     pub needs_browser: bool,
+    /// Predominantly 18+ catalogue with no per-title rating in listings, so
+    /// the whole source is hidden unless adult content is requested.
+    pub adult: bool,
 }
 
 pub const MANHUAUS: MadaraSite = MadaraSite {
@@ -59,6 +62,7 @@ pub const MANHUAUS: MadaraSite = MadaraSite {
     search: SearchStyle::WpQuery,
     speed: Speed::Slow,
     needs_browser: true,
+    adult: false,
 };
 
 pub const KUNMANGA: MadaraSite = MadaraSite {
@@ -70,6 +74,7 @@ pub const KUNMANGA: MadaraSite = MadaraSite {
     search: SearchStyle::WpQuery,
     speed: Speed::Slow,
     needs_browser: true,
+    adult: false,
 };
 
 pub const TOONILY: MadaraSite = MadaraSite {
@@ -81,6 +86,7 @@ pub const TOONILY: MadaraSite = MadaraSite {
     search: SearchStyle::PathSearch,
     speed: Speed::Fast,
     needs_browser: false,
+    adult: true,
 };
 
 pub const TOONGOD: MadaraSite = MadaraSite {
@@ -92,6 +98,7 @@ pub const TOONGOD: MadaraSite = MadaraSite {
     search: SearchStyle::WpQuery,
     speed: Speed::Slow,
     needs_browser: true,
+    adult: true,
 };
 
 pub struct Madara {
@@ -124,6 +131,7 @@ impl Madara {
                     download: usable,
                     needs_browser: site.needs_browser,
                 },
+                adult: site.adult,
             },
             site,
         }
@@ -192,6 +200,7 @@ pub fn parse_search(base_url: &str, body: &str) -> Vec<Comic> {
                 title: [("en".to_string(), title)].into_iter().collect(),
                 cover,
                 languages: vec!["en".into()],
+                adult: false,
             })
         })
         .collect()
@@ -250,7 +259,13 @@ impl Source for Madara {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        _opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let body = ctx
             .fetcher
             .get(self.search_url(query))

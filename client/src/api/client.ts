@@ -22,6 +22,8 @@ export class ApiError extends Error {
   /** Human copy for the most common codes; falls back to the server message. */
   get friendly(): string {
     switch (this.code) {
+      case "ADULT_HIDDEN":
+        return `${this.source ?? "This source"} is an adult source. Turn on “Show adult content” to search it.`;
       case "SOURCE_BLOCKED":
         return `${this.source ?? "This source"} needs a real browser to get past its Cloudflare check. Pick another source.`;
       case "UPSTREAM_TIMEOUT":

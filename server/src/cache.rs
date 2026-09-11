@@ -31,11 +31,12 @@ impl Caches {
         }
     }
 
-    pub fn search_key(slug: &str, query: &str, lang: Option<&str>) -> String {
+    pub fn search_key(slug: &str, query: &str, lang: Option<&str>, adult: bool) -> String {
         format!(
-            "{slug}:{}:{}",
+            "{slug}:{}:{}:{}",
             query.trim().to_lowercase(),
-            lang.unwrap_or("")
+            lang.unwrap_or(""),
+            u8::from(adult)
         )
     }
 

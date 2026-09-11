@@ -32,6 +32,9 @@ pub enum AppError {
     },
     #[error("{site} did not respond in time")]
     UpstreamTimeout { site: String },
+    /// The source is adult-oriented and the request did not opt into adult content.
+    #[error("{0} is an adult source; enable adult content to search it")]
+    AdultHidden(String),
     /// Cloudflare served a challenge no client in this build can pass.
     #[error(
         "{site} is behind a Cloudflare challenge that needs a real browser; this build cannot pass it"
@@ -75,6 +78,7 @@ impl AppError {
             Self::Upstream { .. } => "UPSTREAM_FAILURE",
             Self::UpstreamTimeout { .. } => "UPSTREAM_TIMEOUT",
             Self::Blocked { .. } => "SOURCE_BLOCKED",
+            Self::AdultHidden(_) => "ADULT_HIDDEN",
             Self::Parse { .. } => "UPSTREAM_PARSE",
             Self::Internal(_) => "INTERNAL",
         }
@@ -90,6 +94,7 @@ impl AppError {
             Self::Upstream { .. } | Self::Parse { .. } => StatusCode::BAD_GATEWAY,
             Self::UpstreamTimeout { .. } => StatusCode::GATEWAY_TIMEOUT,
             Self::Blocked { .. } => StatusCode::SERVICE_UNAVAILABLE,
+            Self::AdultHidden(_) => StatusCode::FORBIDDEN,
             Self::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -100,7 +105,9 @@ impl AppError {
             Self::UpstreamTimeout { site } | Self::Blocked { site } | Self::Parse { site, .. } => {
                 Some(site.clone())
             }
-            Self::UnknownSource(s) | Self::SourceNotImplemented(s) => Some(s.clone()),
+            Self::UnknownSource(s) | Self::SourceNotImplemented(s) | Self::AdultHidden(s) => {
+                Some(s.clone())
+            }
             _ => None,
         }
     }

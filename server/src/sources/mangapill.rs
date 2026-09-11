@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use async_trait::async_trait;
 use scraper::Html;
 
-use super::{Ctx, PageUrl, Source, html::*, http};
+use super::{Ctx, PageUrl, SearchOptions, Source, html::*, http};
 use crate::{
     error::{AppError, AppResult},
     model::{
@@ -45,6 +45,7 @@ impl Mangapill {
                     download: true,
                     needs_browser: false,
                 },
+                adult: false,
             },
         }
     }
@@ -60,7 +61,8 @@ pub fn parse_search(body: &str) -> Vec<Comic> {
     let img = sel("img");
     let title = sel("div.font-black");
     let mut order = Vec::new();
-    let mut found: HashMap<String, (Option<String>, Option<String>)> = HashMap::new();
+    let genre = sel("div.bg-card.rounded");
+    let mut found: HashMap<String, (Option<String>, Option<String>, bool)> = HashMap::new();
     for a in doc.select(&link) {
         let Some(id) = a
             .value()
@@ -71,19 +73,23 @@ pub fn parse_search(body: &str) -> Vec<Comic> {
         };
         let entry = found.entry(id.clone()).or_insert_with(|| {
             order.push(id.clone());
-            (None, None)
+            (None, None, false)
         });
         if let Some(i) = a.select(&img).next() {
             entry.1 = entry.1.take().or_else(|| image_src(i));
         }
+        // Genre chips are siblings of the title link inside the card's text column.
         if let Some(t) = a.select(&title).next() {
             entry.0 = entry.0.take().or_else(|| Some(text(t)));
+            if let Some(column) = a.parent().and_then(scraper::ElementRef::wrap) {
+                entry.2 |= column.select(&genre).any(|g| is_adult_genre(&text(g)));
+            }
         }
     }
     order
         .into_iter()
         .filter_map(|id| {
-            let (title, cover) = found.remove(&id)?;
+            let (title, cover, adult) = found.remove(&id)?;
             let title = title.filter(|t| !t.is_empty())?;
             Some(Comic {
                 id,
@@ -93,6 +99,7 @@ pub fn parse_search(body: &str) -> Vec<Comic> {
                     referer: referer(),
                 }),
                 languages: vec!["en".into()],
+                adult,
             })
         })
         .collect()
@@ -150,13 +157,22 @@ impl Source for Mangapill {
         &self.meta
     }
 
-    async fn search(&self, ctx: &Ctx, query: &str, _lang: Option<&str>) -> AppResult<Vec<Comic>> {
+    async fn search(
+        &self,
+        ctx: &Ctx,
+        query: &str,
+        _lang: Option<&str>,
+        opts: &SearchOptions,
+    ) -> AppResult<Vec<Comic>> {
         let url = http::with_query(
             &format!("{BASE}/search"),
             &[("q", query), ("type", ""), ("status", "")],
         );
         let body = ctx.fetcher.get(url).source(SLUG).text().await?;
-        Ok(parse_search(&body))
+        Ok(parse_search(&body)
+            .into_iter()
+            .filter(|c| opts.include_adult || !c.adult)
+            .collect())
     }
 
     async fn chapters(&self, ctx: &Ctx, comic_id: &str, _: Option<&str>) -> AppResult<Vec<Volume>> {
@@ -225,5 +241,30 @@ mod tests {
             "https://cdn.readdetectiveconan.com/file/mangap/8136/20203000/1.jpeg"
         );
         assert_eq!(pages[0].referer.as_deref(), Some("https://mangapill.com/"));
+    }
+
+    #[test]
+    fn flags_adult_genres() {
+        let body = r#"<div>
+          <a href="/manga/1/x" class="relative block"><figure><img data-src="https://c/1.jpg"/></figure></a>
+          <div><a href="/manga/1/x"><div class="mt-3 font-black">X</div></a>
+            <div class="flex"><div class="text-xs bg-card rounded px-1.5">Action</div><div class="text-xs bg-card rounded px-1.5">Ecchi</div></div>
+          </div></div>
+          <div>
+          <a href="/manga/2/y" class="relative block"><figure><img data-src="https://c/2.jpg"/></figure></a>
+          <div><a href="/manga/2/y"><div class="mt-3 font-black">Y</div></a>
+            <div class="flex"><div class="text-xs bg-card rounded px-1.5">Comedy</div></div>
+          </div></div>"#;
+        let comics = parse_search(body);
+        assert_eq!(comics.len(), 2);
+        assert!(comics[0].adult);
+        assert!(!comics[1].adult);
+        // In the real fixture only the Ecchi-tagged title is flagged.
+        let flagged: Vec<String> = parse_search(include_str!("fixtures/mangapill_search.html"))
+            .into_iter()
+            .filter(|c| c.adult)
+            .map(|c| c.title["en"].clone())
+            .collect();
+        assert_eq!(flagged, ["Futari Solo Camp"]);
     }
 }

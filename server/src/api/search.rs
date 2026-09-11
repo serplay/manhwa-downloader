@@ -12,7 +12,7 @@ use crate::{
     cache::Caches,
     error::{AppError, AppResult, ErrorDetail},
     model::Comic,
-    sources::Source,
+    sources::{SearchOptions, Source},
     state::SharedState,
 };
 
@@ -27,6 +27,9 @@ pub struct SearchParams {
     pub source: String,
     /// Preferred language code (only some sources honor it).
     pub lang: Option<String>,
+    /// Include adult titles and adult-oriented sources. Off by default.
+    #[serde(default)]
+    pub adult: bool,
 }
 
 fn default_source() -> String {
@@ -62,14 +65,26 @@ pub async fn search_source(
     source: &Arc<dyn Source>,
     query: &str,
     lang: Option<&str>,
+    opts: SearchOptions,
 ) -> AppResult<Arc<Vec<Comic>>> {
-    let slug = source.meta().slug;
-    let key = Caches::search_key(slug, query, lang);
+    let meta = source.meta();
+    if meta.adult && !opts.include_adult {
+        return Err(AppError::AdultHidden(meta.name.to_string()));
+    }
+    let key = Caches::search_key(meta.slug, query, lang, opts.include_adult);
     if let Some(hit) = state.caches.search.get(&key).await {
         return Ok(hit);
     }
     let ctx = state.ctx();
-    let comics = Arc::new(source.search(&ctx, query, lang).await?);
+    // Sources filter upstream where they can; this guarantees the contract
+    // regardless of how thorough a given source is.
+    let comics: Vec<Comic> = source
+        .search(&ctx, query, lang, &opts)
+        .await?
+        .into_iter()
+        .filter(|c| opts.include_adult || !c.adult)
+        .collect();
+    let comics = Arc::new(comics);
     // Only cache non-empty answers; an empty result is often a transient upstream hiccup.
     if !comics.is_empty() {
         state.caches.search.insert(key, Arc::clone(&comics)).await;
@@ -82,15 +97,20 @@ pub async fn search_all(
     state: &SharedState,
     query: &str,
     lang: Option<&str>,
+    opts: SearchOptions,
 ) -> (BTreeMap<String, Vec<Comic>>, BTreeMap<String, ErrorDetail>) {
-    let futures = state.registry.implemented().map(|source| {
-        let source = Arc::clone(source);
-        async move {
-            let slug = source.meta().slug.to_string();
-            let outcome = search_source(state, &source, query, lang).await;
-            (slug, outcome)
-        }
-    });
+    let futures = state
+        .registry
+        .implemented()
+        .filter(|s| opts.include_adult || !s.meta().adult)
+        .map(|source| {
+            let source = Arc::clone(source);
+            async move {
+                let slug = source.meta().slug.to_string();
+                let outcome = search_source(state, &source, query, lang, opts).await;
+                (slug, outcome)
+            }
+        });
     let mut results = BTreeMap::new();
     let mut errors = BTreeMap::new();
     for (slug, outcome) in join_all(futures).await {
@@ -119,12 +139,15 @@ pub async fn search(
 ) -> AppResult<Json<SearchResponse>> {
     let query = validate_query(&params.q)?;
     let lang = params.lang.as_deref();
+    let opts = SearchOptions {
+        include_adult: params.adult,
+    };
     if params.source.eq_ignore_ascii_case("all") {
-        let (results, errors) = search_all(&state, &query, lang).await;
+        let (results, errors) = search_all(&state, &query, lang, opts).await;
         return Ok(Json(SearchResponse { results, errors }));
     }
     let source = state.registry.get(&params.source)?;
-    let comics = search_source(&state, &source, &query, lang).await?;
+    let comics = search_source(&state, &source, &query, lang, opts).await?;
     let mut results = BTreeMap::new();
     results.insert(source.meta().slug.to_string(), (*comics).clone());
     Ok(Json(SearchResponse {

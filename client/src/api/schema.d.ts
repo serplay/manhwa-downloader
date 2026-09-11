@@ -218,6 +218,11 @@ export interface components {
             volumes: components["schemas"]["Volume"][];
         };
         Comic: {
+            /**
+             * @description Flagged adult by the source (content rating or genre). Hidden unless the
+             *     client asks for adult content.
+             */
+            adult?: boolean;
             cover?: null | components["schemas"]["Cover"];
             /** @description Source-specific identifier, opaque to the client. */
             id: string;
@@ -307,6 +312,11 @@ export interface components {
          *     client has always sent (`"0"` to `"10"`); `slug` is the new stable name.
          */
         SourceMeta: {
+            /**
+             * @description The site itself is adult-oriented; it is skipped entirely unless the
+             *     client asks for adult content.
+             */
+            adult: boolean;
             base_url: string;
             capabilities: components["schemas"]["SourceCapabilities"];
             /** Format: int32 */
@@ -673,6 +683,8 @@ export interface operations {
                 source?: string;
                 /** @description Preferred language code (only some sources honor it). */
                 lang?: string | null;
+                /** @description Include adult titles and adult-oriented sources. Off by default. */
+                adult?: boolean;
             };
             header?: never;
             path?: never;

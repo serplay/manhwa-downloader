@@ -28,6 +28,7 @@ use super::{
 use crate::{
     error::AppResult,
     model::{Comic, SourceStatus, Volume},
+    sources::SearchOptions,
     state::SharedState,
 };
 
@@ -140,7 +141,7 @@ async fn legacy_search(
 ) -> AppResult<Json<Value>> {
     let query = validate_query(&p.title)?;
     let source = state.registry.get(&p.source)?;
-    let comics = search_source(&state, &source, &query, None).await?;
+    let comics = search_source(&state, &source, &query, None, SearchOptions::default()).await?;
     if comics.is_empty() {
         return Ok(Json(json!({ "message": "No comics found" })));
     }
@@ -163,7 +164,8 @@ async fn legacy_search_all(
         let state = state.clone();
         let query = query.clone();
         async move {
-            let outcome = search_source(&state, &source, &query, None).await;
+            let outcome =
+                search_source(&state, &source, &query, None, SearchOptions::default()).await;
             (source.meta().id_str(), outcome)
         }
     });
@@ -208,6 +210,7 @@ mod tests {
                 referer: None,
             }),
             languages: vec!["en".into()],
+            adult: false,
         }];
         let v = legacy_comics("/api", &comics);
         assert_eq!(v["0"]["id"], "abc");
