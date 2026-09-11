@@ -1,10 +1,64 @@
 [package]
-name = "server"
-version = "0.1.0"
+name = "manhwa-server"
+version = "0.2.0"
 edition = "2024"
+rust-version = "1.88"
+
+[[bin]]
+name = "manhwa-server"
+path = "src/main.rs"
 
 [dependencies]
-axum = "0.7"
-tokio = { version = "1.40", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+anyhow = "1.0.104"
+async-stream = "0.3.6"
+async-trait = "0.1.92"
+axum = "0.8"
+bytes = "1.12.1"
+dashmap = "6.2.1"
+dotenvy = "0.15.7"
+epub-builder = "0.8.3"
+futures = "0.3.34"
+http = "1"
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "webp", "gif"] }
+lopdf = "0.45.0"
+mime_guess = "2.0.5"
+moka = { version = "0.12.16", features = ["future"] }
+percent-encoding = "2.3.2"
+regex = "1.13.1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "cookies", "stream", "gzip", "brotli"] }
+scraper = "0.27.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tempfile = "3.27.0"
+thiserror = "2.0.20"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7.19", features = ["io", "rt"] }
+tower = "0.5.3"
+tower-http = { version = "0.7.1", features = ["cors", "compression-gzip", "compression-br", "trace", "timeout", "limit", "set-header"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
+url = "2.5.8"
+utoipa = { version = "5.5.0", features = ["axum_extras", "uuid"] }
+utoipa-axum = "0.2.0"
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "vendored"] }
+uuid = { version = "1.26.0", features = ["v4", "serde"] }
+# Chrome TLS/HTTP2 impersonation for Cloudflare-fronted sources. Only prerelease
+# versions are published (the 5.x line was yanked), so both are pinned exactly.
+wreq = { version = "=6.0.0-rc.31", default-features = false, features = ["webpki-roots", "tokio-rt", "gzip", "brotli", "deflate", "zstd", "cookies", "stream"] }
+wreq-util = { version = "=3.0.0-rc.14", default-features = false, features = ["emulation"] }
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+
+[dev-dependencies]
+http-body-util = "0.1.5"
+insta = { version = "1.48.0", features = ["json"] }
+tower = { version = "0.5.3", features = ["util"] }
+wiremock = "0.6.5"
+
+[features]
+default = []
+browser = []
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

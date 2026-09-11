@@ -1,0 +1,1706 @@
+<section
+	id="chapter-images"
+	class="w-full flex-1 flex flex-col pb-4 cursor-pointer"
+	style="gap: var(--strip-gap, 0px)"
+	x-data="{
+		scrollDown() { window.scrollBy({ top: window.innerHeight * 0.75, behavior: 'smooth' }); },
+		scrollUp() { window.scrollBy({ top: -window.innerHeight * 0.75, behavior: 'smooth' }); },
+		handleClick(e) {
+			const clickX = e.clientX;
+			const sectionWidth = e.currentTarget.getBoundingClientRect().width;
+			const isLeftHalf = clickX < sectionWidth / 2;
+
+			if (isLeftHalf) {
+				this.scrollUp();
+			} else {
+				this.scrollDown();
+			}
+		},
+	}"
+	hx-get="https://weebcentral.com/chapters/01J76XYY7Q5DA1HQMDD9D7GQTC/images"
+	hx-trigger="change from:[name='reading_style']"
+	hx-include="[name='reading_style'],[name='current_page']"
+	hx-swap="outerHTML"
+	@click="handleClick">
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-001.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 1"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-002.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 2"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-003.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 3"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-004.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 4"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-005.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 5"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-006.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 6"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-007.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 7"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-008.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 8"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-009.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 9"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-010.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 10"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-011.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 11"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-012.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 12"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-013.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 13"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-014.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 14"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-015.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 15"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-016.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 16"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-017.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 17"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-018.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 18"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-019.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 19"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-020.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 20"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-021.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 21"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-022.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 22"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-023.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 23"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-024.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 24"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-025.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 25"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-026.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 26"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-027.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 27"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-028.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 28"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-029.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 29"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-030.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 30"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-031.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 31"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-032.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 32"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-033.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 33"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-034.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 34"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-035.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 35"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-036.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 36"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-037.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 37"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-038.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 38"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-039.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 39"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-040.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 40"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-041.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 41"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-042.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 42"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-043.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 43"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-044.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 44"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-045.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 45"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-046.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 46"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-047.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 47"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-048.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 48"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-049.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 49"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-050.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 50"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-051.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 51"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-052.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 52"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-053.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 53"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-054.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 54"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-055.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 55"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-056.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 56"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-057.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 57"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-058.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 58"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-059.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 59"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-060.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 60"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-061.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 61"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-062.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 62"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-063.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 63"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-064.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 64"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-065.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 65"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-066.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 66"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-067.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 67"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-068.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 68"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-069.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 69"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-070.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 70"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-071.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 71"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-072.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 72"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-073.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 73"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-074.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 74"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-075.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 75"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-076.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 76"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-077.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 77"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-078.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 78"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-079.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 79"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-080.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 80"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-081.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 81"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-082.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 82"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-083.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 83"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-084.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 84"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-085.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 85"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-086.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 86"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-087.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 87"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-088.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 88"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-089.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 89"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-090.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 90"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-091.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 91"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-092.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 92"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-093.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 93"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-094.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 94"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-095.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 95"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-096.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 96"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-097.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 97"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-098.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 98"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-099.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 99"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-100.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 100"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-101.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 101"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-102.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 102"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-103.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 103"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-104.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 104"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-105.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 105"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-106.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 106"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-107.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 107"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-108.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 108"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-109.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 109"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-110.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 110"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-111.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 111"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-112.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 112"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-113.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 113"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-114.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 114"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-115.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 115"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-116.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 116"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-117.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 117"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-118.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 118"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-119.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 119"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-120.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 120"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-121.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 121"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-122.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 122"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-123.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 123"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-124.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 124"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-125.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 125"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-126.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 126"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-127.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 127"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-128.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 128"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-129.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 129"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-130.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 130"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-131.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 131"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-132.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 132"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-133.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 133"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-134.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 134"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-135.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 135"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-136.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 136"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-137.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 137"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-138.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 138"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-139.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 139"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-140.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 140"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-141.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 141"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-142.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 142"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-143.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 143"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-144.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 144"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-145.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 145"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-146.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 146"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-147.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 147"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-148.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 148"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-149.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 149"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-150.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 150"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-151.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 151"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-152.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 152"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-153.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 153"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-154.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 154"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-155.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 155"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-156.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 156"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-157.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 157"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-158.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 158"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-159.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 159"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-160.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 160"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-161.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 161"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-162.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 162"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-163.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 163"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-164.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 164"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-165.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 165"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-166.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 166"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-167.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 167"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+	<img
+		src="https://official.lowee.us/manga/Kobato/0006-168.png"
+		class="max-w-full h-auto mx-auto"
+		style="min-height: 50vh"
+		alt="Page 168"
+		decoding="async"
+		loading="lazy"
+		onload="this.style.minHeight=''"
+		onerror="this.onerror=null; this.style.minHeight=''; this.src='/static/images/broken_image.jpg'" />
+	
+</section>

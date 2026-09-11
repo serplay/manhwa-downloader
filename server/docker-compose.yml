@@ -1,0 +1,18 @@
+services:
+  api:
+    build: .
+    image: manhwa-server:local
+    ports:
+      - "${PORT:-8000}:8000"
+    env_file:
+      - path: ./.env
+        required: false
+    environment:
+      # Lock this down to your client's origin in production.
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    volumes:
+      - downloads:/data/downloads
+    restart: unless-stopped
+
+volumes:
+  downloads:
