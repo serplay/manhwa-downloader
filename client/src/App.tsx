@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/api/client";
-import { ChapterPicker, type DownloadIntent } from "@/components/chapters/ChapterPicker";
-import { DownloadsTray } from "@/components/downloads/DownloadsTray";
+import type { DownloadIntent } from "@/components/chapters/ChapterPicker";
 import { Header } from "@/components/layout/Header";
 import { SearchBar } from "@/components/search/SearchBar";
 import { Results, ResultsSkeleton } from "@/components/results/Results";
@@ -12,6 +11,13 @@ import { useUrlState } from "@/hooks/useUrlState";
 import { useDownloads } from "@/store/downloads";
 import { usePrefs } from "@/store/prefs";
 import type { Comic } from "@/api/types";
+
+const ChapterPicker = lazy(() =>
+  import("@/components/chapters/ChapterPicker").then((m) => ({ default: m.ChapterPicker })),
+);
+const DownloadsTray = lazy(() =>
+  import("@/components/downloads/DownloadsTray").then((m) => ({ default: m.DownloadsTray })),
+);
 
 export default function App() {
   const [{ q, source }, setUrl] = useUrlState();
@@ -74,15 +80,21 @@ export default function App() {
           <p className="text-sm text-fg-muted">Search a title to get started. Results show covers first; open one to pick chapters.</p>
         )}
       </main>
-      <DownloadsTray />
-      <ChapterPicker
+      <Suspense fallback={null}>
+        <DownloadsTray />
+      </Suspense>
+      {selected && (
+        <Suspense fallback={null}>
+          <ChapterPicker
         comic={selected?.comic ?? null}
         source={selected?.source ?? ""}
         sourceName={sources.data?.find((s) => s.slug === selected?.source)?.name ?? selected?.source ?? ""}
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         onDownload={(intent) => void startDownload(intent)}
-      />
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { Volume } from "@/api/types";
 import { ToggleChip } from "@/components/ui/Chip";
@@ -30,6 +30,9 @@ export function ChapterGrid({
 }) {
   const [columns, setColumns] = useState(6);
   const lastClicked = useRef<number | null>(null);
+  /** Roving tabindex: only this chip is in the tab order. */
+  const [focusIndex, setFocusIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -70,6 +73,15 @@ export function ChapterGrid({
     overscan: 8,
   });
 
+  const total = useMemo(() => volumes.reduce((n, v) => n + v.chapters.length, 0), [volumes]);
+  const rowOf = useMemo(() => {
+    const map = new Map<number, number>();
+    rows.forEach((r, ri) => {
+      if (r.kind === "chips") r.ids.forEach((_, i) => map.set(r.start + i, ri));
+    });
+    return map;
+  }, [rows]);
+
   const click = (globalIndex: number, id: string) => (e: MouseEvent) => {
     if (e.shiftKey && lastClicked.current != null) {
       onSpan(Math.min(lastClicked.current, globalIndex), Math.max(lastClicked.current, globalIndex));
@@ -77,10 +89,51 @@ export function ChapterGrid({
       onToggle(id);
     }
     lastClicked.current = globalIndex;
+    setFocusIndex(globalIndex);
+  };
+
+  /** Move focus to a chip, scrolling its row into view first if it is not rendered. */
+  const focusChip = (index: number) => {
+    const target = Math.min(Math.max(index, 0), total - 1);
+    setFocusIndex(target);
+    const row = rowOf.get(target);
+    if (row != null) virtualizer.scrollToIndex(row, { align: "auto" });
+    requestAnimationFrame(() => {
+      containerRef.current?.querySelector<HTMLButtonElement>(`[data-chip="${target}"]`)?.focus();
+    });
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const step: Record<string, number> = {
+      ArrowRight: 1,
+      ArrowLeft: -1,
+      ArrowDown: columns,
+      ArrowUp: -columns,
+    };
+    let next: number | null = null;
+    if (e.key in step) next = focusIndex + step[e.key]!;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = total - 1;
+    if (next == null) return;
+    e.preventDefault();
+    const clamped = Math.min(Math.max(next, 0), total - 1);
+    if (e.shiftKey) {
+      // Shift+arrow extends the selection from the last anchor, like a file list.
+      const anchor = lastClicked.current ?? focusIndex;
+      onSpan(Math.min(anchor, clamped), Math.max(anchor, clamped));
+    }
+    focusChip(clamped);
   };
 
   return (
-    <div style={{ height: virtualizer.getTotalSize() }} className="relative w-full">
+    <div
+      ref={containerRef}
+      role="group"
+      aria-label="Chapters. Use arrow keys to move, space to toggle, shift with arrows to extend."
+      onKeyDown={onKeyDown}
+      style={{ height: virtualizer.getTotalSize() }}
+      className="relative w-full"
+    >
       {virtualizer.getVirtualItems().map((item) => {
         const row = rows[item.index]!;
         return (
@@ -104,6 +157,9 @@ export function ChapterGrid({
                 {row.ids.map((id, i) => (
                   <ToggleChip
                     key={id}
+                    data-chip={row.start + i}
+                    tabIndex={row.start + i === focusIndex ? 0 : -1}
+                    onFocus={() => setFocusIndex(row.start + i)}
                     pressed={selected.has(id)}
                     onClick={click(row.start + i, id)}
                     title={row.titles[i] ?? `Chapter ${row.labels[i]}`}

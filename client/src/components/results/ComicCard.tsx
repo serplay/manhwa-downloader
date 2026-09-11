@@ -4,7 +4,7 @@ import { Chip } from "@/components/ui/Chip";
 import { displayTitle } from "@/lib/format";
 import { CoverImage } from "./CoverImage";
 
-export function ComicCard({ comic, onOpen }: { comic: Comic; onOpen: (comic: Comic) => void }) {
+export function ComicCard({ comic, onOpen, priority }: { comic: Comic; onOpen: (comic: Comic) => void; priority?: boolean }) {
   const title = displayTitle(comic.title);
   const langs = comic.languages.filter((l) => l !== "en" || comic.languages.length > 1);
   return (
@@ -13,7 +13,7 @@ export function ComicCard({ comic, onOpen }: { comic: Comic; onOpen: (comic: Com
       onClick={() => onOpen(comic)}
       className="group flex flex-col gap-2 rounded-panel p-1.5 text-left transition-[transform,background-color] duration-200 ease-spring hover:-translate-y-0.5 hover:bg-surface focus-visible:bg-surface"
     >
-      <CoverImage cover={comic.cover} alt="" />
+      <CoverImage cover={comic.cover} alt="" priority={priority} />
       <div className="flex min-w-0 flex-col gap-1 px-1 pb-1">
         <span className="line-clamp-2 text-sm leading-snug font-medium">{title}</span>
         <span className="flex items-center justify-between gap-2">

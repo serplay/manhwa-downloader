@@ -1,6 +1,6 @@
 # Manhwa Downloader - Modernization Plan
 
-Status: APPROVED (decisions D1-D9 accepted, 2026-09-10). Progress: Phase 0 done, Phase 1 done, Phase 2 done, Phase 3 done (2026-09-10; see the 3c results under Phase 3). Next: Phase 4.
+Status: APPROVED (decisions D1-D9 accepted, 2026-09-10). Progress: Phases 0 to 4 done (Phase 4 on 2026-09-11; see the outcome under Phase 4). Next: Phase 5.
 Branch: `rust-dev`. Inputs: `server-old/` (Python/FastAPI/Celery, gitignored), `server/` (Rust stub, two routes), `client/` (Vite + React 19 + Tailwind v4).
 
 This plan has three parts: what exists today (audit), what we build (backend, API, frontend, deployment), and how we get there (phases, parity checklist, decisions you need to confirm).
@@ -427,6 +427,12 @@ Implementation notes: `sources/http.rs` now holds a `Fetcher` that owns both cli
 - 4e. Source status popover, settings menu, recent searches, URL state.
 - 4f. Accessibility and reduced-motion pass, both themes audited, Lighthouse.
 - Exit criterion: every flow in section 1.3 works, no FontAwesome or framer-motion imports remain, taste-skill pre-flight passes.
+
+**Outcome (2026-09-11).** Shipped as six commits (4a to 4e plus the content filter and the 4f pass). Decisions taken during the build: browser-only sources are shown disabled in the picker with a "needs a browser" note; the legacy JSX tree was deleted in 4a (its dependencies were gone) rather than kept beside the new tree; API types come from `manhwa-server --openapi` via `npm run types`, so the client builds without a running server. Verified in Chrome in both themes and at phone width: search all and per source, partial-failure rows, chapter picker with slider, shift-click and arrow-key spans, MangaDex language select, a real download end to end with SSE progress and auto-save, tray persistence across reload, cancel, recent searches, status popover. Lighthouse on the production build (mobile profile, local API): accessibility 100, best practices 96, performance 72 with LCP dominated by proxied cover images under simulated slow 4G; CLS 0, TBT 0. Main bundle 110 KB gzipped, picker and tray lazy-loaded.
+
+**Content filter (added 2026-09-11 at the owner's request).** Adult content is hidden by default on both sides. Server: `Comic.adult`, `SourceMeta.adult`, `?adult=true` on `/search`. MangaDex is asked for `safe` and `suggestive` ratings only; Weebcentral gets `adult=False`; Mangapill and Asura are flagged from genre tags (Adult, Mature, Ecchi, Smut, Hentai, Erotica); Toonily and Toongod are marked adult sources and skipped from search-all, answering `403 ADULT_HIDDEN` on direct use. The handler drops flagged titles regardless of source and the cache key includes the switch. Known gaps: Mangahere, Bato and Ravenscans expose no per-title rating in search results, so only the genre-less pass-through applies there; Toonily's listings carry no per-title badge, hence the whole-source rule. Client: persisted preference, a switch under the search bar and in settings, adult sources hidden from the picker and status list unless enabled.
+
+**Regression noticed during Phase 4 (not fixed).** Bato's GraphQL endpoint (`bato.si/ap2/` and `/apo/`) now answers `405 Method Not Allowed` to POST from both clients, so Bato search fails with `UPSTREAM_FAILURE`. Needs a fresh look at how the site's front end calls its API (possibly a new path or required headers) before Phase 5 cutover.
 
 ### Phase 5. Cutover (small)
 - Dockerfile, compose, README, deploy the Rust server to the existing API host, remove legacy route aliases after one release, delete `server-old/`.

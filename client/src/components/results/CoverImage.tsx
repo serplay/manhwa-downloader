@@ -5,7 +5,18 @@ import type { Cover } from "@/api/types";
 import { cn } from "@/lib/cn";
 
 /** 2:3 cover through the image proxy with a shimmer while loading. */
-export function CoverImage({ cover, alt, className }: { cover: Cover | null | undefined; alt: string; className?: string }) {
+export function CoverImage({
+  cover,
+  alt,
+  className,
+  priority = false,
+}: {
+  cover: Cover | null | undefined;
+  alt: string;
+  className?: string;
+  /** Above the fold: load eagerly with high priority. */
+  priority?: boolean;
+}) {
   const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
   const src = coverUrl(cover);
   const failed = !src || state === "error";
@@ -20,7 +31,8 @@ export function CoverImage({ cover, alt, className }: { cover: Cover | null | un
         <img
           src={src}
           alt={alt}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           decoding="async"
           onLoad={() => setState("loaded")}
           onError={() => setState("error")}

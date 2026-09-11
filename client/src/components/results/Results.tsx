@@ -116,13 +116,13 @@ export function Results({
 
   return (
     <div className="flex flex-col gap-10">
-      {groups.map((g) => (
+      {groups.map((g, gi) => (
         <section key={g.slug} className="flex flex-col gap-4" aria-label={nameOf(g.slug)}>
           <GroupHeader name={nameOf(g.slug)} count={g.error ? undefined : g.comics.length} error={g.error} />
           {g.comics.length > 0 && (
             <div className={GRID}>
-              {g.comics.map((c) => (
-                <ComicCard key={c.id} comic={c} onOpen={(comic) => onOpen(comic, g.slug)} />
+              {g.comics.map((c, i) => (
+                <ComicCard key={c.id} comic={c} onOpen={(comic) => onOpen(comic, g.slug)} priority={gi === 0 && i < 5} />
               ))}
             </div>
           )}
