@@ -1,29 +1,35 @@
 import { fileUrl } from "@/api/client";
 import type { TrackedTask } from "@/store/downloads";
 
+export type SaveResult = "started" | "gone" | "error";
+
 /**
- * Fetch a finished archive and hand it to the browser. Fetching (rather than
- * an anchor click) tells us whether the save happened, which matters because
- * the server deletes the file after the first successful transfer.
+ * Hand a finished archive to the browser.
+ *
+ * A same-origin link with `download` makes the browser stream the file straight
+ * to disk. Reading it with `fetch` first would buffer the whole archive in
+ * memory and lose everything if the transfer breaks on the way, which is what
+ * happens on multi-chapter downloads behind a proxy hop.
+ *
+ * The HEAD request is there so an archive whose retention window has closed
+ * reports a real message instead of saving a file full of error JSON.
  */
-export async function saveFile(id: string, fileName: string): Promise<"saved" | "gone" | "error"> {
+export async function saveFile(id: string, fileName: string): Promise<SaveResult> {
   try {
-    const res = await fetch(fileUrl(id));
-    if (res.status === 404 || res.status === 410) return "gone";
-    if (!res.ok) return "error";
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    return "saved";
+    const probe = await fetch(fileUrl(id), { method: "HEAD" });
+    if (probe.status === 404 || probe.status === 410) return "gone";
+    if (!probe.ok) return "error";
   } catch {
     return "error";
   }
+  const a = document.createElement("a");
+  a.href = fileUrl(id);
+  a.download = fileName;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  return "started";
 }
 
 export function fileNameFor(task: TrackedTask): string {

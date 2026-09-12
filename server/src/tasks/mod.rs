@@ -3,15 +3,14 @@
 //! A task moves PENDING -> PROGRESS -> SUCCESS | FAILURE | CANCELLED. Status is
 //! published on a `watch` channel so polling and SSE read the same value.
 //! Every task owns a work directory under `DOWNLOAD_DIR/<task_id>` that is
-//! deleted when the archive has been collected, on failure, on cancel, or by
-//! the sweeper after the retention window.
+//! deleted on failure, on cancel, or by the sweeper once the retention window
+//! closes. A finished archive is NOT deleted when it is downloaded: the browser
+//! may lose the transfer on the way, and a second attempt has to be able to
+//! fetch the same file instead of rebuilding it.
 
 use std::{
     path::PathBuf,
-    sync::{
-        Arc, Mutex,
-        atomic::{AtomicBool, Ordering},
-    },
+    sync::{Arc, Mutex},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
@@ -32,9 +31,10 @@ use crate::{
 /// Seconds allowed per chapter before the tier multiplier.
 const SECONDS_PER_CHAPTER: u64 = 240;
 const MIN_TIMEOUT: Duration = Duration::from_secs(600);
-/// How long a finished archive waits to be collected.
-const SUCCESS_RETENTION: Duration = Duration::from_secs(3600);
-/// How long failed / cancelled / collected entries stay visible to status polls.
+/// How long a finished archive stays downloadable, counted from completion.
+/// Downloading it does not shorten this; the window is the only lifetime.
+const SUCCESS_RETENTION: Duration = Duration::from_secs(900);
+/// How long failed and cancelled entries stay visible to status polls.
 const TERMINAL_RETENTION: Duration = Duration::from_secs(600);
 const SWEEP_INTERVAL: Duration = Duration::from_secs(60);
 pub const MAX_CHAPTERS_PER_TASK: usize = 500;
@@ -121,7 +121,6 @@ struct TaskEntry {
     cancel: CancellationToken,
     workdir: PathBuf,
     packaged: Mutex<Option<Packaged>>,
-    collected: AtomicBool,
     finished_at: Mutex<Option<Instant>>,
 }
 
@@ -229,7 +228,8 @@ impl TaskEngine {
         Ok(())
     }
 
-    /// Resolve the archive of a finished task. 409 while running, 410 once collected.
+    /// Resolve the archive of a finished task. 409 while it is still running,
+    /// 404 once the retention window has closed and the task is gone.
     pub fn collectable(&self, id: Uuid) -> AppResult<Collectable> {
         let entry = self.entry(id)?;
         let status = entry.status.borrow().clone();
@@ -247,11 +247,6 @@ impl TaskEngine {
                 )));
             }
         }
-        if entry.collected.load(Ordering::Acquire) {
-            return Err(AppError::NotFound(format!(
-                "the file for task {id} was already downloaded and removed"
-            )));
-        }
         let packaged = entry
             .packaged
             .lock()
@@ -262,19 +257,6 @@ impl TaskEngine {
             packaged,
             comic_title: status.comic_title,
         })
-    }
-
-    /// Mark the archive as delivered and delete the work directory.
-    pub fn mark_collected(&self, id: Uuid) {
-        if let Some(entry) = self.tasks.get(&id)
-            && !entry.collected.swap(true, Ordering::AcqRel)
-        {
-            entry.finish();
-            let dir = entry.workdir.clone();
-            tokio::spawn(async move {
-                let _ = tokio::fs::remove_dir_all(dir).await;
-            });
-        }
     }
 
     /// Validate and queue a download. Returns the initial status.
@@ -332,7 +314,6 @@ impl TaskEngine {
             cancel: CancellationToken::new(),
             workdir: workdir.clone(),
             packaged: Mutex::new(None),
-            collected: AtomicBool::new(false),
             finished_at: Mutex::new(None),
         });
         self.tasks.insert(id, Arc::clone(&entry));
@@ -429,8 +410,7 @@ impl TaskEngine {
                 }
                 let finished = e.finished_at.lock().unwrap().unwrap_or(now);
                 let age = now.duration_since(finished);
-                let collected = e.collected.load(Ordering::Acquire);
-                let retention = if state == TaskState::Success && !collected {
+                let retention = if state == TaskState::Success {
                     SUCCESS_RETENTION
                 } else {
                     TERMINAL_RETENTION

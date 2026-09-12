@@ -23,7 +23,7 @@ docker compose up -d --build
 # API on http://localhost:8000, docs on http://localhost:8000/docs
 ```
 
-Downloads are built under a named volume and deleted once fetched. CBR output needs the proprietary `rar` binary and is only offered when it is on `PATH`; the image does not ship it.
+Downloads are built under a named volume and stay fetchable for 15 minutes after the task finishes, then the sweeper removes them. Sending an archive does not delete it, so a transfer that breaks can be retried from the downloads tray without rebuilding. CBR output needs the proprietary `rar` binary and is only offered when it is on `PATH`; the image does not ship it.
 
 ### From source
 
