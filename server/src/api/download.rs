@@ -12,7 +12,7 @@ use axum::{
         sse::{Event, KeepAlive, Sse},
     },
 };
-use futures::{Stream, StreamExt};
+use futures::Stream;
 use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use serde::Serialize;
 use tokio_util::io::ReaderStream;
@@ -122,7 +122,7 @@ fn content_disposition(title: &str, extension: &str) -> HeaderValue {
     params(("task_id" = Uuid, Path)),
     responses(
         (status = 200, description = "The archive", content_type = "application/octet-stream"),
-        (status = 404, description = "Unknown task, failed task, or file already collected", body = crate::error::ErrorBody),
+        (status = 404, description = "Unknown task, failed task, or an archive whose retention window has closed", body = crate::error::ErrorBody),
         (status = 409, description = "Task still running", body = crate::error::ErrorBody)))]
 pub async fn file(
     State(state): State<SharedState>,
@@ -135,24 +135,11 @@ pub async fn file(
         .map_err(|e| AppError::NotFound(format!("archive missing on disk: {e}")))?;
     let total = file.metadata().await.map(|m| m.len()).unwrap_or(0);
 
-    let engine_state = state.clone();
-    let body_stream = async_stream::stream! {
-        let mut reader = ReaderStream::with_capacity(file, 1 << 20);
-        let mut sent: u64 = 0;
-        while let Some(chunk) = reader.next().await {
-            if let Ok(c) = &chunk {
-                sent += c.len() as u64;
-            }
-            // Only a complete transfer releases the file. An aborted download (or a
-            // browser's exploratory first request) leaves it for a retry; the sweeper
-            // removes it after the retention window. This runs before the final
-            // yield because hyper stops polling once Content-Length bytes are out.
-            if sent >= total {
-                engine_state.engine.mark_collected(task_id);
-            }
-            yield chunk;
-        }
-    };
+    // The archive is not deleted when it is sent. The bytes leaving this socket
+    // do not mean the browser received them: a proxy hop or a dropped connection
+    // can lose the transfer, and the next attempt has to find the file still
+    // here. The sweeper removes it when the retention window closes.
+    let body_stream = ReaderStream::with_capacity(file, 1 << 20);
 
     let mut headers = HeaderMap::new();
     headers.insert(

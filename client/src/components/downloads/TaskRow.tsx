@@ -20,18 +20,18 @@ export function TaskRow({ task }: { task: TrackedTask }) {
     setSaving(true);
     const result = await saveFile(task.id, fileNameFor(task));
     setSaving(false);
-    if (result === "saved") markSaved(task.id);
+    if (result === "started") markSaved(task.id);
     else if (result === "gone") {
       markGone(task.id);
-      toast.error("That file has expired on the server. Retry to build it again.");
-    } else toast.error("Could not save the file. Try again.");
+      toast.error("That archive is no longer on the server. Retry to build it again.");
+    } else toast.error("Could not start the download. Try again.");
   };
 
   const line =
     state === "GONE"
       ? "No longer available on the server"
       : state === "SUCCESS"
-        ? `${task.saved ? "Saved" : saving ? "Saving" : "Ready"}${task.status?.file_size ? `, ${formatBytes(task.status.file_size)}` : ""}`
+        ? `${task.saved ? "Sent to downloads" : saving ? "Starting" : "Ready"}${task.status?.file_size ? `, ${formatBytes(task.status.file_size)}` : ""}`
         : state === "FAILURE"
           ? (task.status?.error ?? task.status?.status ?? "Failed")
           : state === "CANCELLED"
@@ -81,9 +81,9 @@ export function TaskRow({ task }: { task: TrackedTask }) {
               Cancel
             </Button>
           )}
-          {state === "SUCCESS" && !task.saved && (
+          {state === "SUCCESS" && (
             <Button size="sm" onClick={() => void save()} disabled={saving}>
-              <DownloadSimple size={14} /> {saving ? "Saving" : "Save file"}
+              <DownloadSimple size={14} /> {task.saved ? "Save again" : "Save file"}
             </Button>
           )}
           {(state === "FAILURE" || state === "CANCELLED" || state === "GONE") && (
