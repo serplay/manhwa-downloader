@@ -99,6 +99,11 @@ impl Registry {
             Arc::new(bato::Bato::new(&config.bato_base_url)),
             Arc::new(weebcentral::Weebcentral::new()),
         ];
+        Self::from_sources(ordered)
+    }
+
+    /// Build from an explicit list. Tests use it to register fake sources.
+    pub fn from_sources(ordered: Vec<Arc<dyn Source>>) -> Self {
         let mut by_key = HashMap::new();
         for s in &ordered {
             by_key.insert(s.meta().id_str(), Arc::clone(s));
@@ -135,22 +140,7 @@ mod tests {
     use super::*;
 
     fn registry() -> Registry {
-        let config = Config {
-            bind: "127.0.0.1".parse().unwrap(),
-            port: 0,
-            download_dir: std::env::temp_dir(),
-            max_concurrent_downloads: 1,
-            image_concurrency: 1,
-            cache_ttl: std::time::Duration::from_secs(1),
-            status_ttl: std::time::Duration::from_secs(1),
-            request_timeout: std::time::Duration::from_secs(1),
-            cors_origins: vec![],
-            proxy_extra_hosts: vec![],
-            browser_enabled: false,
-            impersonation_enabled: false,
-            bato_base_url: "https://bato.si".into(),
-        };
-        Registry::new(&config)
+        Registry::new(&Config::for_tests(std::env::temp_dir()))
     }
 
     #[test]

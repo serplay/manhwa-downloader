@@ -34,9 +34,17 @@ jobs:
         with:
           context: server
           push: false
+          load: true
           tags: manhwa-server:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Start the container
+        run: docker run -d --name api -p 8000:8000 manhwa-server:ci
+      - name: Smoke test the container
+        run: server/scripts/smoke.sh http://localhost:8000
+      - name: Container logs
+        if: always()
+        run: docker logs api
 
   client:
     runs-on: ubuntu-latest

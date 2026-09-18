@@ -33,9 +33,9 @@ const SECONDS_PER_CHAPTER: u64 = 240;
 const MIN_TIMEOUT: Duration = Duration::from_secs(600);
 /// How long a finished archive stays downloadable, counted from completion.
 /// Downloading it does not shorten this; the window is the only lifetime.
-const SUCCESS_RETENTION: Duration = Duration::from_secs(900);
+pub(crate) const SUCCESS_RETENTION: Duration = Duration::from_secs(900);
 /// How long failed and cancelled entries stay visible to status polls.
-const TERMINAL_RETENTION: Duration = Duration::from_secs(600);
+pub(crate) const TERMINAL_RETENTION: Duration = Duration::from_secs(600);
 const SWEEP_INTERVAL: Duration = Duration::from_secs(60);
 pub const MAX_CHAPTERS_PER_TASK: usize = 500;
 
@@ -401,30 +401,37 @@ impl TaskEngine {
         let mut interval = tokio::time::interval(SWEEP_INTERVAL);
         loop {
             interval.tick().await;
-            let now = Instant::now();
-            let mut expired = Vec::new();
-            for e in self.tasks.iter() {
-                let state = e.status.borrow().state;
-                if !state.is_terminal() {
-                    continue;
-                }
-                let finished = e.finished_at.lock().unwrap().unwrap_or(now);
-                let age = now.duration_since(finished);
-                let retention = if state == TaskState::Success {
-                    SUCCESS_RETENTION
-                } else {
-                    TERMINAL_RETENTION
-                };
-                if age >= retention {
-                    expired.push((*e.key(), e.workdir.clone()));
-                }
+            self.sweep(Instant::now()).await;
+        }
+    }
+
+    /// Remove terminal tasks whose retention window has closed as of `now`,
+    /// with their work directories. Returns how many were removed.
+    pub async fn sweep(&self, now: Instant) -> usize {
+        let mut expired = Vec::new();
+        for e in self.tasks.iter() {
+            let state = e.status.borrow().state;
+            if !state.is_terminal() {
+                continue;
             }
-            for (id, dir) in expired {
-                self.tasks.remove(&id);
-                let _ = tokio::fs::remove_dir_all(&dir).await;
-                tracing::debug!(%id, "swept task");
+            let finished = e.finished_at.lock().unwrap().unwrap_or(now);
+            let age = now.saturating_duration_since(finished);
+            let retention = if state == TaskState::Success {
+                SUCCESS_RETENTION
+            } else {
+                TERMINAL_RETENTION
+            };
+            if age >= retention {
+                expired.push((*e.key(), e.workdir.clone()));
             }
         }
+        let removed = expired.len();
+        for (id, dir) in expired {
+            self.tasks.remove(&id);
+            let _ = tokio::fs::remove_dir_all(&dir).await;
+            tracing::debug!(%id, "swept task");
+        }
+        removed
     }
 }
 

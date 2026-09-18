@@ -45,6 +45,28 @@ impl Config {
     }
 }
 
+#[cfg(test)]
+impl Config {
+    /// Defaults for tests: no network features, one download slot.
+    pub fn for_tests(download_dir: PathBuf) -> Self {
+        Self {
+            bind: "127.0.0.1".parse().unwrap(),
+            port: 0,
+            download_dir,
+            max_concurrent_downloads: 1,
+            image_concurrency: 2,
+            cache_ttl: Duration::from_secs(1),
+            status_ttl: Duration::from_secs(1),
+            request_timeout: Duration::from_secs(5),
+            cors_origins: vec!["*".into()],
+            proxy_extra_hosts: vec![],
+            browser_enabled: false,
+            impersonation_enabled: false,
+            bato_base_url: "https://bato.si".into(),
+        }
+    }
+}
+
 fn var_or(key: &str, default: &str) -> String {
     env::var(key)
         .ok()

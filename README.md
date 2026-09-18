@@ -84,9 +84,11 @@ OpenAPI docs are served at `/docs`, the raw document at `/openapi.json`, and `ma
 cd server && cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test
 cargo test live_ -- --ignored --nocapture   # hits the real sites
 cd client && npm run lint && npm run typecheck && npm run build
+server/scripts/smoke.sh http://localhost:8000                 # black-box checks on a running server
+SMOKE_LIVE=1 SMOKE_SOURCE=mangapill server/scripts/smoke.sh   # plus a real search, queue and download
 ```
 
-CI runs the same checks and builds the Docker image on every push.
+`cargo test` includes end-to-end download tests (`src/api/flow_tests.rs`) that queue, run, cancel, fetch and sweep tasks against a fake source and a local image server, with no network. CI runs the checks above, then builds the Docker image and smoke-tests the running container on every push. `.github/workflows/nightly.yml` runs the live source tests and a real download per format against the actual sites every night; a failure there means a site changed, and it never blocks a merge. Plans for the Cloudflare-blocked sources are in `BOT_PROTECTION_PLAN.md`.
 
 ## Layout
 

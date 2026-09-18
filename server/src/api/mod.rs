@@ -8,6 +8,9 @@ pub mod search;
 pub mod sources;
 pub mod status;
 
+#[cfg(test)]
+mod flow_tests;
+
 use std::time::Duration;
 
 use axum::{Router, http::HeaderValue};

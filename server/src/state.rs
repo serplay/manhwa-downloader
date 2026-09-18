@@ -29,6 +29,11 @@ pub type SharedState = Arc<AppState>;
 
 impl AppState {
     pub async fn new(config: Config) -> anyhow::Result<Self> {
+        let registry = Registry::new(&config);
+        Self::with_registry(config, registry).await
+    }
+
+    pub async fn with_registry(config: Config, registry: Registry) -> anyhow::Result<Self> {
         let client = http::build_client(config.request_timeout)?;
         let impersonating = if config.impersonation_enabled {
             Some(http::build_impersonating_client(config.request_timeout)?)
@@ -37,7 +42,6 @@ impl AppState {
             None
         };
         let fetcher = Arc::new(Fetcher::new(client.clone(), impersonating));
-        let registry = Registry::new(&config);
         let caches = Caches::new(config.cache_ttl, config.status_ttl);
         let engine = Arc::new(
             TaskEngine::new(
