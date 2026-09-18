@@ -40,6 +40,9 @@ pub enum AppError {
         "{site} is behind a Cloudflare challenge that needs a real browser; this build cannot pass it"
     )]
     Blocked { site: String },
+    /// The client started too many downloads; retry after this many seconds.
+    #[error("too many downloads started from your address; try again in {retry_after_s}s")]
+    RateLimited { retry_after_s: u64 },
     #[error("{site} returned data we could not parse: {message}")]
     Parse { site: String, message: String },
     #[error(transparent)]
@@ -80,6 +83,7 @@ impl AppError {
             Self::Blocked { .. } => "SOURCE_BLOCKED",
             Self::AdultHidden(_) => "ADULT_HIDDEN",
             Self::Parse { .. } => "UPSTREAM_PARSE",
+            Self::RateLimited { .. } => "RATE_LIMITED",
             Self::Internal(_) => "INTERNAL",
         }
     }
@@ -95,6 +99,7 @@ impl AppError {
             Self::UpstreamTimeout { .. } => StatusCode::GATEWAY_TIMEOUT,
             Self::Blocked { .. } => StatusCode::SERVICE_UNAVAILABLE,
             Self::AdultHidden(_) => StatusCode::FORBIDDEN,
+            Self::RateLimited { .. } => StatusCode::TOO_MANY_REQUESTS,
             Self::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -175,10 +180,19 @@ impl AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let status = self.status();
+        let retry_after = match &self {
+            Self::RateLimited { retry_after_s } => Some(*retry_after_s),
+            _ => None,
+        };
         let body = ErrorBody {
             error: self.detail(),
         };
-        (status, Json(body)).into_response()
+        let mut resp = (status, Json(body)).into_response();
+        if let Some(secs) = retry_after {
+            resp.headers_mut()
+                .insert(axum::http::header::RETRY_AFTER, secs.into());
+        }
+        resp
     }
 }
 

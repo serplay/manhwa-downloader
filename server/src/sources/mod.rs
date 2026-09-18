@@ -14,6 +14,7 @@ pub mod mangadex;
 pub mod mangahere;
 pub mod mangapill;
 pub mod mangareader;
+pub mod throttle;
 pub mod weebcentral;
 
 #[cfg(test)]

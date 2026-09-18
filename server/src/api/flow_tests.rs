@@ -185,10 +185,17 @@ struct Harness {
 }
 
 async fn harness(configure: impl FnOnce(FakeSource) -> FakeSource, slots: usize) -> Harness {
+    harness_with(configure, |c| c.max_concurrent_downloads = slots).await
+}
+
+async fn harness_with(
+    configure: impl FnOnce(FakeSource) -> FakeSource,
+    tune: impl FnOnce(&mut Config),
+) -> Harness {
     let images = image_host().await;
     let downloads = tempfile::tempdir().unwrap();
     let mut config = Config::for_tests(downloads.path().to_path_buf());
-    config.max_concurrent_downloads = slots;
+    tune(&mut config);
     let source: Arc<dyn Source> = Arc::new(configure(FakeSource::new(&images.uri())));
     let state = Arc::new(
         AppState::with_registry(config, Registry::from_sources(vec![source]))
@@ -683,6 +690,53 @@ async fn unknown_task_ids_are_404() {
     assert_eq!(
         h.get("/download/status/not-a-uuid").await.status,
         StatusCode::BAD_REQUEST
+    );
+}
+
+#[tokio::test]
+async fn download_starts_are_rate_limited_per_client() {
+    let h = harness_with(
+        |s| s,
+        |c| {
+            c.download_rate_per_min = 1;
+            c.download_rate_burst = 2;
+            c.trusted_proxy_hops = 1;
+        },
+    )
+    .await;
+    let start_from = |ip: &'static str| {
+        Request::post("/download")
+            .header(header::CONTENT_TYPE, "application/json")
+            .header("x-forwarded-for", ip)
+            .body(Body::from(download_body("cbz", &["1"]).to_string()))
+            .unwrap()
+    };
+
+    for _ in 0..2 {
+        assert_eq!(
+            h.call(start_from("198.51.100.1")).await.status,
+            StatusCode::ACCEPTED
+        );
+    }
+    let limited = h.call(start_from("198.51.100.1")).await;
+    assert_eq!(limited.status, StatusCode::TOO_MANY_REQUESTS);
+    assert_eq!(limited.json()["error"]["code"], "RATE_LIMITED");
+    let retry: u64 = limited.headers[header::RETRY_AFTER]
+        .to_str()
+        .unwrap()
+        .parse()
+        .unwrap();
+    assert!((1..=60).contains(&retry), "{retry}");
+
+    // Someone else behind the same proxy is unaffected.
+    assert_eq!(
+        h.call(start_from("198.51.100.2")).await.status,
+        StatusCode::ACCEPTED
+    );
+    assert_eq!(
+        h.state.engine.list().len(),
+        3,
+        "the limited request queued nothing"
     );
 }
 

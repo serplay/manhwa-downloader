@@ -51,6 +51,7 @@ zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
 [dev-dependencies]
 http-body-util = "0.1.5"
 insta = { version = "1.48.0", features = ["json"] }
+tokio = { version = "1", features = ["full", "test-util"] }
 tower = { version = "0.5.3", features = ["util"] }
 wiremock = "0.6.5"
 

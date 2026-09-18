@@ -128,6 +128,16 @@
               }
             }
           },
+          "429": {
+            "description": "Too many downloads from this address; see Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
           "501": {
             "description": "Source cannot download yet",
             "content": {
@@ -254,7 +264,7 @@
             }
           },
           "404": {
-            "description": "Unknown task, failed task, or file already collected",
+            "description": "Unknown task, failed task, or an archive whose retention window has closed",
             "content": {
               "application/json": {
                 "schema": {
@@ -841,7 +851,8 @@
           "uptime_s",
           "active_tasks",
           "capabilities",
-          "sources"
+          "sources",
+          "upstream"
         ],
         "properties": {
           "active_tasks": {
@@ -857,6 +868,13 @@
           "status": {
             "type": "string"
           },
+          "upstream": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HostStats"
+            },
+            "description": "Request, Cloudflare challenge and rate-limit counts per upstream host\nsince start, busiest first."
+          },
           "uptime_s": {
             "type": "integer",
             "format": "int64",
@@ -864,6 +882,42 @@
           },
           "version": {
             "type": "string"
+          }
+        }
+      },
+      "HostStats": {
+        "type": "object",
+        "description": "Snapshot of one host's counters since the process started.",
+        "required": [
+          "host",
+          "requests",
+          "challenged",
+          "blocked",
+          "rate_limited"
+        ],
+        "properties": {
+          "blocked": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "challenged": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "host": {
+            "type": "string"
+          },
+          "rate_limited": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "requests": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
           }
         }
       },

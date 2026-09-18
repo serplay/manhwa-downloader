@@ -15,12 +15,18 @@ use futures::{StreamExt, TryStreamExt, stream::BoxStream};
 pub use http::header;
 use http::{HeaderMap, HeaderValue, Method, StatusCode};
 use reqwest::{Client, RequestBuilder, Response};
+use tokio::sync::OwnedSemaphorePermit;
 use wreq_util::Emulation;
 
+use super::throttle::{Event, HostStats, HostThrottle, host_of};
 use crate::{
     error::{AppError, AppResult},
     model::FetchTier,
 };
+
+/// Longest `Retry-After` we will sit out inside one request. Anything longer is
+/// handed back to the caller as the response it is.
+pub const MAX_RETRY_WAIT: Duration = Duration::from_secs(30);
 
 pub const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
 
@@ -75,6 +81,25 @@ fn looks_like_challenge(status: StatusCode, headers: &HeaderMap) -> bool {
                 .is_some_and(|v| v.to_ascii_lowercase().contains("cloudflare")))
 }
 
+/// `Retry-After` in its delta-seconds form. The HTTP-date form is rare from the
+/// hosts we talk to and falls back to our own backoff.
+pub fn retry_after(headers: &HeaderMap) -> Option<Duration> {
+    headers
+        .get(header::RETRY_AFTER)?
+        .to_str()
+        .ok()?
+        .trim()
+        .parse::<u64>()
+        .ok()
+        .map(Duration::from_secs)
+}
+
+/// A status that says "slow down" rather than "broken".
+fn is_rate_limit(status: StatusCode, headers: &HeaderMap) -> bool {
+    status == StatusCode::TOO_MANY_REQUESTS
+        || (status == StatusCode::SERVICE_UNAVAILABLE && headers.contains_key(header::RETRY_AFTER))
+}
+
 /// True when the response looks like a Cloudflare interstitial rather than the
 /// real page.
 pub fn is_cloudflare_challenge(resp: &Response) -> bool {
@@ -89,22 +114,27 @@ pub struct Fetched {
     pub status: StatusCode,
     pub headers: HeaderMap,
     body: BoxStream<'static, io::Result<Bytes>>,
+    /// The host slot this request holds. Released when the body is read or
+    /// the response is dropped, so a slow body counts against the host's cap.
+    slot: OwnedSemaphorePermit,
 }
 
 impl Fetched {
-    fn from_reqwest(resp: Response) -> Self {
+    fn from_reqwest(resp: Response, slot: OwnedSemaphorePermit) -> Self {
         Self {
             status: resp.status(),
             headers: resp.headers().clone(),
             body: resp.bytes_stream().map_err(io::Error::other).boxed(),
+            slot,
         }
     }
 
-    fn from_wreq(resp: wreq::Response) -> Self {
+    fn from_wreq(resp: wreq::Response, slot: OwnedSemaphorePermit) -> Self {
         Self {
             status: resp.status(),
             headers: resp.headers().clone(),
             body: resp.bytes_stream().map_err(io::Error::other).boxed(),
+            slot,
         }
     }
 
@@ -114,13 +144,21 @@ impl Fetched {
             .and_then(|v| v.to_str().ok())
     }
 
+    /// The body as a stream. The host slot travels with it and is released
+    /// when the stream is dropped.
     pub fn into_stream(self) -> BoxStream<'static, io::Result<Bytes>> {
+        let slot = self.slot;
         self.body
+            .map(move |chunk| {
+                let _held = &slot;
+                chunk
+            })
+            .boxed()
     }
 
     pub async fn bytes(self, source: &str) -> AppResult<Bytes> {
         let mut out = Vec::new();
-        let mut body = self.body;
+        let mut body = self.into_stream();
         while let Some(chunk) = body.next().await {
             let chunk = chunk.map_err(|e| AppError::Upstream {
                 site: Some(source.to_string()),
@@ -142,11 +180,21 @@ impl Fetched {
 pub struct Fetcher {
     plain: Client,
     impersonate: Option<wreq::Client>,
+    throttle: HostThrottle,
 }
 
 impl Fetcher {
-    pub fn new(plain: Client, impersonate: Option<wreq::Client>) -> Self {
-        Self { plain, impersonate }
+    pub fn new(plain: Client, impersonate: Option<wreq::Client>, throttle: HostThrottle) -> Self {
+        Self {
+            plain,
+            impersonate,
+            throttle,
+        }
+    }
+
+    /// Per-host request, challenge and rate-limit counters.
+    pub fn host_stats(&self) -> Vec<HostStats> {
+        self.throttle.stats()
     }
 
     pub fn can_impersonate(&self) -> bool {
@@ -162,10 +210,12 @@ impl Fetcher {
     }
 
     pub fn request(&self, method: Method, url: impl Into<String>) -> FetchBuilder<'_> {
+        let url = url.into();
         FetchBuilder {
             fetcher: self,
             method,
-            url: url.into(),
+            host: host_of(&url),
+            url,
             tier: FetchTier::Plain,
             source: "upstream".into(),
             headers: HeaderMap::new(),
@@ -198,6 +248,7 @@ pub struct FetchBuilder<'a> {
     fetcher: &'a Fetcher,
     method: Method,
     url: String,
+    host: String,
     tier: FetchTier,
     source: String,
     headers: HeaderMap,
@@ -276,10 +327,12 @@ impl FetchBuilder<'_> {
         for (i, client) in ladder.into_iter().enumerate() {
             let fetched = self.send_with_retry(client).await?;
             if looks_like_challenge(fetched.status, &fetched.headers) {
+                self.fetcher.throttle.record(&self.host, Event::Challenged);
                 if i < last {
                     tracing::info!(source = %self.source, url = %self.url, "cloudflare challenge; escalating to impersonation");
                     continue;
                 }
+                self.fetcher.throttle.record(&self.host, Event::Blocked);
                 return Err(AppError::Blocked {
                     site: self.source.clone(),
                 });
@@ -319,20 +372,33 @@ impl FetchBuilder<'_> {
         let mut delay = Duration::from_millis(300);
         let mut last_err: Option<AppError> = None;
         for attempt in 0..self.attempts {
+            let slot = self.fetcher.throttle.acquire(&self.host).await;
             let result = match client {
-                Client2::Plain(c) => self.send_plain(c).await,
-                Client2::Imp(c) => self.send_impersonating(c).await,
+                Client2::Plain(c) => self.send_plain(c, slot).await,
+                Client2::Imp(c) => self.send_impersonating(c, slot).await,
             };
+            let mut wait = delay;
             match result {
                 Ok(fetched) => {
                     let status = fetched.status;
+                    let asked = retry_after(&fetched.headers);
+                    if is_rate_limit(status, &fetched.headers) {
+                        self.fetcher.throttle.record(&self.host, Event::RateLimited);
+                        // Every request to this host waits, not just this one.
+                        self.fetcher
+                            .throttle
+                            .back_off(&self.host, asked.unwrap_or(delay));
+                    }
                     let retryable =
                         status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error();
+                    let too_long = asked.is_some_and(|a| a > MAX_RETRY_WAIT);
                     if retryable
+                        && !too_long
                         && attempt + 1 < self.attempts
                         && !looks_like_challenge(status, &fetched.headers)
                     {
-                        tracing::debug!(source = %self.source, %status, attempt, "retryable upstream status");
+                        wait = asked.unwrap_or(delay);
+                        tracing::debug!(source = %self.source, %status, attempt, ?wait, "retryable upstream status");
                         last_err = Some(AppError::Upstream {
                             site: Some(self.source.clone()),
                             message: format!("{} responded with HTTP {status}", self.source),
@@ -353,7 +419,7 @@ impl FetchBuilder<'_> {
                     last_err = Some(err);
                 }
             }
-            tokio::time::sleep(delay).await;
+            tokio::time::sleep(wait).await;
             delay = (delay * 2).min(Duration::from_secs(3));
         }
         Err(last_err.unwrap_or_else(|| AppError::Upstream {
@@ -362,7 +428,7 @@ impl FetchBuilder<'_> {
         }))
     }
 
-    async fn send_plain(&self, client: &Client) -> AppResult<Fetched> {
+    async fn send_plain(&self, client: &Client, slot: OwnedSemaphorePermit) -> AppResult<Fetched> {
         let mut req = client
             .request(self.method.clone(), &self.url)
             .headers(self.headers.clone());
@@ -376,11 +442,15 @@ impl FetchBuilder<'_> {
         }
         req.send()
             .await
-            .map(Fetched::from_reqwest)
+            .map(|r| Fetched::from_reqwest(r, slot))
             .map_err(|e| AppError::from_reqwest(&self.source, e))
     }
 
-    async fn send_impersonating(&self, client: &wreq::Client) -> AppResult<Fetched> {
+    async fn send_impersonating(
+        &self,
+        client: &wreq::Client,
+        slot: OwnedSemaphorePermit,
+    ) -> AppResult<Fetched> {
         let mut req = client
             .request(self.method.clone(), &self.url)
             .headers(self.headers.clone());
@@ -394,7 +464,7 @@ impl FetchBuilder<'_> {
         }
         req.send()
             .await
-            .map(Fetched::from_wreq)
+            .map(|r| Fetched::from_wreq(r, slot))
             .map_err(|e| AppError::from_wreq(&self.source, e))
     }
 }
@@ -411,12 +481,16 @@ pub async fn send_with_retry(
     let mut delay = Duration::from_millis(300);
     let mut last_err: Option<AppError> = None;
     for attempt in 0..attempts.max(1) {
+        let mut wait = delay;
         match build().send().await {
             Ok(resp) => {
                 let status = resp.status();
+                let asked = retry_after(resp.headers());
                 let retryable = status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error();
-                if retryable && attempt + 1 < attempts {
-                    tracing::debug!(%source, %status, attempt, "retryable upstream status");
+                let too_long = asked.is_some_and(|a| a > MAX_RETRY_WAIT);
+                if retryable && !too_long && attempt + 1 < attempts {
+                    wait = asked.unwrap_or(delay);
+                    tracing::debug!(%source, %status, attempt, ?wait, "retryable upstream status");
                     last_err = Some(AppError::Upstream {
                         site: Some(source.to_string()),
                         message: format!("{source} responded with HTTP {status}"),
@@ -442,7 +516,7 @@ pub async fn send_with_retry(
                 last_err = Some(mapped);
             }
         }
-        tokio::time::sleep(delay).await;
+        tokio::time::sleep(wait).await;
         delay = (delay * 2).min(Duration::from_secs(3));
     }
     Err(last_err.unwrap_or_else(|| AppError::Upstream {
@@ -486,6 +560,125 @@ mod tests {
         let mut h = HeaderMap::new();
         h.insert("cf-mitigated", HeaderValue::from_static("challenge"));
         assert!(looks_like_challenge(StatusCode::OK, &h));
+    }
+
+    mod fetcher {
+        use std::time::Instant;
+
+        use wiremock::{
+            Mock, MockServer, ResponseTemplate,
+            matchers::{method, path},
+        };
+
+        use super::super::*;
+
+        fn fetcher() -> Fetcher {
+            let client = build_client(Duration::from_secs(5)).unwrap();
+            Fetcher::new(client, None, HostThrottle::new(4, Duration::ZERO))
+        }
+
+        async fn stats_for(f: &Fetcher, server: &MockServer) -> HostStats {
+            let host = host_of(&server.uri());
+            f.host_stats().into_iter().find(|s| s.host == host).unwrap()
+        }
+
+        #[tokio::test]
+        async fn waits_out_a_short_retry_after_then_succeeds() {
+            let server = MockServer::start().await;
+            Mock::given(method("GET"))
+                .and(path("/page"))
+                .respond_with(ResponseTemplate::new(429).insert_header("retry-after", "1"))
+                .up_to_n_times(1)
+                .mount(&server)
+                .await;
+            Mock::given(method("GET"))
+                .and(path("/page"))
+                .respond_with(ResponseTemplate::new(200).set_body_string("hello"))
+                .mount(&server)
+                .await;
+
+            let f = fetcher();
+            let begin = Instant::now();
+            let body = f
+                .get(format!("{}/page", server.uri()))
+                .text()
+                .await
+                .unwrap();
+            assert_eq!(body, "hello");
+            assert!(
+                begin.elapsed() >= Duration::from_secs(1),
+                "did not honour Retry-After"
+            );
+            let stats = stats_for(&f, &server).await;
+            assert_eq!((stats.requests, stats.rate_limited), (2, 1));
+        }
+
+        #[tokio::test]
+        async fn gives_up_at_once_on_a_long_retry_after() {
+            let server = MockServer::start().await;
+            Mock::given(method("GET"))
+                .respond_with(ResponseTemplate::new(503).insert_header("retry-after", "3600"))
+                .expect(1)
+                .mount(&server)
+                .await;
+
+            let f = fetcher();
+            let begin = Instant::now();
+            let err = f
+                .get(format!("{}/page", server.uri()))
+                .text()
+                .await
+                .unwrap_err();
+            assert!(err.to_string().contains("503"), "{err}");
+            assert!(begin.elapsed() < Duration::from_secs(2));
+            assert_eq!(stats_for(&f, &server).await.rate_limited, 1);
+        }
+
+        #[tokio::test]
+        async fn counts_an_unpassable_challenge_as_blocked() {
+            let server = MockServer::start().await;
+            Mock::given(method("GET"))
+                .respond_with(
+                    ResponseTemplate::new(403)
+                        .insert_header("cf-mitigated", "challenge")
+                        .insert_header("server", "cloudflare"),
+                )
+                .mount(&server)
+                .await;
+
+            let f = fetcher();
+            let err = f
+                .get(format!("{}/", server.uri()))
+                .tier(FetchTier::Browser)
+                .send()
+                .await
+                .err()
+                .unwrap();
+            assert!(matches!(err, AppError::Blocked { .. }), "{err}");
+            let stats = stats_for(&f, &server).await;
+            assert_eq!((stats.challenged, stats.blocked), (1, 1));
+        }
+
+        #[tokio::test]
+        async fn a_held_body_keeps_its_host_slot() {
+            let server = MockServer::start().await;
+            Mock::given(method("GET"))
+                .respond_with(ResponseTemplate::new(200).set_body_string("x"))
+                .mount(&server)
+                .await;
+            let client = build_client(Duration::from_secs(5)).unwrap();
+            let f = Fetcher::new(client, None, HostThrottle::new(1, Duration::ZERO));
+            let url = format!("{}/a", server.uri());
+
+            let held = f.get(&url).send().await.unwrap();
+            let second = tokio::time::timeout(Duration::from_millis(300), f.get(&url).send()).await;
+            assert!(
+                second.is_err(),
+                "second request ran while the first body was unread"
+            );
+            drop(held);
+            f.get(&url).text().await.unwrap();
+        }
     }
 
     #[test]

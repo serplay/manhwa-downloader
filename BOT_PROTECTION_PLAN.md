@@ -1,6 +1,6 @@
 # Bot protection plan
 
-How to get the blocked sources working again without making the working ones worse. Status: **proposal**, nothing below is built yet.
+How to get the blocked sources working again without making the working ones worse. Status: B0 shipped; B1 onward is a proposal waiting on the decisions in section 5.
 
 ## 1. Where we stand (measured 2026-09-18, residential IP)
 
@@ -46,7 +46,10 @@ Last-resort fallback within A: if a site ties clearance to a fingerprint `wreq` 
 
 ## 4. Implementation phases
 
-### B0. Be a quieter client first (small, benefits every source)
+### B0. Be a quieter client first (small, benefits every source) — done 2026-09-18
+
+Shipped: `sources/throttle.rs` (per-host concurrency cap, start spacing with jitter, shared back-off), `Retry-After` honoured in both retry loops (up to 30s, longer gives up at once), per-IP token bucket on `POST /download` returning `429 RATE_LIMITED` with `Retry-After`, and per-host counters on `/health` under `upstream`. The original notes follow.
+
 Getting flagged is partly about volume. Today one task can open `IMAGE_CONCURRENCY` (6) × `MAX_CONCURRENT_DOWNLOADS` (2) = 12 parallel connections to one host.
 - Per-host limits in `Fetcher`: a concurrency cap (for example 4) plus a token bucket with jitter.
 - Honour `Retry-After` on 429 and 503 instead of fixed backoff.

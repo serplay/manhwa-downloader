@@ -59,6 +59,9 @@ All settings are environment variables; see `server/.env.example`. The ones that
 | `DOWNLOAD_DIR` | `./Downloads` | Working directory for archives |
 | `MAX_CONCURRENT_DOWNLOADS` | `2` | Parallel download jobs |
 | `IMAGE_CONCURRENCY` | `6` | Parallel page fetches per chapter |
+| `HOST_CONCURRENCY`, `HOST_MIN_INTERVAL_MS` | `6`, `50` | Parallel requests and start spacing per upstream host |
+| `DOWNLOAD_RATE_PER_MIN`, `DOWNLOAD_RATE_BURST` | `3`, `6` | Download starts per client IP; `0` disables |
+| `TRUSTED_PROXY_HOPS` | `0` | Proxies in front that append to `X-Forwarded-For`; **set this behind a proxy** or all visitors share one limit |
 | `IMPERSONATION_ENABLED` | `true` | Chrome-impersonating client for Cloudflare-fronted sources |
 | `BATO_BASE_URL` | `https://bato.si` | Bato mirror |
 
@@ -76,7 +79,7 @@ OpenAPI docs are served at `/docs`, the raw document at `/openapi.json`, and `ma
 | `GET /download/file/{id}` | Fetch the finished archive once |
 | `POST /download/cancel/{id}` | Cancel a running task |
 | `GET /proxy-image?url=&referer=` | Cover proxy, allowlisted hosts only |
-| `GET /health` | Version, uptime, available formats |
+| `GET /health` | Version, uptime, available formats, per-host request / challenge / rate-limit counters |
 
 ## Development
 

@@ -19,6 +19,17 @@ pub struct Config {
     /// Use the Chrome-impersonating client for Cloudflare-fronted sources.
     pub impersonation_enabled: bool,
     pub bato_base_url: String,
+    /// Parallel requests allowed to any one upstream host.
+    pub host_concurrency: usize,
+    /// Minimum spacing between request starts to one host (plus jitter).
+    pub host_min_interval: Duration,
+    /// Download starts refilled per minute per client IP. 0 disables the limit.
+    pub download_rate_per_min: u32,
+    /// Download starts a client IP may make back to back.
+    pub download_rate_burst: u32,
+    /// Reverse proxies in front of this server that append to `X-Forwarded-For`.
+    /// 0 trusts no header and uses the socket's peer address.
+    pub trusted_proxy_hops: usize,
 }
 
 impl Config {
@@ -41,6 +52,11 @@ impl Config {
             bato_base_url: var_or("BATO_BASE_URL", "https://bato.si")
                 .trim_end_matches('/')
                 .to_string(),
+            host_concurrency: var_or("HOST_CONCURRENCY", "6").parse()?,
+            host_min_interval: Duration::from_millis(var_or("HOST_MIN_INTERVAL_MS", "50").parse()?),
+            download_rate_per_min: var_or("DOWNLOAD_RATE_PER_MIN", "3").parse()?,
+            download_rate_burst: var_or("DOWNLOAD_RATE_BURST", "6").parse()?,
+            trusted_proxy_hops: var_or("TRUSTED_PROXY_HOPS", "0").parse()?,
         })
     }
 }
@@ -63,6 +79,11 @@ impl Config {
             browser_enabled: false,
             impersonation_enabled: false,
             bato_base_url: "https://bato.si".into(),
+            host_concurrency: 4,
+            host_min_interval: Duration::ZERO,
+            download_rate_per_min: 0,
+            download_rate_burst: 0,
+            trusted_proxy_hops: 0,
         }
     }
 }

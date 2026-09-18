@@ -4,6 +4,7 @@ pub mod chapters;
 pub mod download;
 pub mod health;
 pub mod proxy;
+pub mod ratelimit;
 pub mod search;
 pub mod sources;
 pub mod status;

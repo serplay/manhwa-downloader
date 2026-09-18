@@ -14,6 +14,6 @@ Open items after the Rust rewrite. Done items live in `MODERNIZATION_PLAN.md`.
 - [ ] PWA manifest and offline shell.
 
 ## Operations
-- [ ] Per-IP rate limit on `POST /download`.
+- [x] Per-IP rate limit on `POST /download` (`DOWNLOAD_RATE_*`, `TRUSTED_PROXY_HOPS`).
 - [ ] Ship `rar` in a variant image for CBR, if anyone still wants CBR.
 - [ ] Usage analytics for searched titles and sources.

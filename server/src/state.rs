@@ -5,8 +5,10 @@ use std::{sync::Arc, time::Instant};
 use reqwest::Client;
 
 use crate::{
+    api::ratelimit::RateLimiter,
     cache::Caches,
     config::Config,
+    sources::throttle::HostThrottle,
     sources::{
         Ctx, Registry,
         http::{self, Fetcher},
@@ -22,6 +24,8 @@ pub struct AppState {
     pub registry: Registry,
     pub caches: Caches,
     pub engine: Arc<TaskEngine>,
+    /// Per-client-IP limit on starting downloads.
+    pub download_limiter: RateLimiter,
     pub started_at: Instant,
 }
 
@@ -41,7 +45,10 @@ impl AppState {
             tracing::warn!("impersonation disabled; Cloudflare-fronted sources will be blocked");
             None
         };
-        let fetcher = Arc::new(Fetcher::new(client.clone(), impersonating));
+        let throttle = HostThrottle::new(config.host_concurrency, config.host_min_interval);
+        let fetcher = Arc::new(Fetcher::new(client.clone(), impersonating, throttle));
+        let download_limiter =
+            RateLimiter::new(config.download_rate_per_min, config.download_rate_burst);
         let caches = Caches::new(config.cache_ttl, config.status_ttl);
         let engine = Arc::new(
             TaskEngine::new(
@@ -58,6 +65,7 @@ impl AppState {
             registry,
             caches,
             engine,
+            download_limiter,
             started_at: Instant::now(),
         })
     }

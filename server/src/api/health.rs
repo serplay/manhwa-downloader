@@ -28,6 +28,9 @@ pub struct Health {
     pub active_tasks: usize,
     pub capabilities: Capabilities,
     pub sources: SourceCounts,
+    /// Request, Cloudflare challenge and rate-limit counts per upstream host
+    /// since start, busiest first.
+    pub upstream: Vec<crate::sources::throttle::HostStats>,
 }
 
 #[utoipa::path(get, path = "/health", tag = "system",
@@ -47,5 +50,6 @@ pub async fn health(State(state): State<SharedState>) -> Json<Health> {
             implemented: state.registry.implemented().count(),
             total: state.registry.all().len(),
         },
+        upstream: state.fetcher.host_stats(),
     })
 }

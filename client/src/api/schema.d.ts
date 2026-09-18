@@ -278,9 +278,26 @@ export interface components {
             capabilities: components["schemas"]["Capabilities"];
             sources: components["schemas"]["SourceCounts"];
             status: string;
+            /**
+             * @description Request, Cloudflare challenge and rate-limit counts per upstream host
+             *     since start, busiest first.
+             */
+            upstream: components["schemas"]["HostStats"][];
             /** Format: int64 */
             uptime_s: number;
             version: string;
+        };
+        /** @description Snapshot of one host's counters since the process started. */
+        HostStats: {
+            /** Format: int64 */
+            blocked: number;
+            /** Format: int64 */
+            challenged: number;
+            host: string;
+            /** Format: int64 */
+            rate_limited: number;
+            /** Format: int64 */
+            requests: number;
         };
         SearchResponse: {
             /** @description Sources that failed, keyed by slug. A partial failure is still a 200. */
@@ -464,6 +481,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
+            /** @description Too many downloads from this address; see Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
             /** @description Source cannot download yet */
             501: {
                 headers: {
@@ -563,7 +589,7 @@ export interface operations {
                     "application/octet-stream": unknown;
                 };
             };
-            /** @description Unknown task, failed task, or file already collected */
+            /** @description Unknown task, failed task, or an archive whose retention window has closed */
             404: {
                 headers: {
                     [name: string]: unknown;

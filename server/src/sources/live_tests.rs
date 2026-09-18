@@ -13,7 +13,11 @@ fn ctx() -> Ctx {
     let imp = http::build_impersonating_client(timeout).ok();
     Ctx {
         client: client.clone(),
-        fetcher: Arc::new(http::Fetcher::new(client, imp)),
+        fetcher: Arc::new(http::Fetcher::new(
+            client,
+            imp,
+            super::throttle::HostThrottle::new(4, Duration::from_millis(50)),
+        )),
     }
 }
 

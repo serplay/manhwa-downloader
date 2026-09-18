@@ -1,11 +1,11 @@
 //! Download lifecycle: start, poll, stream events, fetch the file, cancel.
 
-use std::convert::Infallible;
+use std::{convert::Infallible, net::SocketAddr};
 
 use axum::{
-    Json,
+    Extension, Json,
     body::{Body, Bytes},
-    extract::{Path, State},
+    extract::{ConnectInfo, Path, State},
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{
         IntoResponse, Response,
@@ -20,6 +20,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
+    api::ratelimit::client_ip,
     error::{AppError, AppResult},
     pipeline::ascii_filename,
     state::SharedState,
@@ -44,11 +45,28 @@ pub struct DownloadAccepted {
         (status = 202, body = DownloadAccepted),
         (status = 400, body = crate::error::ErrorBody),
         (status = 422, description = "Unsupported format on this server", body = crate::error::ErrorBody),
+        (status = 429, description = "Too many downloads from this address; see Retry-After", body = crate::error::ErrorBody),
         (status = 501, description = "Source cannot download yet", body = crate::error::ErrorBody)))]
 pub async fn start_download(
     State(state): State<SharedState>,
+    peer: Option<Extension<ConnectInfo<SocketAddr>>>,
+    headers: HeaderMap,
     body: Bytes,
 ) -> AppResult<(StatusCode, Json<DownloadAccepted>)> {
+    if state.download_limiter.enabled() {
+        let peer = peer.map(|Extension(ConnectInfo(addr))| addr);
+        match client_ip(&headers, peer, state.config.trusted_proxy_hops) {
+            Some(ip) => {
+                if let Err(wait) = state.download_limiter.check(ip) {
+                    tracing::info!(%ip, ?wait, "download rate limit hit");
+                    return Err(AppError::RateLimited {
+                        retry_after_s: wait.as_secs().max(1),
+                    });
+                }
+            }
+            None => tracing::warn!("no client address for the download rate limit"),
+        }
+    }
     if body.is_empty() {
         return Err(AppError::Validation(
             "send a JSON body with source, comic_title, format and chapters".into(),
